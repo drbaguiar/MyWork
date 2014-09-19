@@ -1,0 +1,126 @@
+---
+title: "RCommands"
+author: "Dr. B"
+date: "Sunday, September 14, 2014"
+output: html_document
+---
+
+Simple Linear Regression: Faithful
+----------
+
+### Problem
+Apply the simple linear regression model for the data set faithful, and estimate the next eruption duration if the waiting time since the last eruption has been 80 minutes.
+
+###Solution
+Apply the lm function to a formula that describes the variable eruptions by the variable waiting, and save the linear regression model in a new variable eruption.lm.
+```{r}
+eruption.lm = lm(eruptions ~ waiting, data=faithful)
+summary(eruption.lm)
+```
+
+Note: You can extract the parameters of the estimated regression equation with the coefficients function.
+
+```{r}
+coeffs = coefficients(eruption.lm)
+coeffs 
+```
+
+Wrap the waiting parameter value inside a new data frame named newdata.
+
+```{r}
+newdata = data.frame(waiting=80)
+```
+
+Apply the predict function to eruption.lm along with newdata.
+```{r}
+predict(eruption.lm, newdata) 
+```
+
+Based on the simple linear regression model, if the waiting time since the last eruption has been 80 minutes, we expect the next one to last 4.1762 minutes.
+
+###Problem
+In the data set faithful, develop a 95% confidence interval of the mean eruption duration for the waiting time of 80 minutes.
+
+###Solution
+Apply the predict function and set the predictor variable in the newdata argument. et the interval type as "confidence", and use the default 0.95 confidence level.
+
+```{r}
+predict(eruption.lm, newdata, interval="confidence") 
+```
+
+###Problem
+In the data set faithful, develop a 95% prediction interval of the eruption duration for the waiting time of 80 minutes.
+
+###Solution
+Apply the predict function and set the predictor variable in the newdata argument. We also set the interval type as "predict", and use the default 0.95 confidence level.
+
+```{r}
+predict(eruption.lm, newdata, interval="predict") 
+```
+
+Multiple Linear Regression: Stackloss
+----------
+### Problem
+Apply the multiple linear regression model for the data set stackloss, and predict the stack loss if the air flow is 72, water temperature is 20 and acid concentration is 85.
+
+###Solution
+Apply the lm function to a formula that describes the variable <b>stack.loss</b> by the variables Air.Flow, Water.Temp and Acid.Conc. Save the linear regression model in a new variable stackloss.lm.
+
+```{r}
+stackloss.lm = lm(stack.loss ~ Air.Flow + Water.Temp + Acid.Conc., data=stackloss)
+summary(stackloss.lm)
+```
+
+Wrap the parameters inside a new data frame named newdata.
+
+```{r}
+newdata = data.frame(Air.Flow=72, Water.Temp=20, Acid.Conc.=85)
+```
+
+Apply the predict function to stackloss.lm and newdata.
+
+```{r}
+predict(stackloss.lm, newdata) 
+```
+
+Based on the multiple linear regression model and the given parameters, the predicted stack loss is 24.582
+
+### Problem 2
+In data set stackloss, develop a 95% confidence interval of the stack loss if the air flow is 72, water temperature is 20 and acid concentration is 85.
+
+###Solution
+Apply the predict function and set the predictor variable in the newdata argument. We also set the interval type as "confidence", and use the default 0.95 confidence level.
+
+```{r}
+predict(stackloss.lm, newdata, interval="confidence") 
+```
+
+### Problem 3
+In data set stackloss, develop a 95% prediction interval of the stack loss if the air flow is 72, water temperature is 20 and acid concentration is 85.
+
+###Solution
+Apply the predict function and set the predictor variable in the newdata argument. We also set the interval type as "predict", and use the default 0.95 confidence level.
+
+```{r}
+predict(stackloss.lm, newdata, interval="predict") 
+```
+
+Confidence Interval of the Prediction versus Prediction Interval
+----------------------------------------------------------------
+A <b>confidence interval of the prediction</b> is a range that is likely to contain the mean response given specified settings of the predictors in the model. The confidence interval of the prediction presents a range for the mean rather than the distribution of individual data points.
+
+A <b>prediction interval</b> is a range that is likely to contain the response value of a single new observation given specified settings of the predictors in the model.
+
+The prediction interval is always wider than the corresponding confidence interval of the prediction because of the added uncertainty involved in predicting a single response versus the mean response.
+
+
+
+
+
+
+
+You can also embed plots, for example:
+```{r, echo=FALSE}
+plot(cars)
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
