@@ -1,0 +1,50 @@
+---
+title: "Probaililty"
+author: "Dr. B"
+date: "Sunday, September 21, 2014"
+output: html_document
+---
+
+Set the seed
+
+```{r}
+set.seed(2)
+```
+
+
+
+Binominal Probability (number of heads 0 to 3)
+
+```{r}
+x = seq(0, 3, by=1)
+prob_x = dbinom(x, size=3, prob=1/2)
+cbind(x, prob_x)
+plot(x, prob_x, type='h', col='red', main='Binomial(3,1/2)') # Plot the probai
+sum(x*prob_x) # compute the average
+```
+
+
+Binominal Probability (number of heads 1,000 tries of 10 flips)
+```{r}
+binom_sample = rbinom(1000, 10, prob=0.5)
+table(binom_sample) # display a table of the results
+#binom_sample
+freq = table(binom_sample) 
+barplot(freq, xlab = 'X=number of heads')
+```
+
+
+Uniform Distribution 
+```{r}
+x = seq(-1,2, length=100)
+unif01 = dunif(x, min=0, max=1)
+plot(x, unif01, type='l', col='red', main='Uniform[0,1]')
+```
+
+Normal Distribution 
+```{r}
+x = seq(-3, 3, length=100)
+normal01 = dnorm(x, mean=0, sd=1)
+plot(x, normal01, type='l', col='red', main='Normal(0,1)')
+```
+

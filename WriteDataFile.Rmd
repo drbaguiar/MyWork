@@ -1,0 +1,29 @@
+---
+title: "WriteDataFiles"
+author: "Dr. B"
+date: "Monday, September 22, 2014"
+output: html_document
+---
+Generate some random data
+```{r}
+mydata = matrix(rbinom(10*1000, 1, .5), ncol=10)
+mydata
+```
+
+Write the data to a csv file
+```{r}
+# Write CSV in R
+write.csv(mydata, file = "MyData.csv")
+```
+
+To omit the row names, add a comma and then row.names=FALSE. 
+```{r}
+# Write CSV in R
+write.csv(mydata, file = "MyDataNoRowName.csv",row.names=FALSE)
+```
+
+To omit NAs, add a comma and then na="".
+```{r}
+# Write CSV in R
+write.csv(mydata, file = "MyDataNoRowNameNoNA.csv",row.names=FALSE, na="")
+```
