@@ -27,3 +27,9 @@ To omit NAs, add a comma and then na="".
 # Write CSV in R
 write.csv(mydata, file = "MyDataNoRowNameNoNA.csv",row.names=FALSE, na="")
 ```
+
+To save as an R file.
+```{r}
+# Write R
+save(mydata, file = "MyData.Rdata")
+```

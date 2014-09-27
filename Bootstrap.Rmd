@@ -1,0 +1,86 @@
+---
+title: "Bootstrap"
+author: "Dr. B"
+date: "Friday, September 26, 2014"
+output: html_document
+---
+Bootstrap resampling is a computational method of measuring the error in a statistic's estimator.  We have just one dataset. When we compute a statistic on the data, we only know that one statistic ??? we don???t see how variable that statistic is. The bootstrap creates a large number of datasets that we might have seen and computes the statistic on each of these datasets. Thus we get a distribution of the statistic. Key is the strategy to create data that ???we might have seen???.
+
+First, set the seed
+```{r}
+#set the seed for reporducability
+set.seed(2)
+```
+
+Hypertension Dataset (adopted from Statistical methods in genetic epidemiology)
+Systolic blood pressure was measured in 250 progeny from a backcross between two mouse strains. For simplicity, we focus on 50 (randomly chosen) mice genotyped at the D4Mit214 marker (although more markers were genotyped). We want to detect association between the D4Mit214 marker genotype and blood pressure. The values on the left show the systolic blood pressure (in mm of Hg) by the marker genotype, BA (heterozygous) or BB (homozygous) arranged in increasing order.
+
+This is the R code with ?? = 0.05 and number of replicates = 1,000.
+```{r}
+# Heterozygous (BA)
+a = c(86, 88, 89, 89, 92, 93, 94, 94, 94, 95, 95, 96, 96, 97, 97, 98, 98, 99, 99, 101, 106, 107, 110, 113, 116, 118)
+ 
+# Homozygous (BB)
+b = c(89, 90, 92, 93, 93, 96, 99, 99, 99, 102, 103, 104, 105, 106, 106, 107, 108, 108, 110, 110, 112, 114, 116, 116)
+ 
+# Difference between means of observed datasets
+diff.observed = mean(b) - mean(a)
+ 
+# Level of significance
+alpha = 0.05
+ 
+# Number of replicates
+n = 1000
+ 
+# Difference between means of bootstrapped datasets (n replicates)
+diff.bootstrap = NULL
+ 
+for (i in 1 : n) {
+    # Sample with replacement (bootstrapping is with replacement)
+    a.bootstrap = sample  (a, length(a), TRUE)
+    b.bootstrap = sample  (b, length(b), TRUE)
+     
+    diff.bootstrap[i] = mean(b.bootstrap) - mean(a.bootstrap)
+}
+ 
+# Confidence interval
+quantile(diff.bootstrap, c(alpha/2, 1 - alpha/2))
+
+```
+
+Summary Statistics, Boxplots, and Histograms
+```{r}
+#Summary Statistics
+summary(a)
+summary(b)
+summary(a.bootstrap)
+summary(b.bootstrap)
+
+#Boxplots and Histograms
+boxplot(a,b,a.bootstrap,b.bootstrap)
+hist(a)
+hist(b)
+hist(a.bootstrap)
+hist(b.bootstrap)
+diff.observed
+hist(diff.bootstrap)
+
+#We can then plot the distribution of the bootstrapped a.
+plot(density(a.bootstrap), lwd=3, col="steelblue")
+abline(v=mean(a), lwd=3, col='gold')
+abline(v=quantile(a.bootstrap, c(alpha/2)),lwd=3, col='red')
+abline(v=quantile(a.bootstrap, c(1-alpha/2)),lwd=3, col='red')
+
+#We can then plot the distribution of the bootstrapped b.
+plot(density(b.bootstrap), lwd=3, col="steelblue")
+abline(v=mean(b), lwd=3, col='gold')
+abline(v=quantile(b.bootstrap, c(alpha/2)),lwd=3, col='red')
+abline(v=quantile(b.bootstrap, c(1-alpha/2)),lwd=3, col='red')
+
+#We can then plot the distribution of the bootstrapped differences.
+plot(density(diff.bootstrap), lwd=3, col="steelblue")
+abline(v=mean(diff.observed), lwd=3, col='gold')
+abline(v=quantile(diff.bootstrap, c(alpha/2)),lwd=3, col='red')
+abline(v=quantile(diff.bootstrap, c(1-alpha/2)),lwd=3, col='red')
+```
+
