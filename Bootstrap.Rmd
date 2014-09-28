@@ -4,6 +4,19 @@ author: "Dr. B"
 date: "Friday, September 26, 2014"
 output: html_document
 ---
+The primary task of a statistician is to summarize a sample based study and generalize the finding to the parent population in a scientific manner.  A technical term for a sample summary number is (sample) statistic. Some basic sample statistics are sample mean, sample median, sample standard deviation etc. Of course, a summary statistic like the sample mean will fluctuate from sample to sample and a statistician would like to know the magnitude of these fluctuations around the corresponding population parameter in an overall sense. This is then used in assessing Margin of Errors. The entire picture of all possible values of a sample statistics presented in the form of a probability distribution is called a sampling distribution. There is a plenty of theoretical knowledge of sampling distributions, which can be found in any text books of mathematical statistics. 
+
+Resampling Methods
+------------------
+
+Three resampling methods are commonly used for different purposes:
+
+1. Permutation methods use sampling without replacement to test hypotheses of ???no effect???;
+2. Bootstrap methods use sampling with replacement to establish confidence intervals; 
+3. Monte Carlo methods use repeated sampling from populations with known characteristics to determine how sensitive statistical procedures are to those characteristics.
+
+Bootstrapping
+-------------
 Bootstrap resampling is a computational method of measuring the error in a statistic's estimator.  We have just one dataset. When we compute a statistic on the data, we only know that one statistic ??? we don???t see how variable that statistic is. The bootstrap creates a large number of datasets that we might have seen and computes the statistic on each of these datasets. Thus we get a distribution of the statistic. Key is the strategy to create data that ???we might have seen???.
 
 First, set the seed
@@ -82,5 +95,108 @@ plot(density(diff.bootstrap), lwd=3, col="steelblue")
 abline(v=mean(diff.observed), lwd=3, col='gold')
 abline(v=quantile(diff.bootstrap, c(alpha/2)),lwd=3, col='red')
 abline(v=quantile(diff.bootstrap, c(1-alpha/2)),lwd=3, col='red')
+
+#We can then plot the distribution of the bootstrapped differences.
+dotchart(diff.bootstrap,labels=row.names(diff.bootstrap))
+abline(v=mean(diff.bootstrap), lwd=3, col='gold')
+
+stripchart(a.bootstrap,method="stack",pch=19,col="Red",xlab="Systolic blood pressure")
+stripchart(b.bootstrap,method="stack",pch=19,col="Red",xlab="Systolic blood pressure" )
+stripchart(a,method="stack",pch=19, col="Red",xlab="Systolic blood pressure")
+stripchart(b,method="stack",pch=19, col="Red",xlab="Systolic blood pressure")
+
 ```
 
+Bootstrapping Example 2
+```{r}
+data(sleep)
+attach(sleep)
+sleep
+```
+
+```{r}
+#for reference get the t stat of the sample and store it
+t.ref = with(sleep, t.test(extra~group)$statistic) 
+
+# Get just the data
+scores = sleep$extra 
+
+#Set Level of significsnce
+alpha=.05
+
+# the number of replicates
+n = 999         
+
+# establish storage for the results
+t.values = numeric(n)    
+
+#bootstrap putting the values into 2 groups with replacement, calculate t test and store
+for (i in 1:n) {
+ group1 = sample(scores, size=10, replace=T)
+ group2 = sample(scores, size=10, replace=T)
+ t.values[i] = t.test(group1,group2)$statistic
+}
+
+#Compare 
+tapply(extra, group, mean)
+mean(group1)
+mean(group2)
+
+#make a histogram of the t values and plot the t test from the original sample as well as  quantiles
+hist(t.values)
+abline(v=t.ref,lwd=3, col='gold')
+abline(v=quantile(t.values, c(alpha/2)),lwd=3, col='red')
+abline(v=quantile(t.values, c(1-alpha/2)),lwd=3, col='red')
+
+#Dotplot
+stripchart(extra~group,method="stack", pch=c(1,2,3), col=c("red","blue","green"), 
+    xlab="Extra Hours of Sleep",  ylab="Group", main="Extra Sleep vs. Drug", offset=0.5)
+
+
+#Calculate the simulation p-value ... 
+#Remember, "t.values<.05" generates a logical vector of TRUEs and FALSEs, in which TRUEs count as ones and FALSEs count as zeros. 
+# one-tailed (lower)
+mean(t.values<=t.ref)  
+
+# two-tailed
+mean(abs(t.values)>=abs(t.ref))
+
+```
+
+Bootstapping 3
+--------------
+
+```{r}
+#set the seed for reporducability
+rats = c(10, 27,30, 40, 46, 51, 52, 104, 146)
+
+
+# Level of significance
+alpha = 0.05
+ 
+# Number of replicates
+n = 10000
+
+#Bootstrap means
+rats.bootstrap = NULL
+for (i in 1:n) {
+    rats.bootstrap[i] = mean(sample(rats, size=9, replace=T))
+   }
+
+#Dot plot of original data with mean and calculated confidence intervals
+dotchart(rats)
+abline(v=mean(rats),lwd=3, col='gold')
+abline(v=mean(rats)+qt(alpha/2,df=length(rats)-1)*sd(rats)/sqrt(length(rats)),lwd=3, col='red')
+abline(v=mean(rats)+qt(1-alpha/2,df=length(rats)-1)*sd(rats)/sqrt(length(rats)),lwd=3, col='red')
+
+#Dot plot bootstrapped data with mean from original data and quantiles
+dotchart(rats.bootstrap)
+abline(v=mean(rats),lwd=3, col='gold')
+abline(v=quantile(rats.bootstrap, c(alpha/2)),lwd=3, col='red')
+abline(v=quantile(rats.bootstrap, c(1-alpha/2)),lwd=3, col='red')
+```
+
+
+
+Monte Carlo Estimation of Power
+------------------------------
