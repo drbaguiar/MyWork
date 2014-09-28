@@ -121,8 +121,18 @@ data(mtcars)
 str(mtcars)
 ```
 
-For more efficient analysis, transform the following 5 variables into factors:
+Compute the correlation matrix with all 11 varaiables.
+Show full correlation matrix
+```{r}
+cor(mtcars)
+```
+trim down the correlation matrix to first column and sort it
+```{r}
+cor.out <- sort(cor(mtcars)[,1])
+round(cor.out, 3)
+```
 
+For more efficient analysis, transform the following 5 variables into factors:
 ```{r}
 mtcars$gear <- factor(mtcars$gear,levels=c(3,4,5),labels=c("3gears","4gears","5gears"))
 mtcars$cyl <- factor(mtcars$cyl,levels=c(4,6,8),labels=c("4cyl","6cyl","8cyl")) 
@@ -131,18 +141,7 @@ mtcars$vs <- factor(mtcars$vs)
 mtcars$carb <- factor(mtcars$carb)
 ```
 
-Compute the correlation matrix with all 11 varaiables.
-```{r}
-data(mtcars)
-cor.out <- sort(cor(mtcars)[,1])
-round(cor.out, 3)
 
-```
-
-Show full correlation matrix
-```{r, }
-cor(mtcars)
-```
 
 Base regression model containing only am as the predictor variable.
 ```{r}
@@ -162,7 +161,7 @@ bestmodel <- step(inclusivemodel, direction = "both")
 summary(bestmodel)
 ```
 
-Finally, I compared the base model and the best model to determine if the confounder variables (wt and qsec) contribute to the accuracy of the model.
+Compare the base model and the best model to determine if the confounder variables (wt and qsec) contribute to the accuracy of the model.
 ```{r}
 anova(basemodel, bestmodel)
 ```

@@ -1,0 +1,59 @@
+---
+title: "Regression Residuals"
+author: "Dr. B"
+date: "Saturday, September 27, 2014"
+output: html_document
+---
+
+```{r}
+data(mtcars)
+str(mtcars)
+```
+
+For more efficient analysis, I transformed transforming the following 5 variables into factors:
+
+```{r}
+mtcars$gear <- factor(mtcars$gear,levels=c(3,4,5),labels=c("3gears","4gears","5gears"))
+mtcars$cyl <- factor(mtcars$cyl,levels=c(4,6,8),labels=c("4cyl","6cyl","8cyl")) 
+mtcars$am <- factor(mtcars$am,levels=c(0,1),labels=c("Automatic","Manual"))
+mtcars$vs <- factor(mtcars$vs)
+mtcars$carb <- factor(mtcars$carb)
+```
+
+
+Performed stepwise model selection in order to select significant predictors for the final, best model. The step function will perform this selection by calling lm repeatedly to build multiple regression models and select the best variables from them using both forward selection and backward elimination methods using AIC algorithm. This  ensures that the useful variables are included in the model while omitting ones that do not contribute significantly to predicting mpg.
+```{r}
+bestmodel <- step(lm(mpg ~ ., data = mtcars), direction = "both")
+summary(bestmodel)
+```
+
+Model Residuals and Diagnostics
+----------------------------
+In this section, I have prepared the residual plots (Appendix - Figure 3) of the regression model along with computation of regression diagnostics for the linear model. This analysis was comepleted in order to examine the residuals and identify leverage points.
+An analaysis of the residual plots indicated:
+
+1. The points in the Residuals vs. Fitted plot are randomly scattered on the plot, which verifies the condition of independence.  
+2. The Normal Q-Q plot consists of the points which mostly fall on the line, which indicates that the residuals are normally distributed.  
+3. The Scale-Location plot consists of points scattered in a constant band pattern, which indicates constant variance.  
+4. There were some distinct points of interest (outliers or leverage points) in the top right of the plots that may indicate values of increased leverage of outliers.  
+
+I computed regression diagnostics of the best model to identify leverage points. I computed the top three points in each case of influence measures. The data points with the most leverage in the fit are identfied by hatvalues().
+```{r}
+leverage <- hatvalues(bestmodel)
+tail(sort(leverage),3)
+```
+
+The data points that influence the model coefficients the most are given by the dfbetas() function.
+```{r}
+influential <- dfbetas(bestmodel)
+tail(sort(influential[,6]),3)
+```
+
+The models of vehicles identifyied above are the same models identified with the residual plots
+
+Residual Plots
+---------------
+```{r, echo=FALSE}
+par(mfrow=c(2, 2))
+plot(bestmodel)
+```
