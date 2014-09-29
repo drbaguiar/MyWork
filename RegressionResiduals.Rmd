@@ -20,16 +20,86 @@ mtcars$vs <- factor(mtcars$vs)
 mtcars$carb <- factor(mtcars$carb)
 ```
 
+Definitions
+-----------
+Residual: The difference between the predicted value (based on the regression equation) and the actual, observed value.
+
+Outlier: In linear regression, an outlier is an observation with large residual. In other words, it is an observation whose dependent-variable value is unusual given its value on the predictor variables. An outlier may indicate a sample peculiarity or may indicate a data entry error or other problem.
+
+Leverage: An observation with an extreme value on a predictor variable is a point with high leverage. Leverage is a measure of how far an independent variable deviates from its mean. High leverage points can have a great amount of effect on the estimate of regression coefficients.
+
+Influence: An observation is said to be influential if removing the observation substantially changes the estimate of the regression coefficients.  Influence can be thought of as the product of leverage and outlierness.
+
+Cook's distance (or Cook's D): A measure that combines the information of leverage and residual of the observation.
+
+
+
+
 
 Performed stepwise model selection in order to select significant predictors for the final, best model. The step function will perform this selection by calling lm repeatedly to build multiple regression models and select the best variables from them using both forward selection and backward elimination methods using AIC algorithm. This  ensures that the useful variables are included in the model while omitting ones that do not contribute significantly to predicting mpg.
 ```{r}
 bestmodel <- step(lm(mpg ~ ., data = mtcars), direction = "both")
 summary(bestmodel)
+residuals(bestmodel) # residuals
+```
+
+Assessing Outliers
+------------------
+```{r}
+require(car)
+outlierTest(bestmodel) # Bonferonni p-value for most extreme obs
 ```
 
 Model Residuals and Diagnostics
 ----------------------------
 In this section, I have prepared the residual plots (Appendix - Figure 3) of the regression model along with computation of regression diagnostics for the linear model. This analysis was comepleted in order to examine the residuals and identify leverage points.
+
+```{r}
+residuals(bestmodel) # residuals
+```
+
+Normality of Residuals
+```{r}
+# qq plot for studentized resid
+qqPlot(bestmodel, main="QQ Plot")
+# distribution of studentized residuals
+library(MASS)
+sresid <- studres(bestmodel) 
+hist(sresid, freq=FALSE, 
+   main="Distribution of Studentized Residuals")
+xfit<-seq(min(sresid),max(sresid),length=40) 
+yfit<-dnorm(xfit) 
+lines(xfit, yfit)
+```
+
+ Evaluate homoscedasticity
+```{r}
+# non-constant error variance test
+ncvTest(bestmodel)
+# plot studentized residuals vs. fitted values 
+spreadLevelPlot(bestmodel)
+```
+
+Evaluate Collinearity
+```{r}
+vif(bestmodel) # variance inflation factors 
+sqrt(vif(bestmodel)) > 2 # problem?
+```
+
+Evaluate Nonlinearity
+```{r}
+# component + residual plot 
+crPlots(bestmodel)
+# Ceres plots 
+ceresPlots(bestmodel)
+```
+
+Test for Autocorrelated Errors
+```{r}
+durbinWatsonTest(bestmodel)
+```
+
+
 An analaysis of the residual plots indicated:
 
 1. The points in the Residuals vs. Fitted plot are randomly scattered on the plot, which verifies the condition of independence.  
@@ -51,9 +121,33 @@ tail(sort(influential[,6]),3)
 
 The models of vehicles identifyied above are the same models identified with the residual plots
 
+```{r}
+# Influential Observations
+# added variable plots 
+avPlots(bestmodel)
+# Cook's D plot
+# identify D values > 4/(n-k-1) 
+cutoff <- 4/((nrow(mtcars)-length(bestmodel$coefficients)-2)) 
+plot(bestmodel, which=4, cook.levels=cutoff)
+# Influence Plot 
+influencePlot(bestmodel,id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
+```
+
 Residual Plots
 ---------------
 ```{r, echo=FALSE}
 par(mfrow=c(2, 2))
 plot(bestmodel)
+```
+
+```{r, echo=FALSE}
+qqPlot(bestmodel, main="QQ Plot") #qq plot for studentized resid 
+leveragePlots(bestmodel) # leverage plots
+```
+
+Global test of model assumptions
+```{r}
+require(gvlma)
+gvmodel <- gvlma(bestmodel) 
+summary(gvmodel)
 ```

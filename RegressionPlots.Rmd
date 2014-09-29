@@ -1,0 +1,155 @@
+---
+title: "RegressionPlots"
+author: "Dr. B"
+date: "Sunday, September 28, 2014"
+output: html_document
+---
+
+Load required libraries
+--------------
+```{r,results='hide',warning=FALSE, echo=FALSE}
+
+if (!require("lattice")) {
+  install.packages("lattice")
+}
+
+if (!require("gclus")) {
+  install.packages("gclus")
+}
+
+if (!require("Rcmdr")) {
+  install.packages("Rcmdr")
+}
+
+if (!require("hexbin")) {
+  install.packages("hexbin")
+}
+
+if (!require("scatterplot3d")) {
+  install.packages("scatterplot3d")
+}
+
+require("gclus")
+require("Rcmdr")
+require("scatterplot3d")
+require("hexbin")
+require("lattice")
+require("rgl")
+```
+
+Load Data
+---------
+Load the mtcars dataset, attach the dataset, and review the variables.
+```{r,results='hide',warning=FALSE}
+data(mtcars)
+attach(mtcars)
+str(mtcars)
+```
+
+OLS Regression
+--------------
+For more efficient analysis, transform the following 5 variables into factors:
+```{r}
+gear <- factor(gear,levels=c(3,4,5),labels=c("3gears","4gears","5gears"))
+cyl <- factor(cyl,levels=c(4,6,8),labels=c("4cyl","6cyl","8cyl")) 
+am <- factor(am,levels=c(0,1),labels=c("Automatic","Manual"))
+#mtcars$vs <- factor(mtcars$vs)
+#mtcars$carb <- factor(mtcars$carb)
+```
+
+Perform stepwise model selection in order to select significant predictors for the final, best model. The step function will perform this selection by calling lm repeatedly to build multiple regression models and select the best variables from them using both forward selection and backward elimination methods using AIC algorithm. This  ensures that the useful variables are included in the model while omitting ones that do not contribute significantly to predicting mpg.
+```{r,results='hide'}
+bestmodel <- step(lm(mpg ~ ., data = mtcars), direction = "both")
+summary(bestmodel)
+```
+
+Plain Scatterplots
+------------------
+Simple Scatterplot
+```{r, echo=FALSE}
+plot(wt, mpg, main="Scatterplot Example", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+```
+
+Add fit lines
+```{r, echo=FALSE}
+# Add fit lines
+plot(wt, mpg, main="Scatterplot Example", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+abline(lm(mpg~wt), col="red") # regression line (y~x) 
+lines(lowess(wt,mpg), col="blue") # lowess line (x,y)
+```
+
+Enhanced features, including fit lines, marginal box plots, conditioning on a factor, and interactive point identification. Each of these features is optional.
+```{r, echo=FALSE}
+scatterplot(mpg ~ wt | cyl, data=mtcars, xlab="Weight of Car", ylab="Miles Per Gallon", 
+   main="Enhanced Scatter Plot", labels=row.names(mtcars))
+```
+
+3D Scatterplots
+-------------
+Plain 3D Scatterplot
+```{r,echo=FALSE}
+scatterplot3d(wt,disp,mpg, main="3D Scatterplot")
+```
+
+3D Scatterplot with Coloring and Vertical Drop Lines
+```{r, echo=FALSE}
+scatterplot3d(wt,disp,mpg, pch=16, highlight.3d=TRUE,type="h", main="3D Scatterplot")
+```
+
+3D Scatterplot with Coloring and Vertical Lines and Regression Plane 
+```{r, echo=FALSE}
+s3d <-scatterplot3d(wt,disp,mpg, pch=16, highlight.3d=TRUE,type="h", main="3D Scatterplot")
+fit <- lm(mpg ~ wt+disp) 
+s3d$plane3d(fit)
+```
+
+High Density Scatterplots
+-------------------------------------
+High Density Scatterplot with Binning
+```{r, echo=FALSE}
+# High Density Scatterplot with Binning
+x <- rnorm(1000)
+y <- rnorm(1000)
+bin<-hexbin(x, y, xbins=50) 
+plot(bin, main="Hexagonal Binning")
+```
+
+Basic Scatterplot Matrices
+------------------------
+Basic Scatterplot Matrix
+```{r, echo=FALSE}
+#Basic Scatterplot Matrix (all variables)
+pairs(mpg~.,data=mtcars,main="Simple Scatterplot Matrix")
+```
+
+Condition the scatterplot matrix on a factor.
+```{r, echo=FALSE}
+super.sym <- trellis.par.get("superpose.symbol")
+splom(mtcars[c(1,3,5,6)], groups=cyl,panel=panel.superpose, 
+   key=list(title="Three Cylinder Options",columns=3,points=list(pch=super.sym$pch[1:3],
+   col=super.sym$col[1:3]),text=list(c("4 Cylinder","6 Cylinder","8 Cylinder"))))
+```
+
+Condition the scatterplot matrix on a factor, and optionally include lowess and linear best fit lines, and boxplot, densities, or histograms in the principal diagonal, as well as rug plots in the margins of the cells.
+```{r, echo=FALSE}
+scatterplotMatrix(~mpg+disp+drat+wt|cyl, data=mtcars,main="Three Cylinder Options")
+```
+
+Options to rearrange the variables so that those with higher correlations are closer to the principal diagonal. Color code the cells to reflect the size of the correlations.
+```{r, echo=FALSE}
+# Scatterplot Matrices from the glus Package 
+dta <- mtcars[c(1,3,5,6)] # get data 
+dta.r <- abs(cor(dta)) # get correlations
+dta.col <- dmat.color(dta.r) # get colors
+# reorder variables so those with highest correlation
+# are closest to the diagonal
+dta.o <- order.single(dta.r) 
+cpairs(dta, dta.o, panel.colors=dta.col, gap=.5,
+main="Variables Ordered and Colored by Correlation" )
+```
+
+Spinning 3D Scatterplots
+```{r, echo=FALSE}
+scatter3d(wt, disp, mpg)
+plot3d(wt, disp, mpg, col="red", size=3)
+```

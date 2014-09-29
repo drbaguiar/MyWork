@@ -26,7 +26,6 @@ coeffs
 ```
 
 Wrap the waiting parameter value inside a new data frame named newdata.
-
 ```{r}
 newdata = data.frame(waiting=80)
 ```
@@ -165,3 +164,16 @@ Compare the base model and the best model to determine if the confounder variabl
 ```{r}
 anova(basemodel, bestmodel)
 ```
+
+```{r}
+coefficients(bestmodel) # model coefficients
+confint(bestmodel, level=0.95) # CIs for model parameters 
+fitted(bestmodel) # predicted values
+anova(bestmodel) # anova table 
+vcov(bestmodel) # covariance matrix for model parameters 
+```
+
+
+
+
+
