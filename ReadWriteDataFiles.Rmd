@@ -1,0 +1,82 @@
+---
+title: "ReadWriteDataFiles"
+author: "Dr. B"
+date: "Monday, September 22, 2014"
+output: html_document
+---
+Generate some random data
+```{r}
+mydata = matrix(rbinom(10*1000, 1, .5), ncol=10)
+mydata
+```
+
+Write Files
+-----------
+Write the data to a csv file
+```{r}
+# Write CSV in R
+write.csv(mydata, file = "MyData.csv")
+```
+
+To omit the row names, add a comma and then row.names=FALSE. 
+```{r}
+# Write CSV in R
+write.csv(mydata, file = "MyDataNoRowName.csv",row.names=FALSE)
+```
+
+To omit NAs, add a comma and then na="".
+```{r}
+# Write CSV in R
+write.csv(mydata, file = "MyDataNoRowNameNoNA.csv",row.names=FALSE, na="")
+```
+
+To save as an R file.
+```{r}
+# Write R
+save(mydata, file = "MyData.Rdata")
+```
+
+Read Files
+----------
+Read a csv file 
+```{r}
+# Write R
+read.csv("MyData.csv")  # read csv file
+```
+
+To read a R file
+```{r}
+# Load R
+load(file = "MyData.Rdata")
+```
+
+To read a text file
+```{r}
+# Read text file
+read.table("y_test.txt")
+```
+
+Download csv from the Internet
+```{r}
+#Check to see if file (or directory) exists. If not, download the file
+if (!file.exists("log.csv")) {
+  # Url for downloading - Does not contain login credentials.
+  url <- "http://statcounter.com/p7447608/csv/download_log_file?ufrom=1323783441&uto=1323860282" 
+  #using download file
+  download.file(url, destfile = "log.csv" )
+}
+#read the data into a
+MyData <- read.csv("log.csv" )
+str(MyData)
+```
+
+Download zip from the Internet and unzip it
+```{r}
+#Check for the file. If not there, download the data and extract it
+if (!file.exists("dataset.zip")) {
+  zip.url <- 'http://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip'
+  zip.file <- 'dataset.zip'
+  download.file(zip.url, destfile = zip.file)
+  unzip(zip.file)
+}
+```
