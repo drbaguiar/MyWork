@@ -1,168 +1,60 @@
 ---
-title: "Regression"
+title: "R Commands"
 author: "Dr. B"
 date: "Sunday, September 14, 2014"
 output: html_document
 ---
 
-Simple Linear Regression: Faithful
+R Commands
 ----------
 
-### Problem
-Apply the simple linear regression model for the data set faithful, and estimate the next eruption duration if the waiting time since the last eruption has been 80 minutes.
-
-###Solution
-Apply the lm function to a formula that describes the variable eruptions by the variable waiting, and save the linear regression model in a new variable eruption.lm.
 ```{r}
-eruption.lm = lm(eruptions ~ waiting, data=faithful)
-summary(eruption.lm)
+# Generate some random data
+x = rnorm(1000,25,5)
 ```
 
-Note: You can extract the parameters of the estimated regression equation with the coefficients function.
-
+One numberical value
 ```{r}
-coeffs = coefficients(eruption.lm)
-coeffs 
+summary(x) # most summary statitstics at once
+mean(x) # na.rm = TRUE to get rid of NA values
+median(x) # na.rm = TRUEto get rid of NA values
+sd(x)# na.rm = TRUE to get rid of NA values
 ```
 
-Wrap the waiting parameter value inside a new data frame named newdata.
-
+Graphs, one numerical value
 ```{r}
-newdata = data.frame(waiting=80)
+hist(x)
+boxplot(x) # horizontal = TRUE for horizontal plot
+qqnorm(x)
+qqline(x) # for normal probability plot and straight line
 ```
 
-Apply the predict function to eruption.lm along with newdata.
-```{r}
-predict(eruption.lm, newdata) 
-```
-
-Based on the simple linear regression model, if the waiting time since the last eruption has been 80 minutes, we expect the next one to last 4.1762 minutes.
-
-###Problem
-In the data set faithful, develop a 95% confidence interval of the mean eruption duration for the waiting time of 80 minutes.
-
-###Solution
-Apply the predict function and set the predictor variable in the newdata argument. et the interval type as "confidence", and use the default 0.95 confidence level.
 
 ```{r}
-predict(eruption.lm, newdata, interval="confidence") 
+# sample from x size number of elements without replacement (default)
+# to sample with replacement replace = TRUE
+sample(x, 30, replace = FALSE)
 ```
 
-###Problem
-In the data set faithful, develop a 95% prediction interval of the eruption duration for the waiting time of 80 minutes.
-
-###Solution
-Apply the predict function and set the predictor variable in the newdata argument. We also set the interval type as "predict", and use the default 0.95 confidence level.
 
 ```{r}
-predict(eruption.lm, newdata, interval="predict") 
+
 ```
 
-Multiple Linear Regression: Stackloss
-----------
-### Problem
-Apply the multiple linear regression model for the data set stackloss, and predict the stack loss if the air flow is 72, water temperature is 20 and acid concentration is 85.
-
-###Solution
-Apply the lm function to a formula that describes the variable <b>stack.loss</b> by the variables Air.Flow, Water.Temp and Acid.Conc. Save the linear regression model in a new variable stackloss.lm.
 
 ```{r}
-stackloss.lm = lm(stack.loss ~ Air.Flow + Water.Temp + Acid.Conc., data=stackloss)
-summary(stackloss.lm)
-```
 
-Wrap the parameters inside a new data frame named newdata.
+```
 
 ```{r}
-newdata = data.frame(Air.Flow=72, Water.Temp=20, Acid.Conc.=85)
 ```
-
-Apply the predict function to stackloss.lm and newdata.
 
 ```{r}
-predict(stackloss.lm, newdata) 
 ```
-
-Based on the multiple linear regression model and the given parameters, the predicted stack loss is 24.582
-
-### Problem 2
-In data set stackloss, develop a 95% confidence interval of the stack loss if the air flow is 72, water temperature is 20 and acid concentration is 85.
-
-###Solution
-Apply the predict function and set the predictor variable in the newdata argument. We also set the interval type as "confidence", and use the default 0.95 confidence level.
 
 ```{r}
-predict(stackloss.lm, newdata, interval="confidence") 
 ```
-
-### Problem 3
-In data set stackloss, develop a 95% prediction interval of the stack loss if the air flow is 72, water temperature is 20 and acid concentration is 85.
-
-###Solution
-Apply the predict function and set the predictor variable in the newdata argument. We also set the interval type as "predict", and use the default 0.95 confidence level.
 
 ```{r}
-predict(stackloss.lm, newdata, interval="predict") 
 ```
 
-Confidence Interval of the Prediction versus Prediction Interval
-----------------------------------------------------------------
-A <b>confidence interval of the prediction</b> is a range that is likely to contain the mean response given specified settings of the predictors in the model. The confidence interval of the prediction presents a range for the mean rather than the distribution of individual data points.
-
-A <b>prediction interval</b> is a range that is likely to contain the response value of a single new observation given specified settings of the predictors in the model.
-
-The prediction interval is always wider than the corresponding confidence interval of the prediction because of the added uncertainty involved in predicting a single response versus the mean response.
-
-Regression Example
-------------------
-Load the mtcars dataset and reviewing the variables.
-```{r}
-data(mtcars)
-str(mtcars)
-```
-
-For more efficient analysis, transform the following 5 variables into factors:
-
-```{r}
-mtcars$gear <- factor(mtcars$gear,levels=c(3,4,5),labels=c("3gears","4gears","5gears"))
-mtcars$cyl <- factor(mtcars$cyl,levels=c(4,6,8),labels=c("4cyl","6cyl","8cyl")) 
-mtcars$am <- factor(mtcars$am,levels=c(0,1),labels=c("Automatic","Manual"))
-mtcars$vs <- factor(mtcars$vs)
-mtcars$carb <- factor(mtcars$carb)
-```
-
-Compute the correlation matrix with all 11 varaiables.
-```{r}
-data(mtcars)
-cor.out <- sort(cor(mtcars)[,1])
-round(cor.out, 3)
-
-```
-
-Show full correlation matrix
-```{r, }
-cor(mtcars)
-```
-
-Base regression model containing only am as the predictor variable.
-```{r}
-basemodel <- lm(mpg ~ am, data = mtcars)
-summary(basemodel)
-```
-
-Inclusive model that included all variables as predictors of mpg.
-```{r}
-inclusivemodel <- lm(mpg ~ ., data = mtcars)
-summary(inclusivemodel)
-```
-
-Perform stepwise model selection in order to select significant predictors for the final, best model. The step function will perform this selection by calling lm repeatedly to build multiple regression models and select the best variables from them using both forward selection and backward elimination methods using AIC algorithm. This  ensures that the useful variables are included in the model while omitting ones that do not contribute significantly to predicting mpg.
-```{r}
-bestmodel <- step(inclusivemodel, direction = "both")
-summary(bestmodel)
-```
-
-Finally, I compared the base model and the best model to determine if the confounder variables (wt and qsec) contribute to the accuracy of the model.
-```{r}
-anova(basemodel, bestmodel)
-```
