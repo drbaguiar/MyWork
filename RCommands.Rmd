@@ -5,15 +5,15 @@ date: "Sunday, September 14, 2014"
 output: html_document
 ---
 
-R Commands
+One numberical value
 ----------
-
+Generate some random data
 ```{r}
 # Generate some random data
-x = rnorm(1000,25,5)
+x = rnorm(263,25,5)
 ```
 
-One numberical value
+Stats
 ```{r}
 summary(x) # most summary statitstics at once
 mean(x) # na.rm = TRUE to get rid of NA values
@@ -29,21 +29,59 @@ qqnorm(x)
 qqline(x) # for normal probability plot and straight line
 ```
 
-
+Sample 
 ```{r}
 # sample from x size number of elements without replacement (default)
 # to sample with replacement replace = TRUE
 sample(x, 30, replace = FALSE)
 ```
 
+One Categorical Variable
+------------------------
+Generate categorical data
+```{r}
+#
+maj <-c(rep("science",81),rep("social science",129),rep("arts",53))
+ses <-c(rep("low",48),rep("lower middle",58),rep("upper middle",80),rep("upper",77))
+```
+
+Table
+```{r}
+table(maj)
+table(ses)
+```
+
+Visualize
+```{r}
+barplot(table(ses))
+```
+
+Two Categorical Variables
+--------------------------
+```{r}
+table(maj,ses)
+```
 
 ```{r}
+barplot(table(maj,ses)) # beside = TRUE for side-by-side barplot # legend = TRUE to include a color legend 
+mosaicplot(table(maj,ses))
+
 
 ```
 
-
+One quantative and one categorical Variable
+-------------------------------------------
 ```{r}
+by(x, maj, summary) # summary by group
+by(x, maj, mean) # mean by group
+# na.rm = TRUE to get rid of NA values
+by(x, maj, sd) # sd by group na.rm = TRUE to get rid of NA values
+```
 
+Visualization
+```{r}
+boxplot(x ~ maj)
+5
 ```
 
 ```{r}
@@ -58,3 +96,8 @@ sample(x, 30, replace = FALSE)
 ```{r}
 ```
 
+```{r}
+```
+
+```{r}
+```
