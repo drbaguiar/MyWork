@@ -13,16 +13,28 @@ Generate some random data
 x = rnorm(263,25,5)
 ```
 
+Load need librarys
+```{r}
+ library(e1071)  
+```
+
 Stats
 ```{r}
 summary(x) # most summary statitstics at once
 mean(x) # na.rm = TRUE to get rid of NA values
 median(x) # na.rm = TRUEto get rid of NA values
-sd(x)# na.rm = TRUE to get rid of NA values
+sd(x)# na.rm = TRUE to get rid of NA values'
+range(x)
+quantile(x)
+quantile(x, c(.32, .57, .98)) #quantile(duration, c(.32, .57, .98)) 
+IQR(x)   # apply the IQR function
+skewness(x)
+kurtosis(x)  
 ```
 
 Graphs, one numerical value
 ```{r}
+stem(x)
 hist(x)
 boxplot(x) # horizontal = TRUE for horizontal plot
 qqnorm(x)
@@ -84,10 +96,15 @@ boxplot(x ~ maj)
 5
 ```
 
+Histogram of x
 ```{r}
+hist(x)
 ```
 
+Add a rug
 ```{r}
+hist(x)
+rug(x)
 ```
 
 ```{r}
