@@ -20,6 +20,13 @@ A very simple graph using the values in the car vector:
 plot(cars)
 ```
 
+Add a horizental line at mean: 
+```{r}
+# Graph the cars vector with all defaults
+plot(cars)
+abline(h=mean(cars, na.rm="True"), col="Red")
+```
+
 Add a title, a line to connect the points, and some color: 
 ```{r}
 # Graph cars using blue points overlayed by a line 
@@ -239,6 +246,13 @@ Basic Histogram
 hist(suvs)
 ```
 
+Add a red vertical line at the mean
+```{r}
+# Create a histogram for suvs
+hist(suvs)
+abline(v=mean(suvs, na.rm="True"), col="Red")
+```
+
 plot a histogram of the combined car, truck, and suv data in color. 
 ```{r}
 # Concatenate the three vectors
@@ -247,6 +261,9 @@ autos <- c(cars, trucks, suvs)
 # Create a histogram for autos in light blue with the y axis
 # ranging from 0-10
 hist(autos, col="lightblue", ylim=c(0,10))
+#add a red line at mean
+abline(v=mean(autos, na.rm="True"), col="Red")
+
 ```
 
 Change the breaks so none of the values are grouped together and flip the y-axis labels horizontally. 

@@ -15,6 +15,22 @@ Homogeneity of variance -- the populations within each cell of the design should
 
 The last two are assumptions we need to look at statistically.
 
+Variables
+------------
+Types of Variables Determine Type of Model
+
+The explanatory variables
+        All continuous                  Regression
+        All categorical                 Analysis of variance (Anova)
+        Both continuousand categorical  Analysis of covariance (Ancova)
+        
+The response variable
+        Continuous                      Normal Regression, Anova, Ancova
+        Proportion                      Logistic regression
+        Count                           Log linear models
+        Binary                          Binary logistic analysis
+        Time-at-death                   Survival analysis
+
 The Oneway ANOVA
 ----------------
 On of the simpliest wways to perform an analysis of variance is to use the oneway.test( ) function for simple between subjects designs. 
@@ -31,10 +47,11 @@ tapply(count, spray, length)
 There are large differences in the means, but there are also large differences in the variances (and worse yet, the means and variances appear to be related). At least the design is balanced. Boxplots are a good way to present the data graphically... 
 ```{r, echo=FALSE}
 boxplot(count ~ spray)
+abline(h=mean(count), col="Red")
 ```
 
 ###The aov( ) Function
- The standard R function for all kinds of ANOVA is aov( ). It's best to store the output of this function and then to extract the information you want by way of various extractor functions.
+The standard R function for all kinds of ANOVA is aov( ). The general form is aov(response ~ factor, data=data_name).  It's best to store the output of this function and then to extract the information you want by way of various extractor functions.
 ```{r}
 output <- aov(count ~ spray)
 model.tables(output,"means")
@@ -42,10 +59,19 @@ summary(output)
 plot(output)
 ```
 
-####Post Hoc Tests
-The Tukey Honestly Significant Difference test has been implemented in the R base distribution as the default post hoc test for ANOVA. It's easily enough applied once the output of aov( ) has been stored in a data object.  The procedure prints out the difference between means for each pair of groups, the lower and upper limits of a 95% confidence interval for that difference (change this by setting the "conf.level=" option), and the p-value for the Tukey test. 
+###Post Hoc Tests
+####Pairwise T Test
+The function pairwise.t.test computes the pair-wise comparisons between group means with corrections for multiple testing. The general form is pairwise.t.test(reponse, factor, p.adjust = method, alternative = c("two.sided","less", "greater"))
+```{r}
+pairwise.t.test(count, spray,  p.adjust="bonferroni")
+```
+
+####Tukey Honestly Significant Difference
+The Tukey Honestly Significant Difference test has been implemented in the R base distribution as the default post hoc test for ANOVA. It's easily enough applied once the output of aov( ) has been stored in a data object.  The procedure prints out the difference between means for each pair of groups, the lower and upper limits of a 95% confidence interval for that difference (change this by setting the "conf.level=" option), and the p-value for the Tukey test.  The general form is TukeyHSD(x, conf.level = 0.95)
+
 ```{r}
 TukeyHSD(output)
+plot(TukeyHSD(output))
 ```
 
 ###oneway.test( ) 
@@ -55,9 +81,15 @@ oneway.test(count ~ spray)
 ```
 
 ###Testing For Homogeneity of Variance
-R incorporates the Bartlett test to test the null hypothesis of equal group variances
+R incorporates the Bartlett test to test the null hypothesis of equal group variances.  Look for p-value to be greater than .05.
 ```{r}
 bartlett.test(count ~ spray, data=InsectSprays)
+```
+
+###Testing For Normality in One Way ANOVA
+The Shapiro test can be used to check the normality assumption for ANOVA F-test. Look for p-value to be greater than .05.
+```{r}
+by(InsectSprays$count, InsectSprays$spray, shapiro.test)
 ```
 
 ###Kruskal-Wallis oneway ANOVA

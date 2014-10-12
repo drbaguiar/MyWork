@@ -63,7 +63,7 @@ table(maj)
 table(ses)
 ```
 
-Visualize
+Visualize 
 ```{r}
 barplot(table(ses))
 ```
@@ -90,10 +90,11 @@ by(x, maj, mean) # mean by group
 by(x, maj, sd) # sd by group na.rm = TRUE to get rid of NA values
 ```
 
-Visualization
+Visualization with horizental line at mean
 ```{r}
 boxplot(x ~ maj)
-5
+abline(h=mean(x, na.rm="True"), col="Red")
+
 ```
 
 Histogram of x
@@ -107,7 +108,13 @@ hist(x)
 rug(x)
 ```
 
+Add a vertical line at the mean
 ```{r}
+```{r}
+hist(x)
+abline(v=mean(x, na.rm="True"), col="Red")
+rug(x)
+```
 ```
 
 ```{r}
