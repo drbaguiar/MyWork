@@ -101,7 +101,7 @@ Histogram of x
 hist(x)
 ```
 
-Add a rug
+Add a rug to a histogram
 ```{r}
 hist(x)
 rug(x)
@@ -112,8 +112,14 @@ rug(x)
 
 ```{r}
 ```
-
+Useful Functions
 ```{r}
+length(x) # number of elements or components
+str(x)    # structure of an object 
+class(x)  # class or type of an object (numeric, matrix, data frame, etc)
+names(x)  # list the variable names in a data frame
+dim(ses)    # number of rows and columns in a data frame
+ls()      # list objects in the working environment
 ```
 
 ```{r}

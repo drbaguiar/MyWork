@@ -1,0 +1,67 @@
+---
+title: "ANOVA"
+author: "Dr. B"
+date: "Saturday, October 11, 2014"
+output: html_document
+---
+Assumptions of Analysis of Variance
+------------------------------------
+Traditional parametric analysis of variance makes the following assumptions:
+
+Random sampling, or at the very least, random assignment to groups.
+Independence of scores on the response variable -- i.e., what you get from one subject should be in no way influenced by what you get from any of the others.
+Sampling from normal populations within each cell of the design.
+Homogeneity of variance -- the populations within each cell of the design should all have the same variance.
+
+The last two are assumptions we need to look at statistically.
+
+The Oneway ANOVA
+----------------
+On of the simpliest wways to perform an analysis of variance is to use the oneway.test( ) function for simple between subjects designs. 
+
+The data are from an agricultural experiment in which six different insect sprays were tested in many different fields, and the response variable (DV) was a count of insects found in each field after spraying.
+```{r}
+data(InsectSprays)
+attach(InsectSprays)
+tapply(count, spray, mean)
+tapply(count, spray, var)
+tapply(count, spray, length)
+```
+
+There are large differences in the means, but there are also large differences in the variances (and worse yet, the means and variances appear to be related). At least the design is balanced. Boxplots are a good way to present the data graphically... 
+```{r, echo=FALSE}
+boxplot(count ~ spray)
+```
+
+###The aov( ) Function
+ The standard R function for all kinds of ANOVA is aov( ). It's best to store the output of this function and then to extract the information you want by way of various extractor functions.
+```{r}
+output <- aov(count ~ spray)
+model.tables(output,"means")
+summary(output)
+plot(output)
+```
+
+####Post Hoc Tests
+The Tukey Honestly Significant Difference test has been implemented in the R base distribution as the default post hoc test for ANOVA. It's easily enough applied once the output of aov( ) has been stored in a data object.  The procedure prints out the difference between means for each pair of groups, the lower and upper limits of a 95% confidence interval for that difference (change this by setting the "conf.level=" option), and the p-value for the Tukey test. 
+```{r}
+TukeyHSD(output)
+```
+
+###oneway.test( ) 
+By default, the oneway.test( ) applies a Welch correction for nonhomogeneity.  If you want to turn off this behavior, set the "var.equal=" option to TRUE.  By default, The oneway.test( ) function is to omit missing values. This means you should check your data for missing values before hand, as this procedure will not tell you about them if they exist.  You can add na.action="na.fail" to cause the function to fail it there are missing values.
+```{r}
+oneway.test(count ~ spray)
+```
+
+###Testing For Homogeneity of Variance
+R incorporates the Bartlett test to test the null hypothesis of equal group variances
+```{r}
+bartlett.test(count ~ spray, data=InsectSprays)
+```
+
+###Kruskal-Wallis oneway ANOVA
+A nonparametric test often used when the normality assummption of ANOVA fails.
+```{r}
+kruskal.test(count ~ spray, data=InsectSprays)
+```
