@@ -5,20 +5,22 @@ date: "Sunday, September 14, 2014"
 output: html_document
 ---
 
-One numberical value
 ----------
-Generate some random data
+First, need to generate some random data
 ```{r}
 # Generate some random data
 x = rnorm(263,25,5)
+y = rnorm(263,20,7)
 ```
 
-Load need librarys
+Load needed librarys
 ```{r}
- library(e1071)  
+if (!require("e1071")) {
+  install.packages("e1071")
+}
 ```
 
-Stats
+Stats One numberical value
 ```{r}
 summary(x) # most summary statitstics at once
 mean(x) # na.rm = TRUE to get rid of NA values
@@ -30,6 +32,17 @@ quantile(x, c(.32, .57, .98)) #quantile(duration, c(.32, .57, .98))
 IQR(x)   # apply the IQR function
 skewness(x)
 kurtosis(x)  
+mad(x)    #(median absolute deviation)
+max(x)
+min(x)
+sum(x)
+var(x)     #produces the variance covariance matrix
+```
+
+Stats Two numberical value
+```{r}
+cor(x,y,use="pair") #correlation matrix for pairwise complete data, use="complete" for complete cases
+cor.test(x,y)
 ```
 
 Graphs, one numerical value
@@ -52,7 +65,6 @@ One Categorical Variable
 ------------------------
 Generate categorical data
 ```{r}
-#
 maj <-c(rep("science",81),rep("social science",129),rep("arts",53))
 ses <-c(rep("low",48),rep("lower middle",58),rep("upper middle",80),rep("upper",77))
 ```
@@ -77,8 +89,6 @@ table(maj,ses)
 ```{r}
 barplot(table(maj,ses)) # beside = TRUE for side-by-side barplot # legend = TRUE to include a color legend 
 mosaicplot(table(maj,ses))
-
-
 ```
 
 One quantative and one categorical Variable
@@ -94,7 +104,6 @@ Visualization with horizental line at mean
 ```{r}
 boxplot(x ~ maj)
 abline(h=mean(x, na.rm="True"), col="Red")
-
 ```
 
 Histogram of x
@@ -110,15 +119,11 @@ rug(x)
 
 Add a vertical line at the mean
 ```{r}
-```{r}
 hist(x)
 abline(v=mean(x, na.rm="True"), col="Red")
 rug(x)
 ```
-```
 
-```{r}
-```
 Useful Functions
 ```{r}
 length(x) # number of elements or components
@@ -127,7 +132,8 @@ class(x)  # class or type of an object (numeric, matrix, data frame, etc)
 names(x)  # list the variable names in a data frame
 dim(ses)    # number of rows and columns in a data frame
 ls()      # list objects in the working environment
-```
-
-```{r}
+rm(z)         #remove x from the workspace
+#rm(list=ls()) #remove all the variables from the workspace
+attach(mtcars)     #make the names of the variables in the matrix or data frame available in the workspace
+detach(mtcars)     #releases the names
 ```
