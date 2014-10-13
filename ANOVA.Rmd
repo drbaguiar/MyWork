@@ -33,6 +33,8 @@ The response variable
 
 The Oneway ANOVA
 ----------------
+One-way analysis of variance (ANOVA) is a technique used to compare means of two or more samples using the F distribution. The ANOVA tests the null hypothesis that samples in two or more groups are drawn from populations with the same mean values. To do this, two estimates are made of the population variance. These estimates rely on various assumptions (see below). The ANOVA produces an F-statistic, the ratio of the variance calculated among the means to the variance within the samples. If the group means are drawn from populations with the same mean values, the variance between the group means should be lower than the variance of the samples. A higher ratio implies that the samples were drawn from populations with different mean values.
+
 On of the simpliest wways to perform an analysis of variance is to use the oneway.test( ) function for simple between subjects designs. 
 
 The data are from an agricultural experiment in which six different insect sprays were tested in many different fields, and the response variable (DV) was a count of insects found in each field after spraying.
