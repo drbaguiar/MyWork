@@ -132,7 +132,7 @@ class(x)  # class or type of an object (numeric, matrix, data frame, etc)
 names(x)  # list the variable names in a data frame
 dim(ses)    # number of rows and columns in a data frame
 ls()      # list objects in the working environment
-rm(z)         #remove x from the workspace
+rm(z)         #remove Z from the workspace
 #rm(list=ls()) #remove all the variables from the workspace
 attach(mtcars)     #make the names of the variables in the matrix or data frame available in the workspace
 detach(mtcars)     #releases the names
