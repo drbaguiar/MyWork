@@ -20,22 +20,34 @@ mtcars$vs <- factor(mtcars$vs)
 mtcars$carb <- factor(mtcars$carb)
 ```
 
-Definitions
------------
-Residual: The difference between the predicted value (based on the regression equation) and the actual, observed value.
+###Definitions
+####Residual
+The difference between the predicted value (based on the regression equation) and the actual, observed value.
 
-Outlier: In linear regression, an outlier is an observation with large residual. In other words, it is an observation whose dependent-variable value is unusual given its value on the predictor variables. An outlier may indicate a sample peculiarity or may indicate a data entry error or other problem.
+####Outlier
+In linear regression, an outlier is an observation with large residual. In other words, it is an observation whose dependent-variable value is unusual given its value on the predictor variables. An outlier may indicate a sample peculiarity or may indicate a data entry error or other problem.
 
-Leverage: An observation with an extreme value on a predictor variable is a point with high leverage. Leverage is a measure of how far an independent variable deviates from its mean. High leverage points can have a great amount of effect on the estimate of regression coefficients.
+#####Leverage
+An observation with an extreme value on a predictor variable is a point with high leverage. Leverage is a measure of how far an independent variable deviates from its mean. High leverage points can have a great amount of effect on the estimate of regression coefficients.  The leverage of an observation is based on how much the observation's value on the predictor variable differs from the mean of the predictor variable. The greater an observation's leverage, the more potential it has to be an influential observation. For example, an observation with a value equal to the mean on the predictor variable has no influence on the slope of the regression line regardless of its value on the criterion variable. On the other hand, an observation that is extreme on the predictor variable has the potential to affect the slope greatly.
 
-Influence: An observation is said to be influential if removing the observation substantially changes the estimate of the regression coefficients.  Influence can be thought of as the product of leverage and outlierness.
+Calculation of Leverage (h)
+The first step is to standardize the predictor variable so that it has a mean of 0 and a standard deviation of 1. Then, the leverage (h) is computed by squaring the observation's value on the standardized predictor variable, adding 1, and dividing by the number of observations.
 
-Cook's distance (or Cook's D): A measure that combines the information of leverage and residual of the observation.
+The leverage always takes values between 0 and 1. A point with zero leverage has no effect on the regression model. If a point has leverage equal to 1 the line must follow the point perfectly. 
 
+####Influence
+An observation is said to be influential if removing the observation substantially changes the estimate of the regression coefficients.  Influence can be thought of as the product of leverage and outlierness.  The influence of an observation can be thought of in terms of how much the predicted scores for other observations would differ if the observation in question were not included. 
 
+An observation's influence is a function of two factors: (1) how much the observation's value on the predictor variable differs from the mean of the predictor variable and (2) the difference between the predicted score for the observation and its actual score. The former factor is called the observation's leverage. The latter factor is called the observation's distance.
 
+Cook's D is a good measure of the influence of an observation and is proportional to the sum of the squared differences between predictions made with all observations in the analysis and predictions made leaving out the observation in question. If the predictions are the same with or without the observation in question, then the observation has no influence on the regression model. If the predictions differ greatly when the observation is not included in the analysis, then the observation is influential.
 
+A common rule of thumb is that an observation with a value of Cook's D over 1.0 has too much influence. 
 
+####Cook's distance (or Cook's D)
+A measure that combines the information of leverage and residual of the observation.  The first step in calculating the value of Cook's D for an observation is to predict all the scores in the data once using a regression equation based on all the observations and once using all the observations except the observation in question. The second step is to compute the sum of the squared differences between these two sets of predictions. The final step is to divide this result by 2 times the MSE.
+
+###Stepwise Model Selection
 Performed stepwise model selection in order to select significant predictors for the final, best model. The step function will perform this selection by calling lm repeatedly to build multiple regression models and select the best variables from them using both forward selection and backward elimination methods using AIC algorithm. This  ensures that the useful variables are included in the model while omitting ones that do not contribute significantly to predicting mpg.
 ```{r}
 bestmodel <- step(lm(mpg ~ ., data = mtcars), direction = "both")
@@ -43,11 +55,11 @@ summary(bestmodel)
 residuals(bestmodel) # residuals
 ```
 
-Assessing Outliers
+###Assessing Outliers
 ------------------
 ```{r}
 require(car)
-outlierTest(bestmodel) # Bonferonni p-value for most extreme obs
+re # Bonferonni p-value for most extreme obs
 ```
 
 Model Residuals and Diagnostics
@@ -133,7 +145,7 @@ plot(bestmodel, which=4, cook.levels=cutoff)
 influencePlot(bestmodel,id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
 ```
 
-Residual Plots
+###Residual Plots
 ---------------
 ```{r, echo=FALSE}
 par(mfrow=c(2, 2))
@@ -145,7 +157,7 @@ qqPlot(bestmodel, main="QQ Plot") #qq plot for studentized resid
 leveragePlots(bestmodel) # leverage plots
 ```
 
-Global test of model assumptions
+###Global test of model assumptions
 ```{r}
 require(gvlma)
 gvmodel <- gvlma(bestmodel) 

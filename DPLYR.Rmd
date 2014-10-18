@@ -1,0 +1,149 @@
+---
+title: "How to use dplyr"
+author: "Dr. B"
+date: "Tuesday, October 14, 2014"
+output: html_document
+---
+dplyr
+-----
+dplyr can work with data frames as is, but if you're dealing with large data, it's worthwhile to convert them to a tbl_df: this is a wrapper around a data frame that won't accidentally print a lot of data to the screen.
+
+Single table verbs
+
+Dplyr aims to provide a function for each basic verb of data manipulating:
+
+        filter() (and slice())
+        arrange()
+        select() (and rename())
+        distinct()
+        mutate() (and transmute())
+        summarise()
+        sample_n() and sample_frac()
+```{r, warning=FALSE}
+## Load required libraries
+if (!require("nycflights13")) {
+  install.packages("nycflights13")
+}
+
+if (!require("dplyr")) {
+  install.packages("dplyr")
+
+ install.packages("dplyr") 
+  }
+library(nycflights13)
+library(dplyr)
+```
+
+###Fliter  
+filter() allows you to select a subset of the rows of a data frame. The first argument is the name of the data frame, and the second and subsequent are filtering expressions evaluated in the context of that data frame:
+
+For example, we can select all flights on January 1st with:
+```{r}
+filter(flights, month == 1, day == 1)
+```
+
+filter() works similarly to subset() except that you can give it any number of filtering conditions which are joined together with & (not && which is easy to do accidentally!). You can use other boolean operators explicitly:
+```{r}
+filter(flights, month == 1 | month == 2)
+```
+
+To select rows by position, use slice():
+```{r}
+slice(flights, 1:10)
+```
+
+###arrange  
+arrange() works similarly to filter() except that instead of filtering or selecting rows, it reorders them. It takes a data frame, and a set of column names (or more complicated expressions) to order by. If you provide more than one column name, each additional column will be used to break ties in the values of preceding columns:
+```{r}
+arrange(flights, year, month, day)
+```
+
+Use desc() to order a column in descending order:
+```{r}
+arrange(flights, desc(arr_delay))
+```
+
+###Select
+Often you work with large datasets with many columns where only a few are actually of interest to you. select() allows you to rapidly zoom in on a useful subset using operations that usually only work on numeric variable positions:
+```{r}
+select(flights, year, month, day)
+```
+
+Select all columns between year and day (inclusive)
+```{r}
+select(flights, year:day)
+```
+
+Select all columns except those from year to day (inclusive)
+```{r}
+select(flights, -(year:day))
+```
+
+You can rename variables with select() by using named arguments:
+```{r}
+select(flights, tail_num = tailnum)
+```
+
+But because select() drops all the variables not explicitly mentioned, it's not that use. Instead, use rename():
+```{r}
+rename(flights, tail_num = tailnum)
+```
+
+###Distinct
+A common use of select() is to find out what values are set of variables takes. This is particularly useful in conjunction with the distinct() verb which only returns the unique values in a table.
+```{r}
+distinct(select(flights, tailnum))
+```
+
+###Mutate
+As well as selecting from the set of existing columns, it's often useful to add new columns that are functions of existing columns. This is the job of mutate():
+```{r}
+mutate(flights,gain = arr_delay - dep_delay,speed = distance / air_time * 60)
+```
+
+Mutate allows you to refer to columns that you just created:
+```{r}
+mutate(flights,gain = arr_delay - dep_delay,gain_per_hour = gain / (air_time / 60))
+```
+
+If you only want to keep the new variables, use transmute():
+```{r}
+transmute(flights,  gain = arr_delay - dep_delay,gain_per_hour = gain / (air_time / 60))
+```
+
+###Summarise
+The last verb is summarise(), which collapses a data frame to a single row. It's not very useful yet:
+```{r}
+summarise(flights,delay = mean(dep_delay, na.rm = TRUE))
+```
+
+###Sample
+You can use sample_n() and sample_frac() to take a random sample of rows, either a fixed number for sample_n() or a fixed fraction for sample_frac().
+```{r}
+sample_n(flights, 10)
+```
+
+
+```{r}
+sample_frac(flights, 0.01)
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```

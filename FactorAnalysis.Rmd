@@ -1,0 +1,79 @@
+---
+title: "Factor Analysis"
+author: "Dr. B"
+date: "Thursday, October 16, 2014"
+output: html_document
+---
+Factor Analysis
+-------
+Principal Components Analysis (PCA) is a variable reduction technique, which maximizes the amount of variance accounted for in the observed variables by a smaller group of variables called COMPONENTS. As an example, consider the following situation. Let us say, we have 500 questions on a survey we designed to measure stubbornness. We want to reduce the number of questions so that it does not take someone 3 hours to complete the survey. It would be appropriate to use PCA to reduce the number of questions by identifying and removing redundant questions. For instance, if question 122 and question 356 are virtually identical i.e. they ask the exact same thing but in different ways), then one of them is not necessary. The PCA process allows us to reduce the number of questions or variables down to their PRINCIPAL COMPONENTS.
+
+PCA is commonly, but very confusingly, called exploratory factor analysis (EFA). The use of the word factor in EFA is inappropriate and confusing because we are really interested in COMPONENTS, not factors. This issue is made more confusing by some software packages (e.g. PASW / SPSS, SAS) which list or use PCA under the heading factor analysis.
+
+Second, Factor Analysis (FA) is typically used to confirm the latent factor structure for a group of measured variables. Latent factors are unobserved variables which typically can not be directly measured; but, they are assumed to cause the scores we observe on the measured or indicator variables. FA is a model based technique. It is concerned with modeling the relationships between measured variables, latent factors, and error.
+
+As stated in O'Rourke, Hatcher, and Stepanski (2005): 
+"Both (PCA & FA) are methods that can be used to identify groups of observed variables that tend to hang together empirically. Both procedures can also be performed with the SAS FACTOR procedure and they generally tend to provide similar results. Nonetheless, there are some important conceptual differences between principal component analysis and factor analysis that should be understood at the outset. Perhaps the most important deals with the assumption of an underlying causal structure. Factor analysis assumes that the covariation in the observed variables is due to the presence of one or more latent variables (factors) that exert causal influence on these observed variables" (p. 436).
+
+Both PCA and FA can be used as exploratory analysis. But; PCA is predominantly used in an exploratory fashion and almost never used in a confirmatory fashion. FA can be used in an exploratory fashion, but most of the time it is used in a confirmatory fashion because it is concerned with modeling factor structure. The choice of which is used should be driven by the goals of the analyst. If you are interested in reducing the observed variables down to their principal components while maximizing the variance accounted for in the observed variables by the components, then you should be using PCA. If you are concerned with modeling the latent factors (and their relationships) which cause the scores on your observed variables, then you should be using FA. 
+
+
+The main goal of PCA in the tasks today will be dimension reduction. We wish to produce a smaller set of uncorrelated variables from the larger set of correlated variables.
+
+
+
+
+###Principal Components Analysis
+The main goal of PCA in the tasks today will be dimension reduction. We wish to produce a smaller set of uncorrelated variables from the larger set of correlated variables.
+
+The princomp( ) function produces an unrotated principal component analysis.  Use cor=FALSE to base the principal components on the covariance matrix. Use the covmat= option to enter a correlation or covariance matrix directly. If entering a covariance matrix, include the option n.obs=.
+```{r}
+# Pricipal Components Analysis
+# entering raw data and extracting PCs 
+# from the correlation matrix 
+fit <- princomp(USArrests, cor=TRUE)
+summary(fit) # print variance accounted for 
+loadings(fit) # pc loadings 
+plot(fit,type="lines") # scree plot 
+fit$scores # the principal components
+biplot(fit)
+```
+
+
+The principal( ) function in the psych package can be used to extract and rotate principal components.  Rotate can "none", "varimax", "quatimax", "promax", "oblimin", "simplimax", or "cluster" .
+```{r}
+library(psych)
+fit <- principal(USArrests, nfactors=, rotate="varimax")
+fit # print results
+```
+
+###Exploratory Factor Analysis
+
+The fa() function in the psych package offers a number of factor analysis related functions, including principal axis (fm="pa") factoring.
+```{r}
+# Principal Axis Factor Analysis
+library(psych)
+fit <- fa(USArrests, fm="pa")
+fit # print results
+```
+
+The FactoMineR package offers a large number of additional functions for exploratory factor analysis. This includes the use of both quantitative and qualitative variables, as well as the inclusion of supplimentary variables and observations. Here is an example of the types of graphs that you can create with this package.
+```{r}
+# Principal Axis Factor Analysis
+# PCA Variable Factor Map 
+library(FactoMineR)
+result <- PCA(USArrests) # graphs generated automatically
+```
+
+###Determining the Number of Factors to Extract
+A crucial decision in exploratory factor analysis is how many factors to extract. The nFactors package offer a suite of functions to aid in this decision. Details on this methodology can be found in a PowerPoint presentation by Raiche, Riopel, and Blais. Of course, any factor solution must be interpretable to be useful.
+```{r}
+library(nFactors)
+ev <- eigen(cor(USArrests)) # get eigenvalues
+ap <- parallel(subject=nrow(USArrests),var=ncol(USArrests),
+  rep=100,cent=.05)
+nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+plotnScree(nS)
+```
+
+

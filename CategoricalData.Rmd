@@ -1,0 +1,131 @@
+---
+title: "Categorical Data"
+author: "Dr. B"
+date: "Friday, October 17, 2014"
+output: html_document
+---
+Categorical Data
+----------------
+Categorical data are commonly encountered in three forms: a frequency table or crosstabulation, a flat table, or a case-by-case data frame.  Data sets that are purely categorical are not economically represented in case-by-case data frames, and so the built-in data sets that are purely categorical come in the form of tables (contingency tables or crosstabulations). 
+```{r}
+rm(list=ls())
+gender = rep(c("female","male"),c(1835,2691))
+admitted = rep(c("yes","no","yes","no"),c(557,1278,1198,1493))
+dept = rep(c("A","B","C","D","E","F","A","B","C","D","E","F"),
+           c(89,17,202,131,94,24,19,8,391,244,299,317))
+dept2 = rep(c("A","B","C","D","E","F","A","B","C","D","E","F"),
+            c(512,353,120,138,53,22,313,207,205,279,138,351))
+department = c(dept,dept2)
+ucb = data.frame(gender,admitted,department)
+rm(gender,admitted,dept,dept2,department)
+ls()
+```
+
+We have just taken the data from one of these (the "UCBAdmissions" built-in data set) and turned it into a case-by-case data frame. It's the classic University of California, Berkeley, admissions data from 1973 describing admissions into six different graduate programs broken down by gender.
+
+First, we want some general information about the data frame...
+```{r}
+str(ucb)                # Examine the structure.
+ucb[seq(1,4526,400),]   #Look at every 400th row.
+```
+
+There are 4526 cases or observations or people represented in this data frame, with three variables observed on each one: gender, admitted, and department the person applied to. All three variables are coded as factors, but this doesn't matter. For our present purposes, categorical variables and factors are the same thing.
+What would we like to know? Here's a good start... 
+```{r}
+summary(ucb)
+```
+
+We now have frequency tables for each of the variables. We could get the same information for any individual variable using the table( ) function... 
+```{r}
+table(ucb$gender)
+table(ucb$admitted)
+table(ucb$department)
+```
+
+These tables can easily be turned into relative frequency tables using the prop.table( ) function...
+```{r}
+table(ucb$department) -> dept.table  # Requires a table as an argument.
+prop.table(dept.table)               # Calculate proportions.
+prop.table(dept.table) * 100         # Or calculate percentages.
+```
+
+Contingency tables or crosstabs can be produced using either the table( ) or xtabs( ) function.
+```{r}
+with(ucb, table(gender, admitted))   
+# or 
+table(ucb$gender, ucb$admitted)
+```
+
+Within the table( ) function, the first variable named will be in the rows of the contingency table, and the second variable named will be in the columns. If a third variable is named, it will form separate layers or strata of a three dimensional contingency table.
+When using prop.table( ) on a multidimensional table, it's necessary to specify which marginal sums you want to use to calculate the proportions. To use the row sums, specify 1; to use the column sums, specify 2... 
+```{r}
+with(ucb, table(gender, admitted)) -> gen.adm.table
+prop.table(gen.adm.table, 1)         # With respect to row marginal sums.
+prop.table(gen.adm.table, 2)         # With respect to column marginal sums.
+```
+
+The xtabs( ) function works quite a bit differently. It uses a formula interface. The formula interface is used most often in model building and significance testing, so we'll see it a lot, and it's discussed in detail in another tutorial. 
+
+Formulas can become quite complex, but their most basic form is as follows... 
+
+DV ~ IV1 + IV2 + IV3 + ...
+
+First, a dependent or response variable is specified, followed by a tilde, which is read as "is a function of" or "is modeled by", and finally a list of independent or explanatory variables separated by plus signs. 
+
+For xtabs( ) there is no DV (in a case-by-case data frame), so we just leave it out... 
+```{r}
+with(ucb, xtabs(~ gender + admitted))
+```
+
+Instead of using with( ) to give the name of the data frame, we could also have used the data= option, since we are using a formula interface in the function... 
+```{r}
+xtabs(~ gender + admitted, data=ucb)
+```
+
+
+The resulting table could also have been stored and operated on with other functions. Here are some examples... 
+```{r}
+xtabs(~ gender + admitted, data=ucb) -> gen.adm.table
+prop.table(gen.adm.table, 1)         # Get proportions relative to row sums.
+addmargins(gen.adm.table)            # Add marginal sums to table.
+margin.table(gen.adm.table, 1)       # Collapse over admitted (row marginals).
+margin.table(gen.adm.table, 2)       # Collapse over sex (column marginals).
+```
+
+Six different crosstabulations of the entire data set are possible, depending upon the order in which we list the variables... 
+```{r}
+with(ucb, table(gender, department, admitted))
+with(ucb, table(admitted, department, gender))
+with(ucb, table(department, admitted, gender))
+```
+
+A flat table is produced from the data frame by using the ftable( ) function. Use the "col.vars=" option to control which variable goes in the columns... 
+```{r}
+ftable(ucb)                             # Last variable in columns.
+ftable(ucb, col.vars="gender")       # Gender in columns.
+ftable(ucb, col.vars="admitted")     # Admitted in columns.
+ftable(ucb, col.vars="admitted") -> my.table
+prop.table(my.table, 1)              # prop.table() works here, too.
+```
+
+Flat tables can also be made from contingency tables, the order of the row variables can be changed, and multiple column variables can be specified. Use the "row.vars=" option to control the order in which the row variables occur. If more than one variable name is to be used in either the "row.vars" or "col.vars" option, use vector notation to specify them. (HINT: In R, everything is a vector, even if it has only one element! The notation row.vars="department" is just a shortcut for row.vars=c("department").)
+```{r}
+with(ucb, table(admitted,department,gender)) -> my.table      # A 3D contingency table.
+ftable(my.table)
+ftable(my.table, col.vars="admitted")
+ftable(my.table, row.vars=c("gender","department"), col.vars="admitted")
+ftable(my.table, row.vars="department", col.vars=c("gender","admitted"))
+```
+
+You can also get a VERY useful and more efficient data frame from a contingency table as follows... 
+```{r}
+as.data.frame(my.table) -> my.df.table
+my.df.table
+```
+
+There are only 24 possible unique cases in these data (2 genders times 2 admit statuses times 6 departments). So why put this information into a data frame with 4500+ rows in it? The form above is much more efficient. It lists the possible unique cases in the first three columns (every possible combination of factors) and then gives a frequency in the last Freq column.
+
+When there is a Freq column in the data frame, you CANNOT use table( ) to get crosstabulations. You must use xtabs( ), AND you must specify Freq as the DV. 
+```{r}
+xtabs(Freq ~ gender + admitted, data=my.df.table)
+```
