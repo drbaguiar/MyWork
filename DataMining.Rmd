@@ -1,0 +1,98 @@
+---
+title: "DataMining"
+author: "Dr. B"
+date: "Monday, October 20, 2014"
+output: html_document
+---
+Iris Data Before Split
+```{r,warning=FALSE}
+##Set seed
+set.seed(1234)
+
+##Load required packages
+if (!require("party")){
+        install.packages("party")
+}
+
+if (!require("fpc")){
+        install.packages("fpc")
+}
+
+##Plot data 
+plot(iris[c("Sepal.Length", "Sepal.Width")])
+```
+
+Iris Data After Split
+```{r}
+#Split data into training and testing 
+ind <- sample(2, nrow(iris), replace=T, prob=c(0.7, 0.3))
+iris.train <- iris[ind==1, ]
+iris.test <- iris[ind==2, ]
+
+#Plot each data set
+plot(iris.train[c("Sepal.Length", "Sepal.Width")])
+plot(iris.test[c("Sepal.Length", "Sepal.Width")])
+```
+
+###Decision Tree
+```{r,warning=FALSE}
+# build a decision tree
+iris.formula <- Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width
+iris.ctree <- ctree(iris.formula, data=iris.train)
+plot(iris.ctree)
+```
+
+
+```{r}
+# predict on test data
+pred <- predict(iris.ctree, newdata = iris.test)
+
+# check prediction result
+table(pred, iris.test$Species)
+```
+
+###K-means Clustering
+```{r}
+iris2 <- iris
+# remove class IDs
+iris2$Species <- NULL
+
+# k-means clustering
+iris.kmeans <- kmeans(iris2, 3)
+
+# check result
+table(iris$Species, iris.kmeans$cluster)
+
+# plot clusters and their centers
+plot(iris2[c("Sepal.Length", "Sepal.Width")], col=iris.kmeans$cluster)
+points(iris.kmeans$centers[, c("Sepal.Length", "Sepal.Width")],col=1:3, pch="*", cex=5)
+```
+
+Density-based Clustering
+```{r}
+iris2 <- iris[-5] # remove class IDs
+
+# DBSCAN clustering
+ds <- dbscan(iris2, eps = 0.42, MinPts = 5)
+
+# compare clusters with original class IDs
+table(ds$cluster, iris$Species)
+
+# 1-3: clusters; 0: outliers or noise
+plotcluster(iris2, ds$cluster)
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
