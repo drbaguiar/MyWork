@@ -1,0 +1,88 @@
+---
+title: "TextMining"
+author: "Dr. B"
+date: "Friday, October 31, 2014"
+output: html_document
+---
+
+```{r, warning=FALSE}
+##Load Required Libraries
+library(tm) # Framework for text mining.
+library(SnowballC) # Provides wordStem() for stemming.
+library(RColorBrewer) # Generate palette of colours for plots.
+library(ggplot2) # Plot word frequencies.
+library(magrittr)
+library(wordcloud)
+##library(Rgraphviz)
+
+```
+
+
+```{r, warning=FALSE}
+##Set the Minimum Frequeny, maximum frequence, and maximum words to be used 
+min_freq=75
+max_freq=1000000
+max_words=100
+
+##Load the text file
+txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/koran.txt")
+```
+
+```{r}
+##Convert to corpus
+txt <-VectorSource(txt.in)
+txt.corpus <-Corpus(txt)
+rm(txt.in)
+rm(txt)
+```
+
+```{r}
+##Clean up the text
+##Conversion to lower case by:
+txt.corpus<- tm_map(txt.corpus, content_transformer(tolower))
+
+##Remove Numbers
+txt.corpus<- tm_map(txt.corpus, removeNumbers)
+
+##Remove Punctuation
+txt.corpus<- tm_map(txt.corpus, removePunctuation)
+
+##Removal of stopwords by:
+txt.corpus<- tm_map(txt.corpus, removeWords, stopwords("english"))
+
+##Stem the Document
+txt.corpus<- tm_map(txt.corpus, stemDocument)
+
+##Stem the Document
+txt.corpus<- tm_map(txt.corpus, stripWhitespace)
+
+##Inspect the corpus
+##inspect(txt.corpus)
+```
+
+
+```{r}
+##Ready to Analyze the data
+tdm <-TermDocumentMatrix(txt.corpus)
+##inspect(tdm)
+```
+
+```{r}
+##Establish Frequence  can set Low freq and high freq
+findFreqTerms(x=tdm, lowfreq=min_freq, highfreq=max_freq)
+```
+
+
+```{r}
+# Make a word cloud
+m <- as.matrix(tdm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+##Define colors
+pal2 <- brewer.pal(8,"Dark2")
+
+##png("wordcloud.png", width=1280,height=800)
+wordcloud(d$word,d$freq, scale=c(8,.3),min.freq=45, max.words=max_words, random.order=T, rot.per=.15, colors=pal2, vfont=c("sans serif","plain"))
+##dev.off()
+```

@@ -21,7 +21,7 @@ mydata <- mydata[,-1]
 ##Race (White = 1 if race is white, 0 otherwise)
 ##Language (English = 1 is the primary language in the household is English, 0 otherwise)
 
-lm## suppressing scientific notation
+## suppressing scientific notation
 options(scipen=999) 
 
 ##Build the model with all variables
