@@ -19,13 +19,15 @@ library(wordcloud)
 
 
 ```{r, warning=FALSE}
-##Set the Minimum Frequeny, maximum frequence, and maximum words to be used 
+##Set variables used 
 min_freq=75
 max_freq=1000000
 max_words=100
+assoc_word = "lord"
+correlation = .25
 
 ##Load the text file
-txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/koran.txt")
+txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/morman13.txt")
 ```
 
 ```{r}
@@ -85,4 +87,9 @@ pal2 <- brewer.pal(8,"Dark2")
 ##png("wordcloud.png", width=1280,height=800)
 wordcloud(d$word,d$freq, scale=c(8,.3),min.freq=45, max.words=max_words, random.order=T, rot.per=.15, colors=pal2, vfont=c("sans serif","plain"))
 ##dev.off()
+```
+
+```{r}
+##Find assocaitions with a selected word
+findAssocs(tdm, assoc_word, correlation)
 ```
