@@ -48,22 +48,74 @@ In other words, there is a 6.65% probability that the individual has the disease
 ```
 
 
-```{r}
+```{r,warning=FALSE}
+##Confidence intervals 95%
+library(UsingR)
+data(father.son)
+x <- father.son$sheight
 
+## Confidence Interval in inches from above data for mean in inches
+(mean(x)+c(-1,1)*qnorm(.975)*sd(x)/sqrt(length(x)))
+
+##Confidence interval for propotion assuming mean proprotion is 56% and n = 100
+.56 +c(-1,1)*qnorm(.975)*sqrt(.56*.44/100)
+## Or we could use the following
+binom.test(56,100)$conf.int
 ```
 
 ```{r}
+## Poisson interval
+## A nuclear pump failed 5 times out of 94.32 days, give a 95% confidence interval for the failure rate per day?
+
+x <- 5
+t <- 94.32
+lambda <- x/t
+round(lambda + c(-1, 1) * qnorm(0.975) * sqrt(lambda/t), 3)
+
+## Poisson exact
+poisson.test(x, T = 94.32)$conf
+
+exp(confint(glm(x ~ 1 + offset(log(t)), family = poisson(link = log))))
+
 
 ```
 
 
-```{r}
+```{r,fig.height=4,fig.width=4}
+## Law of large numbers in action
+n <- 10000; means <- cumsum(rnorm(n)) / (1  : n)
+plot(1 : n, means, type = "l", lwd = 2, 
+     frame = FALSE, ylab = "cumulative means", xlab = "sample size")
+abline(h = 0)
+```
 
+Sample flip of biased coin
+```{r, echo = FALSE, fig.width=7.5, fig.height = 5}
+par(mfrow = c(2, 3))
+for (n in c(1, 10, 20)){
+  temp <- matrix(sample(0 : 1, n * 10000, replace = TRUE), ncol = n)
+  temp <- apply(temp, 1, mean)
+  temp <- (temp - .5) * 2 * sqrt(n)
+  dty <- density(temp)
+  plot(dty$x, dty$y, xlab = "", ylab = "density", type = "n", xlim = c(-3, 3), ylim = c(0, .5))
+  title(paste("sample mean of", n, "obs"))
+  lines(seq(-3, 3, length = 100), dnorm(seq(-3, 3, length = 100)), col = grey(.8), lwd = 3)
+  lines(dty$x, dty$y, lwd = 2)
+}
+for (n in c(1, 10, 20)){
+  temp <- matrix(sample(0 : 1, n * 10000, replace = TRUE, prob = c(.9, .1)), ncol = n)
+  temp <- apply(temp, 1, mean)
+  temp <- (temp - .1) / sqrt(.1 * .9 / n)
+  dty <- density(temp)
+  plot(dty$x, dty$y, xlab = "", ylab = "density", type = "n", xlim = c(-3, 3), ylim = c(0, .5))
+  title(paste("sample mean of", n, "obs"))
+  lines(seq(-3, 3, length = 100), dnorm(seq(-3, 3, length = 100)), col = grey(.8), lwd = 3)
+  lines(dty$x, dty$y, lwd = 2)
+}
 ```
 
 
 ```{r}
-
 ```
 
 ```{r}
