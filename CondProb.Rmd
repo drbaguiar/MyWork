@@ -1,0 +1,79 @@
+---
+title: "CondProb"
+author: "Dr. B"
+date: "Monday, November 03, 2014"
+output: html_document
+---
+Let + or - be the results of a diagnostic test, positive or negative, for a specific disease.  Let D or D' indicate if an individual has or does not have the disease.
+
+The SENSITIVITY is the probability that the test is positive given that the individual actually has the disease, P(+|D)
+
+The SPECIFICITY is the probability that the test is negative given that the indiviudal does not actually have the disease, P(-|D').
+
+The positive predictive value is the probability that the individual has the disease given that the test is positive, P(D|+).
+
+The negative predictive value is the probabilty that the subject does not have the disease given that the test is negative, P(D'|-).
+
+The prevalence of the disease is the marginal probability of disease, P(D).
+
+The diagnostic likelihood ratio of a positive test, DLR+, is P(+|D)/P(+|D') which is:
+
+        sensitivity/(1-specificity)
+        
+The diagnostic likelihood ratio of a negative test, DLR-, is P(-|D)/P(-|D') which is:
+
+        (1-sensitivity)/specificity
+        
+A test for a certain disease has a sensitivity of 99.7% and a specificity of 98.5%
+
+Suppose that an individual from a population with a .1% prevalance of the disease receives a positive test result.  What us the positive predicitive value?
+
+First calculate the DLR+
+```{r}
+##sensitivity/(1-specificity)
+.997/(1-.985)
+```
+
+The results of a positive test is that the odds of disease is now 66 times the prevalance of the disease.
+```{r}
+((.997/(1-.985))*.001) *100
+```
+
+In other words, there is a 6.65% probability that the individual has the disease given the positive test result.
+
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+

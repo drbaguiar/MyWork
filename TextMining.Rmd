@@ -20,14 +20,18 @@ library(wordcloud)
 
 ```{r, warning=FALSE}
 ##Set variables used 
-min_freq=75
+min_freq=25
 max_freq=1000000
 max_words=100
-assoc_word = "lord"
-correlation = .25
+sparse_terms_nbr = .99   # Enter number as a decimal Higer removes less
+assoc_word = "roswel"
+correlation = .45
 
 ##Load the text file
-txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/morman13.txt")
+##txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/TextDocs/bill.txt")
+
+##Load an entire directory
+txt.in <-Corpus(DirSource("C:/Users/bryan_000/Documents/GitHub/Data/TextDocs/"), readerControl = list(language="lat"))
 ```
 
 ```{r}
@@ -40,6 +44,7 @@ rm(txt)
 
 ```{r}
 ##Clean up the text
+
 ##Conversion to lower case by:
 txt.corpus<- tm_map(txt.corpus, content_transformer(tolower))
 
@@ -66,10 +71,11 @@ txt.corpus<- tm_map(txt.corpus, stripWhitespace)
 ```{r}
 ##Ready to Analyze the data
 tdm <-TermDocumentMatrix(txt.corpus)
-##inspect(tdm)
+#inspect(tdm)
 ```
 
 ```{r}
+tdm <- removeSparseTerms(tdm, sparse_terms_nbr)
 ##Establish Frequence  can set Low freq and high freq
 findFreqTerms(x=tdm, lowfreq=min_freq, highfreq=max_freq)
 ```
