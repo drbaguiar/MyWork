@@ -1,0 +1,185 @@
+---
+title: "InferenceTests"
+author: "Dr. B"
+date: "Thursday, November 06, 2014"
+output: html_document
+---
+```{r}
+## remove scientific notation
+options(scipen=999)
+
+##Load libraries
+if (!require("nortest")){
+        install.packages("nortest")
+}
+
+##Set seed for reproducibility
+set.seed(2489)
+
+## Generate Random Data
+ourdata = rnorm(1000, 600,80)
+ouruniformdata = runif(1000)
+ourchisqdata = rchisq(1000,2)
+
+##Draw histogram
+hist(ourdata)
+hist(ouruniformdata)
+hist(ourchisqdata)
+##Draw a quantitle quantitle plot with line
+qqnorm(ourdata)
+qqline(ourdata)
+
+qqnorm(ouruniformdata)
+qqline(ouruniformdata)
+
+qqnorm(ourchisqdata)
+qqline(ourchisqdata)
+
+##Test for normality
+##Norm is do not reject null hypothesis
+
+##Shapiro test (note maximum number of observations in 5,000)
+shapiro.test(ourdata)
+shapiro.test(ouruniformdata)
+shapiro.test(ourchisqdata)
+
+##Anderson Darling Test
+ad.test(ourdata)
+ad.test(ouruniformdata)
+ad.test(ourchisqdata)
+
+##Cramer von Mises test
+cvm.test(ourdata)
+cvm.test(ouruniformdata)
+cvm.test(ourchisqdata)
+
+##Lilliefors (Kolmogorov-Smirnov) normality test
+lillie.test(ourdata)
+lillie.test(ouruniformdata)
+lillie.test(ourchisqdata)
+
+##Shapiro-Francia normality test Note: 5000k limit
+sf.test(ourdata)
+sf.test(ouruniformdata)
+sf.test(ourchisqdata)
+
+##Pearson 
+pearson.test(ourdata)
+pearson.test(ouruniformdata)
+pearson.test(ourchisqdata)
+
+##Sort the object based on 700 as yes or no
+sortedobject = ifelse(ourdata > 700, "yes","no")
+
+##view a table of the results
+table(sortedobject)
+
+## Z test
+
+##Null Hyptotheis is yes and no are equal proportions(50%)
+## Note 102 is number of success, 1000 is sample size
+## Default which is two sided Note: add  correct=TRUE for small samples
+myresult = prop.test(102,1000)
+myresult
+
+##Greater than proption test Note: add  correct=TRUE for small samples
+myresult = prop.test(102,1000,alternative="greater")
+myresult
+
+##Less than proportion test Note: add  correct=TRUE for small samples
+myresult = prop.test(102,1000,alternative="less")
+myresult
+
+#One Sample t-test
+## Default which is two sided
+myresult = t.test(ourdata,mu=600)
+myresult
+
+##Greater than  test
+myresult = t.test(ourdata,mu=600,alternative="greater")
+myresult
+
+##Less than test
+myresult = t.test(ourdata,mu=600,alternative="less")
+myresult
+
+##t test two samples 
+
+##Boxplot to view
+boxplot(ourdata~sortedobject)
+
+##Using all defaults (two-tailed, 95% conf, mu=0, paired=FALSE, var.equal=FALSE)
+myresult = t.test(ourdata~sortedobject)
+myresult
+
+## Left tailed hypothesis test, unequal var
+myresult = t.test(ourdata~sortedobject,alternative = "less")
+myresult
+
+## Right tailed hypothesis test, unequal var
+myresult = t.test(ourdata~sortedobject,alternative = "greater")
+myresult
+
+##two-tailed hypothesis test, equal var
+myresult = t.test(ourdata~sortedobject,var.equal=TRUE)
+myresult
+
+## Left tailed hypothesis test, equal var
+myresult = t.test(ourdata~sortedobject,alternative = "less",var.equal=TRUE)
+myresult
+
+## Right tailed hypothesis test, equal var
+myresult = t.test(ourdata~sortedobject,alternative = "greater",var.equal=TRUE)
+myresult
+
+##Non normally distributed data
+
+##Wilcoxon signed rank sum with defaults
+myresult = wilcox.test(ourchisqdata)
+myresult
+
+## Left tailed hypothesis test,
+myresult = wilcox.test(ourchisqdata,alternative = "less")
+myresult
+
+## Left tailed hypothesis test
+myresult = wilcox.test(ourchisqdata,alternative = "greater")
+myresult
+
+##Wilcoxon signed rank sum with defaults
+myresult = wilcox.test(ourchisqdata~sortedobject)
+myresult
+
+##ANOVA
+
+attach(iris)
+is.factor(Species)
+levels(Species)
+
+##Let's look at the variables by species
+boxplot(Sepal.Length~Species, main= "Sepal Length")
+boxplot(Sepal.Width~Species, main= "Sepal Width")
+boxplot(Petal.Length~Species, main= "Petal Width")
+boxplot(Petal.Width~Species, main= "Petal Length")
+
+##Let's get the means by Species
+by(Sepal.Length, Species, mean)
+by(Sepal.Width, Species, mean)
+by(Petal.Length, Species, mean)
+by(Petal.Width, Species, mean)
+
+## Get them all together in a nice little table
+aggregate(. ~ Species, data = iris, mean)
+boxplot(aggregate(. ~ Species, data = iris, mean))
+
+myresults = oneway.test(Sepal.Length~Species)
+myresults
+
+myresults = aov(Sepal.Length~Species, data=iris)
+summary(myresults)
+attributes(myresults)
+
+##Plot the residuals
+plot(myresults$residuals)
+abline(0,0)
+```

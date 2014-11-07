@@ -4,6 +4,36 @@ author: "Dr. B"
 date: "Monday, November 03, 2014"
 output: html_document
 ---
+```{r, warning=FALSE}
+## First let's load a library
+if (!require("xtable")){
+        install.packages("xtable")
+}
+
+if (!require("datasets")){
+        install.packages("datasets")
+}
+
+if (!require("knitr")){
+        install.packages("knitr")
+}
+
+if (!require("UsingR")){
+        install.packages("UsingR")
+}
+
+## set global options
+opts_chunk$set(echo=FALSE, fig.height=4, fig.width=4,warning=FALSE)
+
+```
+
+```{r}
+time <- format(Sys.time(),"%a %b %D %X %Y")
+rand <- rnorm(1)       
+```
+In line text computations.  The current time is `r time` A random number is `r rand` 
+
+##Conditional Probabilty
 Let + or - be the results of a diagnostic test, positive or negative, for a specific disease.  Let D or D' indicate if an individual has or does not have the disease.
 
 The SENSITIVITY is the probability that the test is positive given that the individual actually has the disease, P(+|D)
@@ -29,7 +59,7 @@ A test for a certain disease has a sensitivity of 99.7% and a specificity of 98.
 Suppose that an individual from a population with a .1% prevalance of the disease receives a positive test result.  What us the positive predicitive value?
 
 First calculate the DLR+
-```{r}
+```{r, cache=TRUE}
 ##sensitivity/(1-specificity)
 .997/(1-.985)
 ```
@@ -41,16 +71,8 @@ The results of a positive test is that the odds of disease is now 66 times the p
 
 In other words, there is a 6.65% probability that the individual has the disease given the positive test result.
 
-
-
 ```{r}
-
-```
-
-
-```{r,warning=FALSE}
 ##Confidence intervals 95%
-library(UsingR)
 data(father.son)
 x <- father.son$sheight
 
@@ -115,6 +137,8 @@ for (n in c(1, 10, 20)){
 ```
 
 
+
+
 ```{r}
 ```
 
@@ -123,8 +147,11 @@ for (n in c(1, 10, 20)){
 ```
 
 
-```{r}
-
+```{r results='asis'}
+data(airquality)
+fit <- lm(Ozone ~ Wind + Temp + Solar.R, data = airquality)
+xt <- xtable(summary(fit))
+print (xt, type="html")
 ```
 
 
