@@ -1,5 +1,5 @@
 ## Load the data
-mydata <- read.csv("KidCreative.csv")
+mydata <- read.csv("C:/Users/bryan_000/Documents/GitHub/Data/KidCreative.csv")
 
 ##Delete the first column which is observation number
 mydata <- mydata[,-1]

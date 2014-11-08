@@ -90,7 +90,7 @@ Bartlett's test is used to test if k samples are from populations with equal var
 bartlett.test(count ~ spray, data=InsectSprays)
 ```
 
-####
+####Levene's Test
 Levene's test is used to test if k samples have equal variances. Equal variances across samples is called homogeneity of variance. Some statistical tests, for example the analysis of variance, assume that variances are equal across groups or samples. The Levene test can be used to verify that assumption.  Levene's test is an alternative to the Bartlett test. The Levene test is less sensitive than the Bartlett test to departures from normality. If you have strong evidence that your data do in fact come from a normal, or nearly normal, distribution, then Bartlett's test has better performance.
 ```{r}
 require("lawstat")

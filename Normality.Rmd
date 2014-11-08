@@ -1,0 +1,170 @@
+---
+title: "Normality"
+author: "Dr. B"
+date: "Friday, November 07, 2014"
+output: html_document
+---
+In statistics, normality tests are used to determine if a data set is well-modeled by a normal distribution and to compute how likely it is for a random variable underlying the data set to be normally distributed.
+```{r,echo=FALSE,warning=FALSE}
+## remove scientific notation
+options(scipen=999)
+
+##Load libraries
+if (!require("nortest")){
+        install.packages("nortest")
+}
+if (!require("e1071")){
+        install.packages("e1071")
+}
+```
+
+First, we need to generate some normal and non-normal data.
+```{r}
+##Set seed for reproducibility
+set.seed(2489)
+
+## Generate Random Data
+
+#Normal Distribution
+ourdata = rnorm(1000, 600,80)
+
+#Uniform Distribution
+ouruniformdata = runif(1000)
+
+#Chi Square Distribution
+ourchisqdata = rchisq(1000,2)
+```
+
+###Histogram
+A histogram is a graphical representation of the distribution of data. It is an estimate of the probability distribution of a continuous variable (quantitative variable) and was first introduced by Karl Pearson. A Histogram is a graphical display of data using bars of different heights.  The horizontal axis is continuous.  
+```{r}
+##Draw histogram
+hist(ourdata, main="Normal Data Histogram")
+hist(ouruniformdata, main="Uniform Data Histogram")
+hist(ourchisqdata, main="Chi Square Data Histogram")
+```
+
+###Skewness and Kutosis
+Skewness is a measure of the asymmetry of the probability distribution of a real-valued random variable about its mean. The skewness value can be positive or negative, or even undefined. Kurtosis is any measure of the "peakedness" of the probability distribution of a real-valued random variable. In a similar way to the concept of skewness, kurtosis is a descriptor of the shape of a probability distribution and, just as for skewness, there are different ways of quantifying it for a theoretical distribution and corresponding ways of estimating it from a sample from a population. D'Agostino's K-squared test is a goodness-of-fit normality test based on a combination of the sample skewness and sample kurtosis, as is the Jarque-Bera test for normality.
+```{r}
+##Draw histogram
+kurtosis(ourdata)
+skewness(ourdata)
+
+kurtosis(ouruniformdata)
+skewness(ouruniformdata)
+
+kurtosis(ourchisqdata)
+skewness(ourchisqdata)
+```
+
+##Shapiro Wilk Test
+The Shapiro test can be used to check the normality assumption. The null-hypothesis of this test is that the population is normally distributed. Thus if the p-value is less than the chosen alpha level, then the null hypothesis is rejected and there is evidence that the data tested are not from a normally distributed population. Because the test is biased by sample size,the test may be statistically significant from a normal distribution in any large samples. Thus a Q-Q plot is required for verification in addition to the test.
+```{r}
+##Shapiro test (note maximum number of observations in 5,000) and draw a quantitle quantitle plot with line
+#Normal Distribution
+shapiro.test(ourdata)
+qqnorm(ourdata)
+qqline(ourdata)
+
+#Uniform Distribution
+shapiro.test(ouruniformdata)
+qqnorm(ouruniformdata)
+qqline(ouruniformdata)
+
+#Chi Square Distribution
+shapiro.test(ourchisqdata)
+qqnorm(ourchisqdata)
+qqline(ourchisqdata)
+```
+
+##Anderson Darling Test
+When applied to testing if a normal distribution adequately describes a set of data, it is one of the most powerful statistical tools for detecting most departures from normality.  The Anderson-Darling and Cramér-von Mises statistics belong to the class of quadratic EDF statistics (tests based on the empirical distribution function).  
+```{r}
+##Anderson Darling Test
+##Normal Distribution
+ad.test(ourdata)
+qqnorm(ourdata)
+qqline(ourdata)
+
+#Uniform Distribution
+ad.test(ouruniformdata)
+qqnorm(ouruniformdata)
+qqline(ouruniformdata)
+
+#Chi Square Distribution
+ad.test(ourchisqdata)
+qqnorm(ourchisqdata)
+qqline(ourchisqdata)
+```
+
+##Cramér-von Mises
+The Cramér-von Mises criterion is a criterion used for judging the goodness of fit of a cumulative distribution function F^* compared to a given empirical distribution function
+```{r}
+##Cramer von Mises test
+#Normal Distribution
+cvm.test(ourdata)
+qqnorm(ourdata)
+qqline(ourdata)
+
+#Unifrom Distribution
+cvm.test(ouruniformdata)
+qqnorm(ouruniformdata)
+qqline(ouruniformdata)
+
+#Chi Square Distribution
+cvm.test(ourchisqdata)
+qqnorm(ourchisqdata)
+qqline(ourchisqdata)
+```
+
+##Lilliefors
+The Lilliefors test is a normality test based on the Kolmogorov-Smirnov test. It is used to test the null hypothesis that data come from a normally distributed population, when the null hypothesis does not specify which normal distribution; i.e., it does not specify the expected value and variance of the distribution.
+```{r}
+##Lilliefors (Kolmogorov-Smirnov) normality test
+lillie.test(ourdata)
+qqnorm(ourdata)
+qqline(ourdata)
+
+lillie.test(ouruniformdata)
+qqnorm(ouruniformdata)
+qqline(ouruniformdata)
+
+lillie.test(ourchisqdata)
+qqnorm(ourchisqdata)
+qqline(ourchisqdata)
+```
+
+##Shapiro-Francia 
+The Shapiro-Francia test is a powerful test for normality.  The test statistic of the Shapiro-Francia test is simply the squared correlation between the ordered sample values and the (approximated) expected ordered quantiles from the standard normal distribution.
+```{r}
+##Shapiro-Francia normality test Note: 5000k limit
+sf.test(ourdata)
+qqnorm(ourdata)
+qqline(ourdata)
+
+sf.test(ouruniformdata)
+qqnorm(ouruniformdata)
+qqline(ouruniformdata)
+
+sf.test(ourchisqdata)
+qqnorm(ourchisqdata)
+qqline(ourchisqdata)
+```
+
+##Pearson Chi Squared
+The chi-square goodness of fit test can be used to test the hypothesis that data comes from a normal hypothesis. 
+```{r}
+##Pearson 
+pearson.test(ourdata)
+qqnorm(ourdata)
+qqline(ourdata)
+
+pearson.test(ouruniformdata)
+qqnorm(ouruniformdata)
+qqline(ouruniformdata)
+
+pearson.test(ourchisqdata)
+qqnorm(ourchisqdata)
+qqline(ourchisqdata)
+```
