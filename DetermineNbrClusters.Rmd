@@ -1,0 +1,116 @@
+---
+title: "DetermineNbrClusters"
+author: "Dr. B"
+date: "Saturday, November 08, 2014"
+output: html_document
+---
+
+Load the required packages. 
+```{r,warning=FALSE,results='hide',echo=FALSE}
+##Load libraries
+if (!require("cluster")){
+        install.packages("cluster")
+}
+
+if (!require("fpc")){
+        install.packages("fpc")
+}
+
+if (!require("flexclust")){
+        install.packages("flexclust")
+}
+
+if (!require("NbClust")){
+        install.packages("NbClust")
+}
+
+if (!require("gmodels")){
+        install.packages("gmodels")
+}
+
+## remove scientific notation
+options(scipen=999)
+
+##Set seed for reproducibility
+set.seed(2489)
+
+##Clear the workspace and enivronment
+rm(list=ls())
+```
+
+Load and clean the data.
+```{r}
+##Read the data
+df <- read.table("C:/Users/bryan_000/Documents/GitHub/Data/diabetes.csv",sep = ",",header=FALSE)
+
+##Enter column names
+colnames(df) <- c("timespregnant", "twohourglucose","diastolicbp","tricepskinfold","twohourinsulin","bmi","pedigree","age","diabetestest")
+
+#Remove na's from the data
+df <- na.omit(df)
+dftemp <-df
+
+###scale the data
+dfscaled <-scale(df[,1:2])
+```
+
+View the means and standards deviations of the unscaled data.
+```{r}
+##View means of speed, cycle, and wear
+aggregate(. ~ diabetestest, data = df, mean)
+
+##View sd of speed, cycle, and wear
+aggregate(. ~ diabetestest, data = df, sd)
+```
+
+Determine the number of clusters.
+```{r}
+##Determine number of clusters using NbClust function
+#nc <- NbClust(mydata[-9], min.nc=2, max.nc=15, method="kmeans")
+#barplot(table(nc$Best.n[1,]))
+nc <-2
+```
+
+K-means cluster unscaled data.
+```{r}
+##K-means cluster unscaled data
+###remove extra coumns
+df <-df[,1:2]
+cl <- kmeans(df,nc)
+plot(df[,1],df[,2],col=cl$cluster, main="Unscaled")
+points(cl$centers, pch=19)
+abline (v=0, h=0)
+```
+
+K-means cluster scaled data.
+```{r}
+##K-means cluster scaled data
+clscaled <- kmeans(dfscaled,nc)
+plot(dfscaled[,1],dfscaled[,2],col=clscaled$cluster, main="Scaled")
+points(clscaled$centers, pch=19)
+abline (v=0, h=0)
+```
+
+Compare the cluster assignment of the scaled and unscaled data.
+```{r}
+errortable<-table(cl$cluster,clscaled$cluster) ##CL in row CLSCALED in Column
+errortable
+table(cl$cluster - clscaled$cluster)
+randIndex(errortable)
+CrossTable(cl$cluster, clscaled$cluster)
+```
+
+```{r}
+##Cluster plot
+clusplot(df, cl$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+##Cluster plot
+clusplot(dfscaled, cl$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+```
+
+```{r}
+##Compare the diabetes test results to the clusters
+dftemp[,9] <- gsub("1","2",dftemp[,9]) ##change 1 to 2
+dftemp[,9] <- gsub("0","1",dftemp[,9]) ##change 0 to 1
+table(dftemp[,9],cl$cluster) ##Row is postivite test 1 no 2 yes
+#CrossTable(dftemp[,9], clscaled$cluster)
+```
