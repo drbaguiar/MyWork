@@ -1,0 +1,35 @@
+---
+title: "Impute"
+author: "Dr. B"
+date: "Tuesday, November 11, 2014"
+output: html_document
+---
+
+```{r,warning=FALSE}
+library(Hmisc)
+DF <- data.frame(age = c(10, 20, NA, 40), sex = c('male','female'))
+
+# impute with mean value
+
+DF$imputed_age <- with(DF, impute(age, mean))
+
+# impute with random value
+DF$imputed_age2 <- with(DF, impute(age, 'random'))
+
+# impute with the media
+with(DF, impute(age, median))
+# impute with the minimum
+with(DF, impute(age, min))
+
+# impute with the maximum
+with(DF, impute(age, max))
+
+
+# and if you are sufficiently foolish
+# impute with number 7 
+with(DF, impute(age, 7))
+
+ # impute with letter 'a'
+with(DF, impute(age, 'a'))
+```
+
