@@ -4,32 +4,102 @@ author: "Dr. B"
 date: "Tuesday, November 11, 2014"
 output: html_document
 ---
+##Missing Values
+Missing data arise in almost all serious statistical analyses. There are a variety of methods to handle missing data, including some relatively simple approaches that can often yield reasonable results. 
 
+First, we need to load the `Hmisc' R package, which we will use to impute missing values:
 ```{r,warning=FALSE}
-library(Hmisc)
-DF <- data.frame(age = c(10, 20, NA, 40), sex = c('male','female'))
+if (!require("Hmisc")){
+        install.packages("Hmisc")
+}
 
+if (!require("xtable")){
+        install.packages("table")
+}
+```
+
+Next, we create the random data with NA values which will require to be imputed.
+```{r}
+##Create the data Three attributes
+nbr = 100 ##Number of observations for each group
+
+##Speed
+s1<- rnorm(nbr,70,15)
+s2<- rep(NA,nbr)
+s3<- rnorm(nbr,20,4)
+speed<-c(s1,s2,s3)
+rm(s1,s2,s3)
+
+##Cycles
+c1<- rbinom(nbr,3,.6)
+c2<- rbinom(nbr,3,.4)
+c3<- rep(NA,nbr)
+cycle<-c(c1,c2,c3)
+rm(c1,c2,c3)
+
+##Wear
+w1<- rep(NA,nbr)
+w2<- rchisq(nbr,4)
+w3<- rchisq(nbr,7)
+wear<-c(w1,w2,w3)
+rm(w1,w2,w3)
+
+##Establish Group Numbers
+group<- c(rep(1,nbr),rep(2,nbr),rep(3,nbr))
+
+##Make a dataframe
+df <-data.frame(speed=speed, cycle=cycle, wear=wear, group=group)
+rm(speed,cycle,wear,group)
+```
+
+###How
+To decide how to handle missing data, it is helpful to know why they are missing.  There are four general "missingness mechanisms":
+
+####Missingness completely at random
+A variable is missing completely at random if the probability of missingness is the same for all units, for example, if each survey respondent decides whether to answer the "earnings" question by rolling a die and refusing to answer if a "6" shows up. If data are missing completely at random, then throwing out cases with missing data does not bias your inferences.
+
+####Missingness at random
+Most missingness is not completely at random, as can be seen from the data themselves. For example, the different nonresponse rates for whites and blacks indicate that the "earnings" question in the Social Indicators Survey is not missing completely at random.  A more general assumption, missing at random, is that the probability a variable is missing depends only on available information. Thus, if sex, race, education, and age are recorded for all the people in the survey, then "earnings" is missing at random if the probability of nonresponse to this question depends only on these other, fully recorded variables. 
+
+It is often reasonable to model this process as a logistic regression, where the outcome variable equals 1 for observed cases and 0 for missing.  
+
+When an outcome variable is missing at random, it is acceptable to exclude the missing cases (that is, to treat them as NA's), as long as the regression controls for all the variables that affect the probability of missingness. Thus, any model for earnings would have to include predictors for ethnicity, to avoid nonresponse bias.
+
+This missing-at-random assumption (a more formal version of which is sometimes called the ignorability assumption) in the missing-data framework is the basically same sort of assumption as ignorability in the causal framework. Both require that sufficient information has been collected that we can "ignore" the assignment mechanism (assignment to treatment, assignment to nonresponse).
+
+####Missingness that depends on unobserved predictors
+Missingness is no longer "at random" if it depends on information that has not been recorded and this information also predicts the missing values. For example, suppose that "surly" people are less likely to respond to the earnings question, surliness is predictive of earnings, and "surliness" is unobserved. Or, suppose that people with college degrees are less likely to reveal their earnings, having a college degree is predictive of earnings, and there is also some nonresponse to the education question. Then, once again, earnings are not missing at random.
+
+A familiar example from medical studies is that if a particular treatment causes discomfort, a patient is more likely to drop out of the study. This missingness is not at random (unless "discomfort" is measured and observed for all patients). If missingness is not at random, it must be explicitly modeled, or else you must accept some bias in your inferences
+
+####Missingness that depends on the missing value itself
+Finally, a particularly difficult situation arises when the probability of missingness depends on the (potentially missing) variable itself. For example, suppose that people with higher
+earnings are less likely to reveal them. In the extreme case (for example, all persons earning more than $100,000 refuse to respond), this is called censoring, but even the probabilistic case causes difficulty.
+
+Censoring and related missing-data mechanisms can be modeled or else mitigated by including more predictors in the missing-data model and thus bringing it closer to missing at random. For example, whites and persons with college degrees tend to have higher-than-average incomes, so
+controlling for these predictors will somewhat-but probably only somewhat correct for the higher rate of nonresponse among higher-income people. More generally, while it can be possible to predict missing values based on the other variables in your dataset,  just as with other missing-data mechanisms, this situation can be more complicated in that the nature of the missing-data mechanism may force these predictive models to extrapolate beyond the range of the observed data.
+```{r}
 # impute with mean value
-
-DF$imputed_age <- with(DF, impute(age, mean))
+df$imputed_speed01 <- with(df, impute(speed, mean))
 
 # impute with random value
-DF$imputed_age2 <- with(DF, impute(age, 'random'))
+df$imputed_cycle01 <- with(df, impute(cycle, 'random'))
 
 # impute with the media
-with(DF, impute(age, median))
+df$imputed_wear01 <- with(df, impute(wear, median))
+
 # impute with the minimum
-with(DF, impute(age, min))
+df$imputed_speed02 <- with(df, impute(speed, min))
 
 # impute with the maximum
-with(DF, impute(age, max))
-
+df$imputed_cycle02 <- with(df, impute(cycle, max))
 
 # and if you are sufficiently foolish
 # impute with number 7 
-with(DF, impute(age, 7))
+df$imputed_aspeed03 <- with(df, impute(speed, 7))
 
- # impute with letter 'a'
-with(DF, impute(age, 'a'))
+# impute with letter 'a'
+df$imputed_cycle03 <- with(df, impute(cycle, 'a'))
+
+xtable(df)
 ```
-
