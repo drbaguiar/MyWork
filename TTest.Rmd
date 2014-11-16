@@ -15,8 +15,18 @@ if(!require("doBy")){
         Install.packages("doBy")
 }
 
-##Attach the Data
-attach(ToothGrowth)
+if(!require("reshape2")){
+        Install.packages("reshape2")
+}
+
+if(!require("dplyr")){
+        Install.packages("dplyr")
+}
+
+data(ToothGrowth)
+
+##Make dose a factor
+ToothGrowth$dose = factor(ToothGrowth$dose, levels=c(0.5,1.0,2.0),labels=c("low","med","high"))
 ```
 
 The ToothGrowth dataset explains the relation between the length of teeth in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1 and 2 mg) with each of two supplement types (orange juice and ascorbic acid). 
@@ -36,82 +46,195 @@ with(ToothGrowth, {
 })
 ```
 
-A table
+Next, we make a table
 ```{r}
-table(dose,supp)
+table(ToothGrowth$dose,ToothGrowth$supp)
 ```
-###Summaries
-Next, we will look at the mean, variance, and standard deviation of tooth length, group by supplement type and dose.
+
+##Summaries of the Data
+Next, we will look at the mean, variance, and standard deviation of tooth length, grouped by supplement type and dose.
 ```{r}
 ###Basic Summary of the Data 
 summaryBy(len~supp+dose, data=ToothGrowth, FUN=c(mean,var,sd,length))
+
+##Mean
+with(ToothGrowth, tapply(len, list(dose,supp), mean))
+
+##Variance
+with(ToothGrowth, tapply(len, list(dose,supp), var))
+
+##SD
+with(ToothGrowth, tapply(len, list(dose,supp), sd))
+
+##Counts
+with(ToothGrowth, tapply(len, list(dose,supp), length))
 ```
 
-###Hypothesis Tests and Confidence Intervals
+##Hypothesis Tests and Confidence Intervals
 ####Paired By Supplement
 The hypothesis test was that there was no difference in tooth length between orange juice and ascorbic acid.  The alternative hypothesis was that orange juice increased tooth length more than ascorbic acid did.
 ```{r}
-results <-t.test(len[supp=="OJ"],len[supp=="VC"],paired=TRUE, alternative = c("greater"))
+results <-t.test(ToothGrowth$len[ToothGrowth$supp=="OJ"],ToothGrowth$len[ToothGrowth$supp=="VC"],paired=TRUE, alternative = "greater")
 results
 ```
 
-####Paired By Dose (2 versus 1)
+####Paired By Dose (High versus Medium)
 The null hypothesis was that there was no difference in tooth length between 2 mg and 1 mg dose levels.  The alternative hypothesis was that the 2 mg dose increased tooth length more than 1 mg dose did.
 ```{r}
-results <-t.test(len[dose==2],len[dose==1],paired=TRUE, alternative = c("greater"))
+results <-t.test(ToothGrowth$len[ToothGrowth$dose=="high"],ToothGrowth$len[ToothGrowth$dose=="med"],paired=TRUE, alternative = "greater")
 results
 ```
 
-####Paired By Dose (1 versus .5)
+####Paired By Dose (Medium versus Low)
 The null hypothesis was that there was no difference in tooth length between the 1 mg and .5 mg dose levels.  The alternative hypothesis was that the 1 mg dose increased tooth length more than .5 mg dose did.
 ```{r}
-results <-t.test(len[dose==1],len[dose==.5],paired=TRUE, alternative = c("greater"))
+results <-t.test(ToothGrowth$len[ToothGrowth$dose=="med"],ToothGrowth$len[ToothGrowth$dose=="low"],paired=TRUE, alternative = "greater")
 results
 ```
 
-####Independent (assume equal var) By Dose (2 versus 1)
+##Group Dose by Supplement Type
+We extract the data by supplement type, creating two new data frames, so we can run various T-tests. 
+```{r}
+## Pull out dosage by supplement
+vcdf <-subset (ToothGrowth,supp=="VC")
+ojdf <-subset (ToothGrowth,supp=="OJ")
+```
+
+###Paired High Dose
+The null hypothesis was that there was no difference in tooth length between the dose levels by supplement type.  The alternative hypothesis was that the at the high dose, orange juice supplement increased tooth length more than ascorbic acid did.
+```{r}
+## Check High dosages
+results <-t.test(ojdf$len[ojdf$dose=="high"],vcdf$len[vcdf$dose=="high"],paired=TRUE, alternative = "greater")
+results
+```
+
+###Paired Medium Dose
+The null hypothesis was that there was no difference in tooth length between the dose levels by supplement type.  The alternative hypothesis was that the at the medium dose, orange juice supplement increased tooth length more than ascorbic acid did.
+```{r}
+## Check Medium dosages
+results <-t.test(ojdf$len[ojdf$dose=="med"],vcdf$len[vcdf$dose=="med"],paired=TRUE, alternative = "greater")
+results
+```
+
+###Paired Low Dose
+The null hypothesis was that there was no difference in tooth length between the dose levels by supplement type.  The alternative hypothesis was that the at the low dose, orange juice supplement increased tooth length more than ascorbic acid did.
+```{r}
+## Check Low dosages
+results <-t.test(ojdf$len[ojdf$dose=="low"],vcdf$len[vcdf$dose=="low"],paired=TRUE, alternative = "greater")
+results
+```
+
+##Independent T-Tests
+###Independent (assume equal var) By Dose (High versus Medium)
 The null hypothesis was that there was no difference in tooth length between 2 mg and 1 mg dose levels.  The alternative hypothesis was that the 2 mg dose increased tooth length more than 1 mg dose did.
 ```{r}
-results <-t.test(len[dose==2],len[dose==1],var.equal=TRUE, alternative = c("greater"))
+results <-t.test(ToothGrowth$len[ToothGrowth$dose=="high"],ToothGrowth$len[ToothGrowth$dose=="med"],var.equal=TRUE, alternative = "greater")
 results
 ```
 
-####Independent (assume equal var) By Dose (1 versus .5)
+###Independent (assume equal var) By Dose (Medium versus Low)
 The null hypothesis was that there was no difference in tooth length between 2 mg and 1 mg dose levels.  The alternative hypothesis was that the 1 mg dose increased tooth length more than .5 mg dose did.
 ```{r}
-results <-t.test(len[dose==1],len[dose==.5],var.equal=TRUE, alternative = c("greater"))
+results <-t.test(ToothGrowth$len[ToothGrowth$dose=="med"],ToothGrowth$len[ToothGrowth$dose=="low"],var.equal=TRUE, alternative = "greater")
 results
 ```
 
+##Analysis of Variation
 ###One-Way Anova by Dose
 ```{r}
-output <- aov(len ~ dose)
-model.tables(output,"means")
+output <- aov(len ~ dose, data=ToothGrowth)
+model.tables(output,"means",se=T)
 summary(output)
 plot(output)
 ```
 
 ###Post Hoc Tests
 ####Pairwise T Test
-The function pairwise.t.test computes the pair-wise comparisons between group means with corrections for multiple testing. The general form is pairwise.t.test(reponse, factor, p.adjust = method, alternative = c("two.sided","less", "greater"))
+The function pairwise.t.test computes the pair-wise comparisons between group means with corrections for multiple testing. The general form is pairwise.t.test(response, factor, p.adjust = method, alternative = c("two.sided","less", "greater"))
 ```{r}
-pairwise.t.test(len, dose,  p.adjust="bonferroni")
+pairwise.t.test(ToothGrowth$len, ToothGrowth$dose,  p.adjust="bonferroni")
 ```
-
 
 ###Anova by Supplement & Dose
-####Multiple OLS Linear
+####ANOVA
 ```{r}
-output <- aov(len ~ supp + dose)
-model.tables(output,"means")
+output <- aov(len ~ supp + dose, data=ToothGrowth)
+model.tables(output,"means",se=T)
 summary(output)
 plot(output)
+TukeyHSD(output)
 ```
 
-####Multiple OLS Linear with Interaction
+####ANOVA with Interaction
 ```{r}
-output <- aov(len ~ supp*dose)
-model.tables(output,"means")
+output <- aov(len ~ supp*dose,data=ToothGrowth )
+model.tables(output,"means", se=T)
 summary(output)
 plot(output)
+TukeyHSD(output)
+
+##Interaction Plt
+with(ToothGrowth, interaction.plot(x.factor=dose, trace.factor=supp,response=len, fun=mean, type="b", legend=T, ylab="Tooth Length", main="Interaction Plot", pch=c(1,19)))
+
+##Interaction Plot and 
+with(ToothGrowth,
+interaction.plot(dose, supp, len, fun=mean,
+xlab="Dose", ylab="Average Length",
+lty=1, lwd=2, col=c("red", "blue"), legend=FALSE))
+legend("bottomright", c("Orange Juice", "Ascorbic Acid"),
+col=c("red", "blue"), lty=1, bty="n", title="Supplement")
+
+```
+
+##Linear Model
+```{r}
+fit <- aov(len~dose+supp, data=ToothGrowth)
+summary(fit)
+```
+
+
+```{r}
+##Make a 
+x <- ToothGrowth$len[ToothGrowth$dose=="high"]-ToothGrowth$len[ToothGrowth$dose=="med"]
+summary(x)
+results <-t.test(x,  alternative = "greater")
+results
+
+x <- ToothGrowth$len[ToothGrowth$dose=="med"]-ToothGrowth$len[ToothGrowth$dose=="low"]
+summary(x)
+results <-t.test(x,  alternative = "greater")
+results
+
+x <- ToothGrowth$len[ToothGrowth$dose=="high"]-ToothGrowth$len[ToothGrowth$dose=="low"]
+summary(x)
+results <-t.test(x,  alternative = "greater")
+results
+
+x <- ToothGrowth$len[ToothGrowth$supp=="OJ"]-ToothGrowth$len[ToothGrowth$supp=="VC"]
+summary(x)
+results <-t.test(x,  alternative = "greater")
+results
+```
+
+### One-Sample T-Tests
+```{r}
+# Add the ID column to the data frame
+dataIDAdded <- data.frame(ToothGrowth,PigID=rep(c(1:10),6))
+tgdata <- dcast(dataIDAdded,dose+PigID~supp,value.var="len")
+
+# Adjust the column names of the data frame
+names(tgdata)[-(1: 2)] <- paste("supp_", names(tgdata)[-(1: 2)], sep = "")
+
+# Add a difference value column to the data frame
+tgdata <- mutate(tgdata,diffval=supp_OJ-supp_VC)
+
+##
+tgdata05 <- subset(tgdata,dose=="low")
+t.test(tgdata05$diffval)
+
+tgdata10 <- subset(tgdata,dose=="med")
+t.test(tgdata10$diffval)
+
+tgdata20 <- subset(tgdata,dose=="high")
+t.test(tgdata20$diffval)
 ```

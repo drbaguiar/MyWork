@@ -1,0 +1,100 @@
+---
+title: "Sampling"
+author: "Dr. B"
+date: "Saturday, November 15, 2014"
+output: html_document
+---
+
+First, we load some packages:
+```{r,warning=FALSE,echo=FALSE,message=FALSE}
+if (!require("Hmisc")){
+        install.packages("Hmisc")
+}
+
+if (!require("xtable")){
+        install.packages("table")
+}
+```
+
+Next, we create the random data with NA values:
+```{r}
+
+nbr = 10000 ##Number of observations for each group
+sampsize = 20 #Size of samples
+nbrsamples = 5000 #how many samples
+
+##Create the data Three attributes
+
+##Speed
+s1<- rnorm(nbr,70,15)
+s2<- rep(NA,nbr)
+s3<- rnorm(nbr,20,4)
+speed<-c(s1,s2,s3)
+rm(s1,s2,s3)
+
+##Cycles
+c1<- rbinom(nbr,3,.6)
+c2<- rbinom(nbr,3,.4)
+c3<- rep(NA,nbr)
+cycle<-c(c1,c2,c3)
+rm(c1,c2,c3)
+
+##Wear
+w1<- rep(NA,nbr)
+w2<- rchisq(nbr,4)
+w3<- rchisq(nbr,7)
+wear<-c(w1,w2,w3)
+rm(w1,w2,w3)
+
+##Establish Group Numbers
+group<- c(rep(1,nbr),rep(2,nbr),rep(3,nbr))
+
+##Make a dataframe
+df <-data.frame(speed=speed, cycle=cycle, wear=wear, group=group)
+rm(speed,cycle,wear,group)
+```
+
+###Histograms
+Next we make a histogram for each variable:
+```{r}
+hist(df$speed)
+rug(df$speed)
+abline(v=mean(df$speed,na.rm=1),col="red")
+
+hist(df$cycle)
+rug(df$cycle)
+abline(v=mean(df$cycle,na.rm=1),col="red")
+
+hist(df$wear)
+rug(df$wear)
+abline(v=mean(df$wear,na.rm=1),col="red")
+```
+
+###Summary 
+```{r}
+summary(df)
+```
+
+###Sampling
+Next we will take `r nbrsamples ` samples of size `r sampsize` of each variable and make a histogram of each
+```{r}
+means_speed <- replicate(nbrsamples,mean(sample(df$speed,sampsize,replace=T),na.rm=1))
+hist(means_speed, main="Sampling Distribution")
+rug(means_speed)
+abline(v=mean(df$speed,na.rm=1),col="red")
+
+means_cycle <- replicate(nbrsamples,mean(sample(df$cycle,sampsize,replace=T),na.rm=1))
+hist(means_cycle, main="Sampling Distribution")
+rug(means_cycle)
+abline(v=mean(df$cycle,na.rm=1),col="red")
+
+means_wear <- replicate(nbrsamples,mean(sample(df$wear,sampsize,replace=T),na.rm=1))
+hist(means_wear, main="Sampling Distribution")
+rug(means_wear)
+abline(v=mean(df$wear,na.rm=1),col="red")
+
+summary(means_speed)
+summary(means_cycle)
+summary(means_wear)
+```
+
