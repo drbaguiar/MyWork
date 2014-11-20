@@ -6,7 +6,7 @@ output: html_document
 ---
 
 First, we load some packages:
-```{r,warning=FALSE,echo=FALSE,message=FALSE}
+```{r,warning=FALSE,message=FALSE}
 if (!require("Hmisc")){
         install.packages("Hmisc")
 }
@@ -18,12 +18,13 @@ if (!require("xtable")){
 
 Next, we create the random data with NA values:
 ```{r}
-
+#Set variables to use
 nbr = 10000 ##Number of observations for each group
 sampsize = 20 #Size of samples
 nbrsamples = 5000 #how many samples
+withreplace = 1 #With replacement 0 or 1
 
-##Create the data Three attributes
+##Create the data attributes
 
 ##Speed
 s1<- rnorm(nbr,70,15)
@@ -78,18 +79,20 @@ summary(df)
 ###Sampling
 Next we will take `r nbrsamples ` samples of size `r sampsize` of each variable and make a histogram of each
 ```{r}
-means_speed <- replicate(nbrsamples,mean(sample(df$speed,sampsize,replace=T),na.rm=1))
-hist(means_speed, main="Sampling Distribution")
+maintitle=paste0("Distribution of ",nbrsamples," Sample Means \n from a Sample Size of ", sampsize)
+
+means_speed <- replicate(nbrsamples,mean(sample(df$speed,sampsize,replace=withreplace),na.rm=1))
+hist(means_speed, main=maintitle)
 rug(means_speed)
 abline(v=mean(df$speed,na.rm=1),col="red")
 
-means_cycle <- replicate(nbrsamples,mean(sample(df$cycle,sampsize,replace=T),na.rm=1))
-hist(means_cycle, main="Sampling Distribution")
+means_cycle <- replicate(nbrsamples,mean(sample(df$cycle,sampsize,replace=withreplace),na.rm=1))
+hist(means_cycle, main=maintitle)
 rug(means_cycle)
 abline(v=mean(df$cycle,na.rm=1),col="red")
 
-means_wear <- replicate(nbrsamples,mean(sample(df$wear,sampsize,replace=T),na.rm=1))
-hist(means_wear, main="Sampling Distribution")
+means_wear <- replicate(nbrsamples,mean(sample(df$wear,sampsize,replace=withreplace),na.rm=1))
+hist(means_wear, main=maintitle)
 rug(means_wear)
 abline(v=mean(df$wear,na.rm=1),col="red")
 

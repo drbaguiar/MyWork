@@ -1,0 +1,142 @@
+---
+title: "Risk"
+author: "Dr. B"
+date: "Monday, November 17, 2014"
+output: html_document
+---
+
+A 2003 article in the Journal of the American Medical Association documents the results of a randomized clinical trial designed to evaluate whether the influenza vaccine is effective in reducing the occurrence of acute otitis media (AOM) in young children. Acute otitis media is an infection that causes inflammation of the middle ear canal. In the study, children were randomized to receive either the influenza vaccine or a placebo. (randomization was done in a 2 to 1 ratio, meaning that two times as many children were randomized to the vaccine treatment as were randomized to the placebo group). 
+
+The children were followed for one year after randomization, and monitored for AOM during this period. 262 children were randomized to the vaccine group, and 150 of these children experienced at least one incident of AOM during the follow-up period. 134 children were randomized to the placebo group, and 83 of these children experience at least one incident of AOM during the follow-up period.
+
+```{r,warning=FALSE, message=FALSE}
+if (!require("epicalc")){
+        install.packages("epicalc")
+}
+
+if (!require("survival")){
+        install.packages("survival")
+}
+```
+For this study, the outcome variable is: Acute otitis media. The predictor variable is:  Treatment group (Flu vaccine or placebo).
+
+###Risk Difference
+Estimate the risk difference (difference in proportions) of acute otitis media among children in the vaccine group compared to children in the placebo group. (Answer is -.05)
+
+```{r}
+csi (150, 112, 83, 51)
+```
+
+Interpret the estimate risk difference:  5 % fewer children in the vaccine group got otitis media (as compared to the vaccine group).
+
+###Relative Risk
+Estimate the relative risk (risk ratio) of acute otitis media children in the vaccine group compared to children in the placebo group. (Anser is .92)
+```{r}
+csi (150, 112, 83, 51)
+```
+Interpret the estimate relative risk: Any individual child who receives the vaccine has a 8% lower risk (1-.92) of contracting acute otitis media as compared to receiving the placebo.
+
+###Relative Odds
+Estimate the relative odds (odds ratio) of acute otitis media children in the vaccine group compared to children in the placebo group. (Answer is .82)
+```{r}
+cci (150, 112, 83, 51)
+```
+Interpret the odds ratio: Any individual child who receives the vaccine has 18% (1 - .82) <b>lower odds</B> of contracting acute otitis media as compared to receiving the placebo.
+
+##Kaplan-Meier curve
+In a July, 2010 article published in the New England Journal of Medicine, researchers report the results of a randomized clinical trial to evaluate mortality differences in HIV infected subjects in Haiti. Subjects were randomized to receive early versus the current standards for implementation of Antiretriviral therapy. 
+
+As per the article abstract: 
+
+BACKGROUND: For adults with human immunodeficiency virus (HIV) infection who have CD4+ T-cell counts that are greater than 200 and less than 350 per cubic millimeter and who live in areas with limited resources, the optimal time to initiate antiretroviral therapy remains uncertain. 
+
+METHODS: We conducted a randomized, open-label trial of early initiation of antiretroviral therapy, as compared with the standard timing for initiation of therapy, among HIV-infected adults in Haiti who had a confirmed CD4+ T-cell count that was greater than 200 and less than 350 per cubic millimeter at baseline and no history of an acquired immunodeficiency syndrome (AIDS) illness. The primary study end point was survival. The early-treatment group began taking zidovudine, lamivudine, and efavirenz therapy within 2 weeks after enrollment. The standard-treatment group started the same regimen of antiretroviral therapy when their CD4+ T-cell count fell to 200 per cubic millimeter or less or when clinical AIDS developed. Participants in both groups underwent monthly follow-up assessments and received isoniazid and trimethoprim-sulfamethoxazole prophylaxis with nutritional support. 
+
+In summarizing the findings, the researchers present the following Kaplan-Meier curve: 
+
+![Kaplan-Meier curve](https://d396qusza40orc.cloudfront.net/statreasoning%2Fimages%2FHW2Fig1.png)
+
+Why do the curves for both groups start at 1 (100%) at time = 0 month?  <U>Because everybody in the sample was alive at 0 months.</U>
+
+What is the estimated proportion of persons surviving (remaining alive) beyond 36 months in the Early Retroviral Treatment sample? <U>(approximately) 97%.</U>
+
+What is the estimated proportion of persons surviving (remaining alive) beyond 36 months in the Standard Retroviral Treatment sample? <U>(approximately) 93%</U>
+
+Based only on this graphic, what can you say about the estimated incidence rate ratio (IRR) of mortality for standard treatment group compared to the early treatment group? (greater than, less than, or equal to 1). Why? <U> The estimated IRR is greater than 1, because the percentage of persons who died in the standard treatment groups was greater than the percentage who died in the early treatment group across the entire follow-up period.</U>
+
+##Survival Analysis
+A pilot study was designed to evaluate the potential efficacy of a program designed to reduce prison recidivism amongst inmates who have a documented long-term history of drug and/or alcohol problems.
+
+A sample of 11 prisoners was followed for up to 24 months after their most recent release from prison. Six of the inmates returned to prison at 3, 7 9, 11, 14 and 21 months respectively. Five of the inmates had not returned to prison as of the last time they were last contacted which was at 4, 8, 16, 24, and 24 months respectively.
+```{r}
+#Set the times in order
+stime<-c(3,4,7,8,9,11,14,16,21,24,24)
+#Set the status 1 = back in jail
+status<-c(1,0,1,0,1,1,1,0,1,0,0)
+
+#Set a Factor if more than 1 group
+x <- factor(status, labels = c("Treatment", "NoTreatment"))
+
+##Run the survival analysis with only 1 group
+fit <-survfit(Surv(stime, status) ~ 1)
+```
+
+###Proportions
+What is the estimated proportion of the total sample who had not returned to prison within 7 months after enrolling in the study? (81%)
+```{r}
+summary(fit)
+```
+
+What is the estimated proportion of <b>persons who did not return to prison</b> at 11 months among those who were still at risk of returning to prison at 11 months? (83%) 
+```{r}
+5/6  # 5 remaining out of 6
+```
+
+What is the estimated percentage of the original sample had not returned to prison within 16 months of being released from prison? (47%)
+```{r}
+summary(fit)
+```
+
+Why does the Kaplan-Meier curve not reach 0% in the follow-up period?  <i>Because the observation(s) with the largest recorded time was censored at this time</i>.
+
+```{r}
+plot(fit, main="Kaplan-Meier estimate \nwith 95% confidence bounds", xlab="time", ylab="survival function")
+```
+
+What is the estimated median time to prison return in this sample? (14 months)
+```{r}
+fit
+```
+
+##Another Problem (Like the First)
+In an August 2013 article published in American Journal of Public Health, researchers report the results of a two-site (San Francisco and NYC) randomized trial. Here is a description of the trial and the sample from the article abstract: 
+
+Objectives. We evaluated the efficacy of a hepatitis care coordination intervention to improve linkage to hepatitis A virus (HAV) and hepatitis B virus (HBV) vaccination and clinical evaluation of hepatitis C virus (HCV) infection among methadone maintenance patients.
+
+Methods. We conducted a randomized controlled trial of 489 participants from methadone maintenance treatment programs in San Francisco, California, and New York City from February 2008 through June 2011. We randomized participants to a control arm (n = 245) and an intervention arm (n = 244), which included on-site screening, motivational-enhanced education and counseling, on-site vaccination, and case management services. 
+
+Of the 150 participants in the intervention group who needed the combined HAV---HBV vaccine, 115 received the vaccine within 30 days of the vaccine being recommended. Of the 150 participants in the control group who needed the combined HAV-HBV vaccine,18 received the vaccine within 30 days of the vaccine being recommended.
+
+The outcome variable is: Vaccination Status At 30 Days
+The predictor variable is: Group assignment (treatment or control)
+
+###Risk Difference
+Estimate the risk difference (difference in proportions) of getting the vaccine within 30 day of recommendation for the intervention group compared to the control group. (answer: 0.65)
+```{r}
+csi(115,35,18,132)
+```
+Interpret the estimated risk difference: 65% more persons randomized to the intervention group were vaccinated within 30 days or randomization, as compared to the persons randomized to the control group.
+
+###Relative Risk
+Estimate the relative risk (risk ratio) of getting the vaccine within 30 day of recommendation for the intervention group compared to the control group. (answer: 6.4 (6.4-1)*100 = 540%)
+```{r}
+csi(115,35,18,132)
+```
+Interpret the estimated relative risk: An individual who receives the intervention has a 540% greater risk (6.4 times the probability) of being vaccinated within 30 days compared to if this individual was in the control group.
+
+###Relative Odds
+Estimate the relative odds (odds ratio) of getting the vaccine within 30 day of recommendation for the intervention group compared to the control group. (answer: 24.1)
+```{r}
+cci(115,35,18,132)
+```
+Interpret the estimated odds ratio: An individual who receives the intervention has a 2310 % greater odds (24.1 times the odds ) of being vaccinated within 30 days compared to if this individual was in the control group.
