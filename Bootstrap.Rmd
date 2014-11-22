@@ -197,6 +197,21 @@ abline(v=quantile(rats.bootstrap, c(1-alpha/2)),lwd=3, col='red')
 ```
 
 
+```{r}
+rm(list=ls())
+library(UsingR)
+data(father.son)
+x <- father.son$sheight #observations
+n <-length(x)  #Set n to the number of observations
+b <- 10000 ##Bootstrap number of samples 
+resamples <- matrix(sample(x,n*b,replace=TRUE),b,n) #matrix with every row being a bootsrap sample
+medians <-apply (resamples,1,median)
+hist(medians)
+abline(v=median(x),col="red")
+sd(medians)
+quantile(medians, c(.025,.975))
+abline(v=quantile(medians, c(.025)),col="blue")
+abline(v=quantile(medians, c(.975)),col="blue")
 
-Monte Carlo Estimation of Power
-------------------------------
+```
+
