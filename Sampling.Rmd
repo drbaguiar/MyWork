@@ -5,29 +5,28 @@ date: "Saturday, November 15, 2014"
 output: html_document
 ---
 
-##Setup
-```{r,warning=FALSE,message=FALSE}
+###Setup
+```{r setup,warning=FALSE,message=FALSE}
 ##Clear the environment
 rm(list=ls())
 
-# Turn off scientific notations for numbers
+##Turn off scientific notations for numbers
 options(scipen = 999)  
 
-#Set locale
+##Set locale
 Sys.setlocale("LC_ALL", "English") 
 
-#Set variables to use
+##Set variables to use
 set.seed(2345) ##Set the seed for reproducibility
-nbr = 2000 ##Number of observations for each group (3 groups)
+nbr = 200 ##Number of observations for each group (3 groups)
 sampsize = nbr #Size of samples
-nbrsamples = 10000 #how many samples
+nbrsamples = 10000 #how many samples minimum 10000 for bootstraping
 withreplace = 1 #With replacement 0 or 1 (1 for bootstrap) 
 conf = .95 ##COnfidence Interval
 ```
 
-##Generate random data
-```{r}
-##Create the data attributes
+###Generate the Data
+```{r generatedata}
 ##Speed
 s1<- rnorm(nbr,70,15)
 s2<- rep(NA,nbr)
@@ -57,97 +56,171 @@ df <-data.frame(speed=speed, cycle=cycle, wear=wear, group=group)
 rm(speed,cycle,wear,group)
 ```
 
-###Histograms
-Next we make a histogram for each variable:
-```{r}
-hist(df$speed)
-rug(df$speed)
-abline(v=mean(df$speed,na.rm=1),col="red")
-
-hist(df$cycle)
-rug(df$cycle)
-abline(v=mean(df$cycle,na.rm=1),col="red")
-
-hist(df$wear)
-rug(df$wear)
-abline(v=mean(df$wear,na.rm=1),col="red")
+###Sample the Data
+Next we will take `r nbrsamples ` samples of size `r sampsize` of each of the 3 variables. 
+```{r sampledata}
+if (withreplace==0)
+        {
+                means_speed <- replicate(nbrsamples,mean(sample(df$speed,sampsize,replace =FALSE),na.rm=1)) ##Sample the speed data
+                means_cycle <- replicate(nbrsamples,mean(sample(df$cycle,sampsize,replace=FALSE),na.rm=1))  ##Sample cycle Data
+                means_wear <- replicate(nbrsamples,mean(sample(df$wear,sampsize,replace=FALSE),na.rm=1))  ##Sample wear data                
+                
+        } else {
+                resamples <-matrix(sample(df$speed,sampsize*nbrsamples,replace=TRUE),nbrsamples,sampsize) ##Sample the speed data
+                means_speed <-apply (resamples,1,mean, na.rm=1) ##Sample the speed data
+                                resamplescycle <-matrix(sample(df$cycle,sampsize*nbrsamples,replace=TRUE),nbrsamples,sampsize)  ##Sample cycle Data
+                means_cycle <-apply (resamplescycle,1,mean, na.rm=1) ##Sample cycle Data
+                resampleswear <-matrix(sample(df$wear,sampsize*nbrsamples,replace=TRUE),nbrsamples,sampsize)##Sample wear data
+                means_wear <-apply (resampleswear,1,mean, na.rm=1)##Sample wear data                  
+        }
 ```
 
-###Sampling
-Next we will take `r nbrsamples ` samples of size `r sampsize` of each variable and make a histogram of each
-```{r}
+###Visual Summaries of the Data
+```{r visualdata}
 ##set a title for the histograms
 maintitle=paste0("Distribution of ",nbrsamples," Sample Means \n from a Sample Size of ", sampsize)
 
-##One way to Sample
-#means_speed <- replicate(nbrsamples,mean(sample(df$speed,sampsize,replace=withreplace),na.rm=1))
-#hist(means_speed, main=maintitle)
-#rug(means_speed)
-#abline(v=mean(df$speed,na.rm=1),col="red")
-##quantile(medians, c(.025,.975))
-#abline(v=quantile(means_speed, c((1 - conf)/2)),col="blue")
-#abline(v=quantile(means_speed, c((1 - conf)/2 +conf)),col="blue")
+##Set two charts per panel
+par(mfrow=c(1,2))
 
-##Bootstraping 
-resamples <-matrix(sample(df$speed,sampsize*nbrsamples,replace=withreplace),nbrsamples,sampsize)
-means_speed <-apply (resamples,1,mean, na.rm=1)
+##Histogram of original speed data then samples with confidence intervals
+hist(df$speed)
+rug(df$speed)
+abline(v=mean(df$speed,na.rm=1),col="red")
 hist(means_speed, main=maintitle)
 rug(means_speed)
 abline(v=mean(df$speed,na.rm=1),col="red")
 abline(v=quantile(means_speed, c((1 - conf)/2)),col="blue")
 abline(v=quantile(means_speed, c((1 - conf)/2 +conf)),col="blue")
 
-##One way to Sample
-#means_cycle <- replicate(nbrsamples,mean(sample(df$cycle,sampsize,replace=withreplace),na.rm=1))
-#hist(means_cycle, main=maintitle)
-#rug(means_cycle)
-#abline(v=mean(df$cycle,na.rm=1),col="red")
-##quantile(medians, c(.025,.975))
-#abline(v=quantile(means_cycle, c((1 - conf)/2)),col="blue")
-#abline(v=quantile(means_cycle, c((1 - conf)/2 +conf)),col="blue")
+#Dot charts of original speed data then samples
+dotchart(df$speed)
+abline(v=mean(df$speed,na.rm=1),col="red")
+dotchart(means_speed)
+abline(v=mean(df$speed,na.rm=1),col="red")
 
-##Bootstrapping
-resamplescycle <-matrix(sample(df$cycle,sampsize*nbrsamples,replace=withreplace),nbrsamples,sampsize)
-means_cycle <-apply (resamplescycle,1,mean, na.rm=1)
+##Strip chart of original speed data then samples
+stripchart(df$speed,method="stack",pch=19,col="blue",xlab="Speed")
+abline(v=mean(df$speed,na.rm=1),col="red")
+stripchart(means_speed,method="stack",pch=19,col="blue",xlab="Speed")
+abline(v=mean(df$speed,na.rm=1),col="red")
+abline(v=quantile(means_speed, c((1 - conf)/2)),col="blue")
+abline(v=quantile(means_speed, c((1 - conf)/2 +conf)),col="blue")
+
+##Density Chart of original speed data then samples
+plot(density(df$speed,na.rm=TRUE), lwd=3, col="steelblue")
+abline(v=mean(df$speed,na.rm=1),col="red")
+plot(density(means_speed), lwd=3, col="steelblue")
+abline(v=mean(df$speed,na.rm=1),col="red")
+abline(v=quantile(means_speed, c((1 - conf)/2)),col="blue")
+abline(v=quantile(means_speed, c((1 - conf)/2 +conf)),col="blue")
+
+##Box Plots of original speed data then samples
+boxplot(df$speed)
+abline(h=mean(df$speed,na.rm=1),col="red")
+boxplot(means_speed)
+abline(h=mean(df$speed,na.rm=1),col="red")
+
+##QQPlots of original speed data then samples
+qqnorm(df$speed)
+qqline(df$speed, col = 2)
+qqnorm(means_speed)
+qqline(means_speed, col = 2)
+
+##Histogram of original cycle data then samples
+hist(df$cycle)
+rug(df$cycle)
+abline(v=mean(df$cycle,na.rm=1),col="red")
 hist(means_cycle, main=maintitle)
 rug(means_cycle)
 abline(v=mean(df$cycle,na.rm=1),col="red")
 abline(v=quantile(means_cycle, c((1 - conf)/2)),col="blue")
 abline(v=quantile(means_cycle, c((1 - conf)/2 +conf)),col="blue")
 
-##One way to sample
-#means_wear <- replicate(nbrsamples,mean(sample(df$wear,sampsize,replace=withreplace),na.rm=1))
-#hist(means_wear, main=maintitle)
-#rug(means_wear)
-#abline(v=mean(df$wear,na.rm=1),col="red")
-##quantile(medians, c(.025,.975))
-#abline(v=quantile(means_cycle, c((1 - conf)/2)),col="blue")
-#abline(v=quantile(means_cycle, c((1 - conf)/2 +conf)),col="blue")
+#Dot charts of original cycle data then samples
+dotchart(df$cycle)
+abline(v=mean(df$cycle,na.rm=1),col="red")
+dotchart(means_cycle)
+abline(v=mean(df$cycle,na.rm=1),col="red")
 
-##Bootstrapping
-resampleswear <-matrix(sample(df$wear,sampsize*nbrsamples,replace=withreplace),nbrsamples,sampsize)
-means_wear <-apply (resampleswear,1,mean, na.rm=1)
+##Strip chart of original cycle data then samples
+stripchart(df$cycle,method="stack",pch=19,col="blue",xlab="Cycle")
+abline(v=mean(df$cycle,na.rm=1),col="red")
+stripchart(means_cycle,method="stack",pch=19,col="blue",xlab="Cycle")
+abline(v=mean(df$cycle,na.rm=1),col="red")
+abline(v=quantile(means_cycle, c((1 - conf)/2)),col="blue")
+abline(v=quantile(means_cycle, c((1 - conf)/2 +conf)),col="blue")
+
+##Density Chart of original cycle data then samples
+plot(density(df$cycle,na.rm=TRUE), lwd=3, col="steelblue")
+abline(v=mean(df$cycle,na.rm=1),col="red")
+plot(density(means_cycle), lwd=3, col="steelblue")
+abline(v=mean(df$cycle,na.rm=1),col="red")
+abline(v=quantile(means_cycle, c((1 - conf)/2)),col="blue")
+abline(v=quantile(means_cycle, c((1 - conf)/2 +conf)),col="blue")
+
+##Box Plots of original cycle data then samples
+boxplot(df$cycle)
+abline(h=mean(df$cycle,na.rm=1),col="red")
+boxplot(means_cycle)
+abline(h=mean(df$cycle,na.rm=1),col="red")
+
+##QQPlots of original cycle data then samples
+qqnorm(df$cycle)
+qqline(df$cycle, col = 2)
+qqnorm(means_cycle)
+qqline(means_cycle, col = 2)
+
+##Histogram of original wear data then samples
+hist(df$wear)
+rug(df$wear)
+abline(v=mean(df$wear,na.rm=1),col="red")
 hist(means_wear, main=maintitle)
 rug(means_wear)
 abline(v=mean(df$wear,na.rm=1),col="red")
 abline(v=quantile(means_wear, c((1 - conf)/2)),col="blue")
 abline(v=quantile(means_wear, c((1 - conf)/2 +conf)),col="blue")
+
+#Dot charts of original wear data then samples
+dotchart(df$wear)
+abline(v=mean(df$wear,na.rm=1),col="red")
+dotchart(means_wear)
+abline(v=mean(df$wear,na.rm=1),col="red")
+
+##Strip chart of original wear data then samples
+stripchart(df$wear,method="stack",pch=19,col="blue",xlab="Wear")
+abline(v=mean(df$wear,na.rm=1),col="red")
+stripchart(means_wear,method="stack",pch=19,col="blue",xlab="Wear")
+abline(v=mean(df$wear,na.rm=1),col="red")
+abline(v=quantile(means_wear, c((1 - conf)/2)),col="blue")
+abline(v=quantile(means_wear, c((1 - conf)/2 +conf)),col="blue")
+
+##Density Chart of original wear data then samples
+plot(density(df$wear,na.rm=TRUE), lwd=3, col="steelblue")
+abline(v=mean(df$wear,na.rm=1),col="red")
+plot(density(means_wear), lwd=3, col="steelblue")
+abline(v=mean(df$wear,na.rm=1),col="red")
+abline(v=quantile(means_wear, c((1 - conf)/2)),col="blue")
+abline(v=quantile(means_wear, c((1 - conf)/2 +conf)),col="blue")
+
+##Box Plots of original wear data then samples
+boxplot(df$wear)
+abline(h=mean(df$wear,na.rm=1),col="red")
+boxplot(means_wear)
+abline(h=mean(df$wear,na.rm=1),col="red")
+
+##QQPlots of riginal wear data then samples
+qqnorm(df$wear)
+qqline(df$wear, col = 2)
+qqnorm(means_wear)
+qqline(means_wear, col = 2)
 ```
 
-###Summary
-```{r}
-##Let's look at summaries & boxplots
+###Numerical Summaries of the Data
+```{r numericdata}
+##Let's look at summaries
 summary(means_speed)
 summary(means_cycle)
 summary(means_wear)
 summary(df[,-4])
-
-boxplot(means_speed,df$speed)
-abline(h=mean(df$speed,na.rm=1),col="red")
-
-boxplot(means_cycle,df$cycle)
-abline(h=mean(df$cycle,na.rm=1),col="red")
-
-boxplot(means_wear,df$wear)
-abline(h=mean(df$wear,na.rm=1),col="red")
 ```
