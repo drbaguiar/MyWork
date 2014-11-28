@@ -1,0 +1,133 @@
+# Example of using "R markdown" and `knitr`
+
+Plain text written in will become the body text of the output.  Unlike with an R script, you don't put comment characters (i.e., `#` characters) in front of text -- nothing is processed by the R terminal unless it is in a code block, which we'll see below.
+
+Wrap code to *evaluated* by R in an "R code block"
+
+```{r}
+head(cars)
+```
+
+By default, R will print the command that you entered and below that the output with comment characters preceeding it.
+
+# Controlling chunk evaluation / printing / etc
+
+There are three related options for controlling what gets evaluated and printed from a code chunk.
+
+* `results`: This can be set to `"markup"` (the default) or `"hide"` to supress output.  Note the quotes!  There is another option `"asis"` that turns out to be useful sometimes, but only when you're _generating_ Markdown with your R code.
+* `echo`: When this is `TRUE` (the default), your code will be included in the output document.  When `FALSE`, your code will not be printed.
+* `eval`: This is `TRUE` by default, and indicates if code should be run.  It may still be printed (based on `echo`) but the value of `results` will not matter because it won't generate any output.
+
+This block of code will run, but leave no trace of its running in the final document:
+```{r,results="hide",echo=FALSE}
+a <- 1
+```
+
+This code will not run, but allows you to include a block of R text in the final document (with pretty syntax highlighting):
+```{r,eval=FALSE}
+f <- function(x) {
+  # code would go here...
+}
+```
+
+This code will run, but only show the output:
+```{r,echo=FALSE}
+matrix(runif(20), 4, 5) # matrix of random numbers
+```
+
+This code will run, but show only the input:
+```{r,results="hide"}
+b <- a + 1
+```
+
+# Inserting figures
+
+You can insert figures just like normal code blocks:
+```{r}
+plot(1:10)
+```
+
+There are more options though: the `fig.width` and `fig.height` control the sizes:
+
+```{r,fig.width=6,fig.height=4}
+plot(1:10)
+```
+
+Sometimes when you're making figures you'll want to hide the actual R code used to generate it; use `echo=FALSE` as above.
+
+```{r,echo=FALSE}
+plot(1:10)
+```
+
+# A slightly more realistic example
+
+```{r,echo=FALSE}
+# This block is hidden because it's ugly - generate a data set
+n <- 40
+set.seed(1)
+x <- runif(n)
+g <- sample(2, n, replace=TRUE)
+y <- rnorm(n, x) + g
+d <- data.frame(x, y, group=g)
+rm(n, x, y, g)
+```
+
+Here is my data set
+```{r}
+head(d)
+```
+
+Fit a simple linear model:
+
+```{r}
+fit <- lm(y ~ x + group, d)
+```
+
+Both of the factors are significant:
+```{r}
+anova(fit)
+```
+
+The estimated slope of `y` on `x` is `r coef(fit)["x"]`.  The full coefficient list and their errors is
+
+```{r}
+summary(fit)
+```
+
+
+Look at the residuals/fitted diagnostic plot:
+
+```{r}
+plot(fit, 1)
+```
+
+
+
+# Other markdown tricks
+
+## Tables
+
+Tables are not much fun to make.  There is a markdown mode:
+
+Fruit | Cost
+------|-----
+Apple | $1.20
+Pear  | $2.10
+
+but it's fiddly to deal with.
+
+## Links
+
+To make a link, you put the text you want to appear within square brackets, and the target of the link in parentheses.  For example here is a link to [our website](http://nicercode.github.io).
+
+## Images
+
+To include an image (not one of your R figures), the code looks like `![alt text](uri)`, where `"alt text"` is the text that will be included for people who can't see the image (and the hover-over text in some browsers), and the `uri` can be a relative link to a file on your computer or a full url (i.e., begining with `http://`).  For example:
+
+![some kittens](http://placekitten.com/g/600/200)
+
+Using the results option to generate images
+
+```{r,results="asis",echo=FALSE}
+writeLines(sprintf("![some kittens](http://placekitten.com/g/%d00/100)  ", 1:6))
+```

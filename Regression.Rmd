@@ -7,7 +7,11 @@ output: html_document
 
 Simple Linear Regression: Faithful
 ----------
+```{r}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
+```
 ### Problem
 Apply the simple linear regression model for the data set faithful, and estimate the next eruption duration if the waiting time since the last eruption has been 80 minutes.
 

@@ -8,14 +8,11 @@ output: html_document
 Missing data arise in almost all serious statistical analyses. There are a variety of methods to handle missing data, including some relatively simple approaches that can often yield reasonable results. 
 
 First, we need to load the `Hmisc' R package, which we will use to impute missing values:
-```{r,warning=FALSE}
-if (!require("Hmisc")){
-        install.packages("Hmisc")
-}
-
-if (!require("xtable")){
-        install.packages("table")
-}
+```{r,warning=FALSE, message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+call("Hmisc")
+call("xtable")
 ```
 
 Next, we create the random data with NA values which will require to be imputed.

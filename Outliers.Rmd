@@ -1,0 +1,29 @@
+---
+title: "Outlier"
+author: "Dr. B"
+date: "Sunday, November 23, 2014"
+output: html_document
+---
+
+```{r, warning=FALSE, message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+```
+
+
+Locate the 1st and 99th percentile.  Replace any values above the 99th percentile with the 99th percentile value.  Replace any value below the 1st percentile with the 1st percentile.
+
+```{r}
+##Copy the dataset
+data<-faithful
+
+##Set values that are lower than the 1st percentile to the 1st percentile
+data$eruptions[data$eruptions < quantile(data$eruptions,.01)] <-quantile(data$eruptions,.01)
+
+##Set values that are higher than the 99th percentile to the 99th percentile
+data$eruptions[data$eruptions > quantile(data$eruptions,.99)] <-quantile(data$eruptions,.99)
+```
+
+
+

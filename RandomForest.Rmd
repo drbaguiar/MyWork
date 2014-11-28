@@ -1,0 +1,60 @@
+---
+title: "RandomForest"
+author: "Dr. B"
+date: "Sunday, November 23, 2014"
+output: html_document
+---
+
+```{r}
+##load the iris data
+data(iris)
+ 
+## splitdf function will return a list of training and testing sets
+splitdf <- function(dataframe, seed=NULL) {
+        if (!is.null(seed)) set.seed(seed)
+	index <- 1:nrow(dataframe)
+	trainindex <- sample(index, trunc(length(index)/2))
+	trainset <- dataframe[trainindex, ]
+	testset <- dataframe[-trainindex, ]
+	list(trainset=trainset,testset=testset)
+}
+```
+
+```{r}
+##apply the function
+splits <- splitdf(iris, seed=808)
+ 
+##save the training and testing sets as data frames
+training <- splits$trainset
+testing <- splits$testset
+```
+
+Apply the Random FOrest
+
+```{r}
+########### Optional: apply to iris data using randomForest ###########
+ 
+#load the randomForest library. if you havent installed it, run the next line
+#install.packages("randomForest")
+library(randomForest)
+ 
+#fit the randomforest model
+model <- randomForest(Sepal.Length~., 
+        data = training, 
+	importance=TRUE,
+	keep.forest=TRUE
+)
+print(model)
+ 
+#what are the important variables (via permutation)
+varImpPlot(model, type=1)
+ 
+#predict the outcome of the testing data
+predicted <- predict(model, newdata=testing[ ,-1])
+ 
+# what is the proportion variation explained in the outcome of the testing data?
+# i.e., what is 1-(SSerror/SStotal)
+actual <- testing$Sepal.Length
+rsq <- 1-sum((actual-predicted)^2)/sum((actual-mean(actual))^2)
+print(rsq)
+```

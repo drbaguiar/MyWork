@@ -7,14 +7,13 @@ output: html_document
 Logistic regression, also called a logit model, is used to model dichotomous outcome variables. In the logit model the log odds of the outcome is modeled as a linear combination of the predictor variables.  A logistic regression is typically used when there is one dichotomous outcome variable (such as winning or losing), and a continuous predictor variable which is related to the probability or odds of the outcome variable. It can also be used with categorical predictors, and with multiple predictors.
 
 The goal of logistic regression is to correctly predict the category of outcome for individual cases using the most parsimonious model. To accomplish this goal, a model is created that includes all predictor variables that are useful in predicting the response variable. Several different options are available during model creation. Variables can be entered into the model in the order specified by the researcher or logistic regression can test the fit of the model after each coefficient is added or deleted, called stepwise regression.  
-```{r,warning=FALSE}
-if (!require("aod")){
-        install.packages("aod")  
-}
-if (!require("ggplot2")){
-        install.packages("ggplot2")  
-}
-options(scipen=999) # suppressing scientific notation
+```{r,warning=FALSE, message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+##Load libraries
+call("aod")
+call("ggplot2")
 ```
 
 ###Data

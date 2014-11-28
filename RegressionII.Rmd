@@ -1,0 +1,400 @@
+---
+title: "Regression From Site"
+author: "Dr. B"
+date: "Tuesday, November 25, 2014"
+output: html_document
+---
+##Setup
+```{r loadlib, warning=FALSE,message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+call("MASS")
+call("ISwR")
+call("graphics")
+```
+
+##Load Some Data
+```{r loadata}
+##Load some data
+cleaning <- read.table("http://www.stat.tamu.edu/~sheather/book/docs/datasets/cleaning.txt", h=T,sep="")
+
+pima <-read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/pima-indians-diabetes/pima-indians-diabetes.data", header=F, sep=",")
+colnames (pima) <- c("npreg", "glucose","bp", "triceps", "insulin", "bmi", "diabetes", "age", "class")
+
+production <- read.table ("http://www.stat.tamu.edu/~sheather/book/docs/datasets/production.txt", header=T, sep="")
+
+changeover <- read.table("http://www.stat.tamu.edu/~sheather/book/docs/datasets/changeover_times.txt", header=T, sep="")
+
+anscombe <- read.table("http://www.stat.tamu.edu/~sheather/book/docs/datasets/anscombe.txt", h=T, sep="" )
+```
+
+##First Steps
+Prior to any analysis, the data should always be inspected for:
+
+        Data-entry errors
+        Missing values
+        Outliers
+        Unusual (e.g. asymmetric) distributions
+        Changes in variability
+        Clustering
+        Non-linear bivariate relatioships
+        Unexpected patterns
+
+##Univariate summary information:
+Look for unusual features in the data (data-entry errors, outliers): check, for example, min, max of each variable
+```{r}
+summary (pima)
+```
+
+Variable "npreg" has maximum value equal to 17
+
+        unusually large but not impossible
+
+Variables "glucose", "bp", "triceps", "insulin" and "bmi" have minimum value equal to zero
+
+        in this case, it seems that zero was used to code missing data
+
+Zero should not be used to represent missing data
+
+        it's a valid value for some of the variables
+        can yield misleading results
+        
+```{r}
+###Set the missing values erronusly coded as zero to NA
+pima$glucose[pima$glucose==0] <- NA
+pima$bp[pima$bp==0] <- NA
+pima$triceps[pima$triceps==0] <- NA
+pima$insulin[pima$insulin==0] <- NA
+pima$bmi[pima$bmi==0] <- NA
+```
+
+Variable "class" is categorical, not quantitative.  Categorical should not be coded as numerical data
+
+        problem of "average zip code"
+        
+```{r}
+##Set categorical variables coded as numerical to factor
+pima$class <- factor(pima$class) 
+levels(pima$class) <- c("neg", "pos")
+```
+
+##Graphical Summaries
+
+Univariate
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+## simple data plot
+plot (sort(pima$bp))
+
+## histogram
+hist(pima$bp)
+
+## density plot
+plot(density(pima$bp,na.rm=TRUE))
+```
+
+Bivariate
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+## scatterplot
+plot(triceps~bmi,pima)
+
+## boxplot
+boxplot(diabetes~class,pima)
+```
+
+##Simple linear Regression
+```{r}
+attach (production)
+plot (RunTime~RunSize)
+
+##Fit the regression model using the function lm ()
+production.lm <- lm(RunTime~RunSize,data=production)
+
+### Use the function summary () to get some results
+summary (production.lm)
+
+##Fitted values obtained using the function fitted()
+##Residuals obtained using the function resid()
+## Create a table with fitted values and residuals
+df.production<-data.frame(production,fitted.value=fitted(production.lm),residual=resid(production.lm))
+df.production
+
+##ANOVA
+aov.production <-anova(production.lm)
+aov.production
+
+##Obtaining the confidence bands
+predict(production.lm,interval="confidence")
+
+# Obtaining the prediction bands :
+predict(production.lm,interval="prediction")
+
+##Plotting 
+
+##Create a new data frame containing the values of X at which we want the predictions to be made
+pred.frame<-data.frame(RunSize=seq(55,345,by=10))
+
+# Confidence bands
+pc<-predict(production.lm,int="c",newdata=pred.frame)
+
+## Prediction bands
+pp <- predict(production.lm,int="p", newdata=pred.frame)
+
+##Standard scatterplot with extended limits
+plot(production$RunSize,production$RunTime,ylim=range(pred.frame$RunSize,pp,na.rm=T))
+pred.Size <-pred.frame$RunSize
+## Add curves
+matlines (pred.Size , pc, lty=c(1,2,2), lwd=1.5,col =1)
+matlines (pred.Size , pp, lty=c(1,3,3), lwd=1.5,col =1)
+
+##Lets be nice
+detach (production)
+```
+
+##Handling Missing Values
+
+Missing data need to be handled carefully. Using the na.exclude method:
+```{r}
+attach(thuesen)
+plot(short.velocity~blood.glucose)
+
+##Option for dealing with missing data
+options (na.action=na.exclude)
+
+##Now fit the regression model as before
+velocity.lm <- lm(short.velocity~blood.glucose, data=thuesen)
+
+# Create a table with fitted values and residuals
+df.velocity <-data.frame(thuesen,fitted.value=fitted(velocity.lm),residual=resid(velocity.lm))
+df.velocity
+
+##ANOVA
+aov.velocity <-anova(velocity.lm)
+aov.velocity
+
+##Obtaining the confidence bands
+predict(velocity.lm,interval="confidence")
+
+# Obtaining the prediction bands :
+predict(velocity.lm,interval="prediction")
+
+##Plotting 
+
+##Create a new data frame containing the values of X at which we want the predictions
+pred.frame <-data.frame(blood.glucose=seq(0,24,by=2))  
+
+# Confidence bands
+pc<-predict(velocity.lm,int="c",newdata=pred.frame)
+
+## Prediction bands
+pp <- predict(velocity.lm,int="p",newdata=pred.frame)
+
+##Standard scatterplot with extended limits
+plot(thuesen$blood.glucose,thuesen$short.velocity,ylim=range(thuesen$blood.glucose,pp,na.rm=T)) 
+pred.Size <-pred.frame$blood.glucose
+
+## Add curves
+#matlines (pred.Size , pc, lty=c(1,2,2), lwd=1.5,col =1)
+#matlines (pred.Size , pp, lty=c(1,3,3), lwd=1.5,col =1)
+
+##Lets be nice
+detach (thuesen)
+```
+
+Attention: Neither R2 nor R2 adj give direct indication on how well the model will perform in the prediction of a new observation.
+
+Confidence Bands - Reflect the uncertainty about the regression line (how well the line
+is determined).
+
+Prediction Bands - Include also the uncertainty about future observations.
+
+Attention: These limits rely strongly on the assumption of normally distributed errors with constant variance and should not be used if this assumption is violated for the data being analyzed.
+
+##Dummy Variables
+The simple dummy variable regression is used when the predictor variable is not quantitative but categorical and assumes only two values.
+
+```{r}
+attach (changeover)
+
+# Summary :
+summary (changeover)
+```
+
+We need to recode the X variable (New) to factor
+```{r}
+##Make new a factor
+changeover $ New <- factor(changeover$New)
+summary (changeover)
+
+##Plot the variables
+
+##Set printing
+par(mfrow=c(1,2))
+
+plot (Changeover~New)
+boxplot(Changeover~New)
+```
+
+Fitting the linear regression:
+```{r}
+# Fit the linear regression model
+changeover.lm <-lm(Changeover~New,data =changeover)
+
+# Extract the regression results
+summary (changeover.lm)
+
+##Lets be nice
+detach (changeover)
+```
+
+Analysis of the results:
+
+        There's significant evidence of a reduction in the mean change-over time for the new method.
+
+        The estimated mean change-over time for the new method
+                (X = 1) is: y^1 = 17.8611 + (???3.1736) ??? 1 = 14.7 minutes
+                
+        The estimated mean change-over time for the existing method
+                (X = 0) is: y^0 = 17.8611 + (???3.1736) ??? 0 = 17.9 minutes
+
+##Model Assumptions
+The assumptions for simple linear regression are:
+
+        Y relates to X by a linear regression model
+        the errors are independent and identically normally distributed with mean zero and common variance
+        
+Violations:
+
+        In the linear regression model:
+                linearity (e.g. quadratic relationship or higher order terms)
+                
+In the residual assumptions:
+
+        non-normal distribution
+        non-constant variances
+        dependence
+        outliers
+        
+Checks:
+
+        look at plot of residuals vs. X
+        look at plot of residuals vs. fitted values
+        look at residuals Q-Q norm plot
+        
+```{r}
+attach(anscombe)
+
+##Viewinf correlations
+cor(anscombe$x1,anscombe$y1)
+cor(anscombe$x2,anscombe$y2)
+cor(anscombe$x3,anscombe$y3)
+cor(anscombe$x4,anscombe$y4)
+
+##Fitting the regressions
+a1.lm <- lm(y1~x1,data=anscombe)
+a2.lm <- lm(y2~x2,data=anscombe)
+a3.lm <- lm(y3~x3,data=anscombe)
+a4.lm <- lm(y4~x4,data=anscombe)
+
+summary(a1.lm)
+summary(a2.lm)
+summary(a3.lm)
+summary(a4.lm)
+
+
+
+```
+
+```{r}
+##Plotting
+
+##Set printing
+par(mfrow=c(1,2))
+
+## first data set
+plot(y1~x1,data =anscombe)
+abline(a1.lm,col=2)
+
+## second data set
+plot(y2~x2,data =anscombe)
+abline(a2.lm,col=2)
+
+## third data set
+plot(y3~x3,data =anscombe)
+abline(a3.lm,col=2)
+
+## fourth data set
+plot(y4~x4,data =anscombe)
+abline(a4.lm,col=2)
+```
+
+For all data sets, the fitted regression is the same.  All models have R2 = 0.67, ^?? = 1.24 and the slope coefficients are significant at < 1% level. To check that, use the summary() function on the regression models.
+
+##Checking assumptions graphically
+
+Residuals vs. X
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+##For the first data set
+plot(resid(a1.lm)~x1)
+
+##For the second data set
+plot(resid(a2.lm)~x2)
+
+##For the third data set
+plot(resid(a3.lm)~x3)
+
+##For the fourth data set
+plot(resid(a4.lm)~x4)
+```
+
+Residuals vs. fitted values
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+##For the first data set
+plot(resid(a1.lm)~fitted(a1.lm))
+
+##For the second  data set
+plot(resid(a2.lm)~fitted(a2.lm))
+
+##For the third data set
+plot(resid(a3.lm)~fitted(a3.lm))
+
+##For the fourth data set
+plot(resid(a4.lm)~fitted(a4.lm))
+```
+
+Residuals QQ Plot
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+##For the first data set
+qqnorm(resid(a1.lm))
+qqline(resid(a1.lm))
+
+##For the second data set
+qqnorm(resid(a2.lm))
+qqline(resid(a2.lm))
+
+##For the third data set
+qqnorm(resid(a3.lm))
+qqline(resid(a3.lm))
+
+##For the fourth data set
+qqnorm(resid(a4.lm))
+qqline(resid(a4.lm))
+
+##Lets be nice
+detach(anscombe)
+```

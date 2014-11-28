@@ -1,21 +1,11 @@
-##Load libraries
-if (!require("cluster")){
-        install.packages("cluster")
-}
+##Clear the environment
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
-if (!require("fpc")){
-        install.packages("fpc")
-}
-
-if (!require("flexclust")){
-        install.packages("flexclust")
-}
-
-##Clear the workspace and enivronment
-rm(list=ls())
-
-## remove scientific notation
-options(scipen=999)
+call("cluster")
+call("fpc")
+call("flexclust")
+call("NbClust")
 
 ##Set seed for reproducibility
 set.seed(2489)

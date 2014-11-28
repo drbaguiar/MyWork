@@ -20,7 +20,26 @@ Bootstrapping
 Bootstrap resampling is a computational method of measuring the error in a statistic's estimator.  We have just one dataset. When we compute a statistic on the data, we only know that one statistic ??? we don???t see how variable that statistic is. The bootstrap creates a large number of datasets that we might have seen and computes the statistic on each of these datasets. Thus we get a distribution of the statistic. Key is the strategy to create data that ???we might have seen???.
 
 First, set the seed
-```{r}
+```{r, warning=FALSE,message=FALSE}
+##Clear the environment
+rm(list=ls())
+
+##Turn off scientific notations for numbers
+options(scipen = 999)  
+
+##Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+##Load libraries
+call <- function(x)
+{
+  if (!require(x,character.only = TRUE))
+        {
+                install.packages(x,dep=TRUE)
+        }
+}
+call("UsingR")
+
 #set the seed for reporducability
 set.seed(2)
 ```
@@ -198,8 +217,8 @@ abline(v=quantile(rats.bootstrap, c(1-alpha/2)),lwd=3, col='red')
 
 
 ```{r}
-rm(list=ls())
-library(UsingR)
+##rm(list=ls())
+##library(UsingR)
 data(father.son)
 x <- father.son$sheight #observations
 n <-length(x)  #Set n to the number of observations

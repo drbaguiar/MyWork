@@ -1,0 +1,159 @@
+---
+title: "CleanData"
+author: "Dr. B"
+date: "Wednesday, November 26, 2014"
+output: html_document
+---
+
+
+```{r, warning=FALSE, message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+call("Hmisc")
+```
+
+
+```{r,results='markup'}
+##Load some data 
+data <-read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/pima-indians-diabetes/pima-indians-diabetes.data", header=F, sep=",")
+
+##create columnames that need to be tidy
+colnames (data) <- c("N_Preg", "glu//cose","BP", "tri-ceps", "Ins ulin", "bmi", "diabetes", "AGE", "clas s ")
+
+#copy data to df
+df <-data
+
+##View summary Check for NA
+summary(df)
+apply(is.na(df),2,sum)
+```
+
+Variable "npreg" has maximum value equal to 17, unusually large but not impossible
+
+Variables "glucose", "bp", "triceps", "insulin" and "bmi" have minimum value equal to zero      in this case, it seems that zero was used to code missing data
+
+Zero should not be used to represent missing data: (1) it's a valid value for some of the variables, (2) can yield misleading results.
+
+Variable "class" is categorical, not quantitative.  Categorical should not be coded as numerical data
+        
+```{r cleanup}
+# Clean data column names for the data frame
+names(df)<- tolower(names(df))
+names(df)<- gsub("-","",names(df))
+names(df)<- gsub("_","",names(df))
+names(df)<- gsub(" ","",names(df))
+#names(df)<- gsub("\\","",names(df))
+names(df)<- gsub("//","",names(df))
+
+###Set the missing values erronusly coded as zero to NA
+df$glucose[df$glucose==0] <- NA
+df$bp[df$bp==0] <- NA
+df$triceps[df$triceps==0] <- NA
+df$insulin[df$insulin==0] <- NA
+df$bmi[df$bmi==0] <- NA
+
+##Set categorical variables coded as numerical to factor
+#df$class <- factor(df$class) 
+#levels(df$class) <- c("neg", "pos")
+
+##Summary & check for N/A
+summary(df)
+apply(is.na(df),2,sum)
+
+# impute with mean value
+df$glucose <- with(df, impute(glucose, mean))
+df$bp <- with(df, impute(bp, mean))
+df$triceps <- with(df, impute(triceps, mean))
+df$insulin <- with(df, impute(insulin, mean))
+df$bmi <- with(df, impute(bmi, mean))
+
+##Convert all imputed variables to nummeric
+#df$glucose <-as.numeric(df$glucose)
+#df$bp <- as.numeric(df$bp)
+#df$triceps <- as.numeric(df$triceps)
+#df$insulin <- as.numeric(df$insulin)
+#df$bmi <- as.numeric(df$bmi)
+
+##Summary & check for N/A
+summary(df)
+apply(is.na(df),2,sum)
+```
+
+
+```{r}
+splits<-dfsplit(df)
+df.train<-splits$trainset
+df.test<-splits$testset
+```
+
+
+```{r visual}
+##Set printing
+par(mfrow=c(1,2))
+
+hist(df$npreg)
+qqnorm(df$npreg, main="QQ Plot \n NPreg Variable")
+qqline(df$npreg)
+
+hist(df$glucose)
+qqnorm(df$glucose, main="QQ Plot \n Glucose Variable")
+qqline(df$glucose)
+
+hist(df$bp)
+qqnorm(df$bp, main="QQ Plot \n DP Variable")
+qqline(df$bp)
+
+hist(df$diabetes)
+qqnorm(df$diabetes, main="QQ Plot \n Diabetes Variable")
+qqline(df$diabetes)
+
+hist(df$triceps)
+qqnorm(df$triceps, main="QQ Plot \n Triceps Variable")
+qqline(df$triceps)
+
+hist(df$insulin)
+#qqnorm(df$insulin, main="QQ Plot \n Insulin Variable")
+#qqline(df$insulin)
+```
+
+```{r splitdata}
+##define % of training and test set 
+##(use 2 then 1 for 50%, 4 then 3 for 75%, 5 then 4 for 80%, 5 than 3 for 60%, 5 than 4.5 for 90%)
+bound <- floor((nrow(df)/4)*3)         
+
+##sample rows 
+df <- df[sample(nrow(df)), ]  
+
+##get training set
+df.train <- df[1:bound, ]   
+#df.train
+
+##get test set
+df.test <- df[(bound+1):nrow(df), ]    
+#df.test
+```
+
+Logistic Regession
+```{r}
+##Regression model
+basefit <-glm(class~diabetes, data=df.train,family = "binomial")
+inclusivefit <- glm(class~., data=df.train,family = "binomial")
+bestfit <- step(inclusivefit, direction="both")
+
+##Significance Check
+anova(basefit, bestfit)
+
+## odds ratios only
+exp(coef(bestfit))
+
+## odds ratios and 95% CI
+exp(cbind(OR = coef(bestfit), confint(bestfit)))
+
+anova(basefit, bestfit)
+coefficients(bestfit) # model coefficients
+confint(bestfit, level=0.95) # CIs for model parameters 
+fitted(bestfit) # predicted values
+anova(bestfit) # anova table 
+vcov(bestfit) # covariance matrix for model parameters 
+```

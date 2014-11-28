@@ -5,7 +5,26 @@ date: "Saturday, September 27, 2014"
 output: html_document
 ---
 
-```{r}
+```{r,warning=FALSE,message=FALSE}
+##Clear the environment
+rm(list=ls())
+
+##Turn off scientific notations for numbers
+options(scipen = 999)  
+
+##Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+##Load libraries
+call <- function(x)
+{
+  if (!require(x,character.only = TRUE))
+        {
+                install.packages(x,dep=TRUE)
+        }
+}
+#call("MASS")
+
 data(mtcars)
 str(mtcars)
 ```
@@ -59,7 +78,7 @@ residuals(bestmodel) # residuals
 ------------------
 ```{r}
 require(car)
-re # Bonferonni p-value for most extreme obs
+#re # Bonferonni p-value for most extreme obs
 ```
 
 Model Residuals and Diagnostics

@@ -10,13 +10,26 @@ A 2003 article in the Journal of the American Medical Association documents the 
 The children were followed for one year after randomization, and monitored for AOM during this period. 262 children were randomized to the vaccine group, and 150 of these children experienced at least one incident of AOM during the follow-up period. 134 children were randomized to the placebo group, and 83 of these children experience at least one incident of AOM during the follow-up period.
 
 ```{r,warning=FALSE, message=FALSE}
-if (!require("epicalc")){
-        install.packages("epicalc")
-}
+##Clear the environment
+rm(list=ls())
 
-if (!require("survival")){
-        install.packages("survival")
+##Turn off scientific notations for numbers
+options(scipen = 999)  
+
+##Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+##Load libraries
+call <- function(x)
+{
+  if (!require(x,character.only = TRUE))
+        {
+                install.packages(x,dep=TRUE)
+        }
 }
+call("epicalc")
+call("survival")
+call("graphics")
 ```
 For this study, the outcome variable is: Acute otitis media. The predictor variable is:  Treatment group (Flu vaccine or placebo).
 
@@ -30,7 +43,7 @@ csi (150, 112, 83, 51)
 Interpret the estimate risk difference:  5 % fewer children in the vaccine group got otitis media (as compared to the vaccine group).
 
 ###Relative Risk
-Estimate the relative risk (risk ratio) of acute otitis media children in the vaccine group compared to children in the placebo group. (Anser is .92)
+Estimate the relative risk (risk ratio) of acute otitis media children in the vaccine group compared to children in the placebo group. (Answer is .92)
 ```{r}
 csi (150, 112, 83, 51)
 ```
