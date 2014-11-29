@@ -8,33 +8,15 @@ output: html_document
 Load required libraries
 --------------
 ```{r,results='hide',warning=FALSE, echo=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
-if (!require("lattice")) {
-  install.packages("lattice")
-}
-
-if (!require("gclus")) {
-  install.packages("gclus")
-}
-
-if (!require("Rcmdr")) {
-  install.packages("Rcmdr")
-}
-
-if (!require("hexbin")) {
-  install.packages("hexbin")
-}
-
-if (!require("scatterplot3d")) {
-  install.packages("scatterplot3d")
-}
-
-require("gclus")
-require("Rcmdr")
-require("scatterplot3d")
-require("hexbin")
-require("lattice")
-require("rgl")
+call("gclus")
+call("Rcmdr")
+call("scatterplot3d")
+call("hexbin")
+call("lattice")
+call("rgl")
 ```
 
 Load Data

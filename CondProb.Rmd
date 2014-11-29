@@ -4,27 +4,13 @@ author: "Dr. B"
 date: "Monday, November 03, 2014"
 output: html_document
 ---
-```{r, warning=FALSE}
-## First let's load a library
-if (!require("xtable")){
-        install.packages("xtable")
-}
-
-if (!require("datasets")){
-        install.packages("datasets")
-}
-
-if (!require("knitr")){
-        install.packages("knitr")
-}
-
-if (!require("UsingR")){
-        install.packages("UsingR")
-}
-
-## set global options
-opts_chunk$set(echo=FALSE, fig.height=4, fig.width=4,warning=FALSE)
-
+```{r, warning=FALSE, message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+call("xtable")
+call("datasets")
+call("knitr")
+call("UsingR")
 ```
 
 ```{r}

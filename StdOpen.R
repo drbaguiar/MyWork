@@ -23,13 +23,13 @@ call <- function(x)
 dfsplit <-function(dataframe){
         ##define % of training and test set 
         ##(use 2 then 1 for 50%, 4 then 3 for 75%, 5 then 4 for 80%, 5 than 3 for 60%, 5 than 4.5 for 90%)
-        bound <- floor((nrow(df)/4)*3)         
+        bound <- floor((nrow(dataframe)/4)*3)         
         ##sample rows 
-        df <- df[sample(nrow(df)), ]  
+        dataframe <- dataframe[sample(nrow(dataframe)), ]  
         ##get training set
-        df.train <- df[1:bound, ]   
+        df.train <- dataframe[1:bound, ]   
         ##get test set
-        df.test <- df[(bound+1):nrow(df), ]  
+        df.test <- dataframe[(bound+1):nrow(dataframe), ]  
         list(trainset=df.train,testset=df.test)
 }
 

@@ -7,26 +7,21 @@ output: html_document
 
 A few different T Tests
 ```{r,warning=FALSE}
-#Set globals, load libraries, and load and attach the data
-# Turn off scientific notations for numbers
-options(scipen = 999)  
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
-if(!require("doBy")){
-        Install.packages("doBy")
-}
-
-if(!require("reshape2")){
-        Install.packages("reshape2")
-}
-
-if(!require("dplyr")){
-        Install.packages("dplyr")
-}
-
+call("doBy")
+call("reshape2")
+call("dplyr")
 data(ToothGrowth)
 
 ##Make dose a factor
 ToothGrowth$dose = factor(ToothGrowth$dose, levels=c(0.5,1.0,2.0),labels=c("low","med","high"))
+
+##SPli the datset into testing and training
+split <-dfsplit(ToothGrowth)
+df.test <-split$testset
+df.train <-split$trainset
 ```
 
 The ToothGrowth dataset explains the relation between the length of teeth in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1 and 2 mg) with each of two supplement types (orange juice and ascorbic acid). 

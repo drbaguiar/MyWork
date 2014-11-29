@@ -10,23 +10,9 @@ A 2003 article in the Journal of the American Medical Association documents the 
 The children were followed for one year after randomization, and monitored for AOM during this period. 262 children were randomized to the vaccine group, and 150 of these children experienced at least one incident of AOM during the follow-up period. 134 children were randomized to the placebo group, and 83 of these children experience at least one incident of AOM during the follow-up period.
 
 ```{r,warning=FALSE, message=FALSE}
-##Clear the environment
-rm(list=ls())
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
-##Turn off scientific notations for numbers
-options(scipen = 999)  
-
-##Set locale
-Sys.setlocale("LC_ALL", "English") 
-
-##Load libraries
-call <- function(x)
-{
-  if (!require(x,character.only = TRUE))
-        {
-                install.packages(x,dep=TRUE)
-        }
-}
 call("epicalc")
 call("survival")
 call("graphics")
