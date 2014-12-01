@@ -7,9 +7,6 @@ call("fpc")
 call("flexclust")
 call("NbClust")
 
-##Set seed for reproducibility
-set.seed(2489)
-
 ##Set printing to 1 row of 3 columns
 par(mfrow=c(1,3))
 
