@@ -5,23 +5,23 @@ date: "Friday, October 31, 2014"
 output: html_document
 ---
 
-
 ```{r}
-library(FactoMineR)
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+call("FactoMineR")
+
+#Set name of datafile
+datafile=paste(datadir,"pca_gsp.csv",sep = "")
 
 ##Get the Data
-mydata<- read.csv("C:/Users/bryan_000/Documents/GitHub/Data/pca_gsp.csv")
-attach(mydata)
-
-## turn off scientific notation
-options(scipen=999)
-options(digits=4)
+mydata<- read.csv(datafile)
 ```
 
 
 ```{r}
 # Define variables
-X <- cbind(Ag, Mining, Constr, Manuf, Manuf_nd, Transp, Comm, Energy, TradeW, TradeR, RE, Services, Govt)
+X <- cbind(mydata$Ag, mydata$Mining, mydata$Constr, mydata$Manuf, mydata$Manuf_nd, mydata$Transp, mydata$Comm, mydata$Energy, mydata$TradeW, mydata$TradeR, mydata$RE, mydata$Services, mydata$Govt)
 
 # Descriptive statistics
 summary(X)
