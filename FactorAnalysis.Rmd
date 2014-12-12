@@ -27,7 +27,13 @@ The main goal of PCA in the tasks today will be dimension reduction. We wish to 
 The main goal of PCA in the tasks today will be dimension reduction. We wish to produce a smaller set of uncorrelated variables from the larger set of correlated variables.
 
 The princomp( ) function produces an unrotated principal component analysis.  Use cor=FALSE to base the principal components on the covariance matrix. Use the covmat= option to enter a correlation or covariance matrix directly. If entering a covariance matrix, include the option n.obs=.
-```{r}
+```{r,message=FALSE,warning=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+call("nFactors")
+call("psych")
+call("FactoMineR")
+
 # Pricipal Components Analysis
 # entering raw data and extracting PCs 
 # from the correlation matrix 
@@ -42,7 +48,7 @@ biplot(fit)
 
 The principal( ) function in the psych package can be used to extract and rotate principal components.  Rotate can "none", "varimax", "quatimax", "promax", "oblimin", "simplimax", or "cluster" .
 ```{r}
-library(psych)
+##call("psych")
 fit <- principal(USArrests, nfactors=, rotate="varimax")
 fit # print results
 ```
@@ -52,7 +58,6 @@ fit # print results
 The fa() function in the psych package offers a number of factor analysis related functions, including principal axis (fm="pa") factoring.
 ```{r}
 # Principal Axis Factor Analysis
-library(psych)
 fit <- fa(USArrests, fm="pa")
 fit # print results
 ```
@@ -61,14 +66,14 @@ The FactoMineR package offers a large number of additional functions for explora
 ```{r}
 # Principal Axis Factor Analysis
 # PCA Variable Factor Map 
-library(FactoMineR)
+#call("FactoMineR")
 result <- PCA(USArrests) # graphs generated automatically
 ```
 
 ###Determining the Number of Factors to Extract
 A crucial decision in exploratory factor analysis is how many factors to extract. The nFactors package offer a suite of functions to aid in this decision. Details on this methodology can be found in a PowerPoint presentation by Raiche, Riopel, and Blais. Of course, any factor solution must be interpretable to be useful.
 ```{r}
-library(nFactors)
+##call("nFactors")
 ev <- eigen(cor(USArrests)) # get eigenvalues
 ap <- parallel(subject=nrow(USArrests),var=ncol(USArrests),
   rep=100,cent=.05)

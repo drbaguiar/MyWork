@@ -8,7 +8,10 @@ Categorical Data
 ----------------
 Categorical data are commonly encountered in three forms: a frequency table or crosstabulation, a flat table, or a case-by-case data frame.  Data sets that are purely categorical are not economically represented in case-by-case data frames, and so the built-in data sets that are purely categorical come in the form of tables (contingency tables or crosstabulations). 
 ```{r}
-rm(list=ls())
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+
 gender = rep(c("female","male"),c(1835,2691))
 admitted = rep(c("yes","no","yes","no"),c(557,1278,1198,1493))
 dept = rep(c("A","B","C","D","E","F","A","B","C","D","E","F"),

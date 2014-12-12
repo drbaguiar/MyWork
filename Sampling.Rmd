@@ -7,17 +7,10 @@ output: html_document
 
 ###Setup
 ```{r setup,warning=FALSE,message=FALSE}
-##Clear the environment
-rm(list=ls())
-
-##Turn off scientific notations for numbers
-options(scipen = 999)  
-
-##Set locale
-Sys.setlocale("LC_ALL", "English") 
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
 ##Set variables to use
-set.seed(2345) ##Set the seed for reproducibility
 nbr = 200 ##Number of observations for each group (3 groups)
 sampsize = nbr #Size of samples
 nbrsamples = 10000 #how many samples minimum 10000 for bootstraping

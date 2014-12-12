@@ -38,7 +38,11 @@ One-way analysis of variance (ANOVA) is a technique used to compare means of two
 On of the simpliest wways to perform an analysis of variance is to use the oneway.test( ) function for simple between subjects designs. 
 
 The data are from an agricultural experiment in which six different insect sprays were tested in many different fields, and the response variable (DV) was a count of insects found in each field after spraying.
-```{r}
+```{r,message=FALSE,warning=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+call("lawstat")
+
 data(InsectSprays)
 attach(InsectSprays)
 tapply(count, spray, mean)
@@ -93,7 +97,7 @@ bartlett.test(count ~ spray, data=InsectSprays)
 ####Levene's Test
 Levene's test is used to test if k samples have equal variances. Equal variances across samples is called homogeneity of variance. Some statistical tests, for example the analysis of variance, assume that variances are equal across groups or samples. The Levene test can be used to verify that assumption.  Levene's test is an alternative to the Bartlett test. The Levene test is less sensitive than the Bartlett test to departures from normality. If you have strong evidence that your data do in fact come from a normal, or nearly normal, distribution, then Bartlett's test has better performance.
 ```{r}
-require("lawstat")
+#call("lawstat")
 levene.test(InsectSprays$count,InsectSprays$spray)
 ```
 ###Testing For Normality in One Way ANOVA

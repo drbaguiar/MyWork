@@ -19,19 +19,12 @@ Dplyr aims to provide a function for each basic verb of data manipulating:
         mutate() (and transmute())
         summarise()
         sample_n() and sample_frac()
-```{r, warning=FALSE}
-## Load required libraries
-if (!require("nycflights13")) {
-  install.packages("nycflights13")
-}
+```{r, warning=FALSE, message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
-if (!require("dplyr")) {
-  install.packages("dplyr")
-
- install.packages("dplyr") 
-  }
-library(nycflights13)
-library(dplyr)
+call ("nycflights13")
+call ("dplyr")
 ```
 
 ###Fliter  
@@ -125,7 +118,7 @@ sample_n(flights, 10)
 
 
 ```{r}
-sample_frac(flights, 0.01)
+sample_frac(flights, 0.05)
 ```
 
 

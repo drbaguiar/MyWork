@@ -5,33 +5,37 @@ date: "Friday, October 31, 2014"
 output: html_document
 ---
 
-```{r, warning=FALSE}
-##Load Required Libraries
-library(tm) # Framework for text mining.
-library(SnowballC) # Provides wordStem() for stemming.
-library(RColorBrewer) # Generate palette of colours for plots.
-library(ggplot2) # Plot word frequencies.
-library(magrittr)
-library(wordcloud)
+```{r, warning=FALSE,message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+#Set name of datafile
+datafile <- paste(datadir,"marks.dat",sep = "")
+call("tm") # Framework for text mining.
+call("SnowballC") # Provides wordStem() for stemming.
+call("RColorBrewer") # Generate palette of colours for plots.
+call("ggplot2") # Plot word frequencies.
+call("magrittr")
+call("wordcloud")
 ##library(Rgraphviz)
 
 ```
 
 
-```{r, warning=FALSE}
+```{r, warning=FALSE,message=FALSE}
 ##Set variables used 
 min_freq=25
 max_freq=1000000
 max_words=100
 sparse_terms_nbr = .99   # Enter number as a decimal Higer removes less
-assoc_word = "roswel"
+assoc_word = "data"
 correlation = .45
 
 ##Load the text file
 ##txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/TextDocs/bill.txt")
 
 ##Load an entire directory
-txt.in <-Corpus(DirSource("C:/Users/bryan_000/Documents/GitHub/Data/TextDocs/"), readerControl = list(language="lat"))
+txt.in <-Corpus(DirSource("C:/Users/bryan_000/Documents/GitHub/Data/Blog_Data/set 2/"), readerControl = list(language="lat"))
 ```
 
 ```{r}
@@ -64,7 +68,7 @@ txt.corpus<- tm_map(txt.corpus, stemDocument)
 txt.corpus<- tm_map(txt.corpus, stripWhitespace)
 
 ##Inspect the corpus
-##inspect(txt.corpus)
+#inspect(txt.corpus)
 ```
 
 
@@ -81,7 +85,7 @@ findFreqTerms(x=tdm, lowfreq=min_freq, highfreq=max_freq)
 ```
 
 
-```{r}
+```{r,warning=FALSE,message=FALSE}
 # Make a word cloud
 m <- as.matrix(tdm)
 v <- sort(rowSums(m),decreasing=TRUE)
@@ -91,7 +95,7 @@ d <- data.frame(word = names(v),freq=v)
 pal2 <- brewer.pal(8,"Dark2")
 
 ##png("wordcloud.png", width=1280,height=800)
-wordcloud(d$word,d$freq, scale=c(8,.3),min.freq=45, max.words=max_words, random.order=T, rot.per=.15, colors=pal2, vfont=c("sans serif","plain"))
+wordcloud(d$word,d$freq, scale=c(8,.3),min.freq=min_freq, max.words=max_words, random.order=T, rot.per=.15, colors=pal2, vfont=c("sans serif","plain"))
 ##dev.off()
 ```
 

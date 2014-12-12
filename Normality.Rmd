@@ -6,48 +6,61 @@ output: html_document
 ---
 In statistics, normality tests are used to determine if a data set is well-modeled by a normal distribution and to compute how likely it is for a random variable underlying the data set to be normally distributed.
 ```{r,echo=FALSE,warning=FALSE}
-## remove scientific notation
-options(scipen=999)
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
 ##Load libraries
-if (!require("nortest")){
-        install.packages("nortest")
-}
-if (!require("e1071")){
-        install.packages("e1071")
-}
+call("nortest")
+call("e1071")
 ```
 
 First, we need to generate some normal and non-normal data.
 ```{r}
-##Set seed for reproducibility
-set.seed(2489)
-
 ## Generate Random Data
+##Normal Distribution
+ourdata = rnorm(1000)
 
-#Normal Distribution
-ourdata = rnorm(1000, 600,80)
-
-#Uniform Distribution
+##Uniform Distribution
 ouruniformdata = runif(1000)
 
-#Chi Square Distribution
+##Chi Square Distribution
 ourchisqdata = rchisq(1000,2)
 ```
 
 ###Histogram
 A histogram is a graphical representation of the distribution of data. It is an estimate of the probability distribution of a continuous variable (quantitative variable) and was first introduced by Karl Pearson. A Histogram is a graphical display of data using bars of different heights.  The horizontal axis is continuous.  
 ```{r}
+par(mfrow=c(1,2))
 ##Draw histogram
 hist(ourdata, main="Normal Data Histogram")
+rug(ourdata)
+plot(density(ourdata))
+
 hist(ouruniformdata, main="Uniform Data Histogram")
+rug(ouruniformdata)
+plot(density(ouruniformdata))
+
 hist(ourchisqdata, main="Chi Square Data Histogram")
+rug(ourchisqdata)
+plot(density(ourchisqdata))
+```
+
+```{r}
+##Box and dot plots
+boxplot(ourdata)
+dotplot(ourdata)
+
+boxplot(ouruniformdata)
+dotplot(ouruniformdata)
+
+boxplot(ourchisqdata)
+dotplot(ourchisqdata)
 ```
 
 ###Skewness and Kutosis
 Skewness is a measure of the asymmetry of the probability distribution of a real-valued random variable about its mean. The skewness value can be positive or negative, or even undefined. Kurtosis is any measure of the "peakedness" of the probability distribution of a real-valued random variable. In a similar way to the concept of skewness, kurtosis is a descriptor of the shape of a probability distribution and, just as for skewness, there are different ways of quantifying it for a theoretical distribution and corresponding ways of estimating it from a sample from a population. D'Agostino's K-squared test is a goodness-of-fit normality test based on a combination of the sample skewness and sample kurtosis, as is the Jarque-Bera test for normality.
 ```{r}
-##Draw histogram
+##
 kurtosis(ourdata)
 skewness(ourdata)
 
@@ -63,18 +76,18 @@ The Shapiro test can be used to check the normality assumption. The null-hypothe
 ```{r}
 ##Shapiro test (note maximum number of observations in 5,000) and draw a quantitle quantitle plot with line
 #Normal Distribution
-shapiro.test(ourdata)
-qqnorm(ourdata)
+lab<-shapiro.test(ourdata)
+qqnorm(ourdata,main = paste("Norm Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourdata)
 
 #Uniform Distribution
-shapiro.test(ouruniformdata)
-qqnorm(ouruniformdata)
+lab<-shapiro.test(ouruniformdata)
+qqnorm(ouruniformdata,main = paste("Uniform Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ouruniformdata)
 
 #Chi Square Distribution
-shapiro.test(ourchisqdata)
-qqnorm(ourchisqdata)
+lab<-shapiro.test(ourchisqdata)
+qqnorm(ourchisqdata,main = paste("Chi Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourchisqdata)
 ```
 
@@ -83,18 +96,18 @@ When applied to testing if a normal distribution adequately describes a set of d
 ```{r}
 ##Anderson Darling Test
 ##Normal Distribution
-ad.test(ourdata)
-qqnorm(ourdata)
+lab<-ad.test(ourdata)
+qqnorm(ourdata,main = paste("Norm Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourdata)
 
 #Uniform Distribution
-ad.test(ouruniformdata)
-qqnorm(ouruniformdata)
+lab<-ad.test(ouruniformdata)
+qqnorm(ouruniformdata,main = paste("Uniform Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ouruniformdata)
 
 #Chi Square Distribution
-ad.test(ourchisqdata)
-qqnorm(ourchisqdata)
+lab<-ad.test(ourchisqdata)
+qqnorm(ourchisqdata,main = paste("Chi Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourchisqdata)
 ```
 
@@ -103,18 +116,18 @@ The Cramér-von Mises criterion is a criterion used for judging the goodness of f
 ```{r}
 ##Cramer von Mises test
 #Normal Distribution
-cvm.test(ourdata)
-qqnorm(ourdata)
+lab<-cvm.test(ourdata)
+qqnorm(ourdata,main = paste("Norm Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourdata)
 
 #Unifrom Distribution
-cvm.test(ouruniformdata)
-qqnorm(ouruniformdata)
+lab<-cvm.test(ouruniformdata)
+qqnorm(ouruniformdata,main = paste("Uniform Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ouruniformdata)
 
 #Chi Square Distribution
-cvm.test(ourchisqdata)
-qqnorm(ourchisqdata)
+lab<-cvm.test(ourchisqdata)
+qqnorm(ourchisqdata,main = paste("Chi Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourchisqdata)
 ```
 
@@ -122,16 +135,16 @@ qqline(ourchisqdata)
 The Lilliefors test is a normality test based on the Kolmogorov-Smirnov test. It is used to test the null hypothesis that data come from a normally distributed population, when the null hypothesis does not specify which normal distribution; i.e., it does not specify the expected value and variance of the distribution.
 ```{r}
 ##Lilliefors (Kolmogorov-Smirnov) normality test
-lillie.test(ourdata)
-qqnorm(ourdata)
+lab<-lillie.test(ourdata)
+qqnorm(ourdata,main = paste("Norm Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourdata)
 
-lillie.test(ouruniformdata)
-qqnorm(ouruniformdata)
+lab<-lillie.test(ouruniformdata)
+qqnorm(ouruniformdata,main = paste("Uniform Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ouruniformdata)
 
-lillie.test(ourchisqdata)
-qqnorm(ourchisqdata)
+lab<-lillie.test(ourchisqdata)
+qqnorm(ourchisqdata,main = paste("Chi Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourchisqdata)
 ```
 
@@ -139,16 +152,16 @@ qqline(ourchisqdata)
 The Shapiro-Francia test is a powerful test for normality.  The test statistic of the Shapiro-Francia test is simply the squared correlation between the ordered sample values and the (approximated) expected ordered quantiles from the standard normal distribution.
 ```{r}
 ##Shapiro-Francia normality test Note: 5000k limit
-sf.test(ourdata)
-qqnorm(ourdata)
+lab<-sf.test(ourdata)
+qqnorm(ourdata,main = paste("Norm Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourdata)
 
-sf.test(ouruniformdata)
-qqnorm(ouruniformdata)
+lab<-sf.test(ouruniformdata)
+qqnorm(ouruniformdata,main = paste("Uniform Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ouruniformdata)
 
-sf.test(ourchisqdata)
-qqnorm(ourchisqdata)
+lab<-sf.test(ourchisqdata)
+qqnorm(ourchisqdata,main = paste("Chi Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourchisqdata)
 ```
 
@@ -156,15 +169,15 @@ qqline(ourchisqdata)
 The chi-square goodness of fit test can be used to test the hypothesis that data comes from a normal hypothesis. 
 ```{r}
 ##Pearson 
-pearson.test(ourdata)
-qqnorm(ourdata)
+lab<-pearson.test(ourdata)
+qqnorm(ourdata,main = paste("Norm Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourdata)
 
-pearson.test(ouruniformdata)
-qqnorm(ouruniformdata)
+lab<-pearson.test(ouruniformdata)
+qqnorm(ouruniformdata,main = paste("Uniform Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ouruniformdata)
 
-pearson.test(ourchisqdata)
-qqnorm(ourchisqdata)
+lab<-pearson.test(ourchisqdata)
+qqnorm(ourchisqdata,main = paste("Chi Dist \n",lab$method,"\n p-value: ",round(lab$p.value,4)))
 qqline(ourchisqdata)
 ```

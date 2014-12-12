@@ -78,8 +78,8 @@ plot_wordcloud<-function(){
           
     pal <- brewer.pal(6,"Dark2")
     pal <- pal[-(1)]
-    #wordcloud(e1$word,e1$freq,c(4,.3),2,,random.order=F,,.15,pal)
-    wordcloud(e1$word,e1$freq,pal)
+    wordcloud(e1$word,e1$freq,c(4,.3),2,,random.order=F,,.15,pal)
+    #wordcloud(e1$word,e1$freq,pal)
     pal <- brewer.pal(6,"Dark2")
     pal <- pal[-(1)]
     wordcloud(e2$word,e2$freq,c(4,.3),2,,random.order=F,,.15,pal)

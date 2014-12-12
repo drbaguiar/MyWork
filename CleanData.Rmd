@@ -62,11 +62,11 @@ summary(df)
 apply(is.na(df),2,sum)
 
 # impute with mean value
-df$glucose <- with(df, impute(glucose, mean))
-df$bp <- with(df, impute(bp, mean))
-df$triceps <- with(df, impute(triceps, mean))
-df$insulin <- with(df, impute(insulin, mean))
-df$bmi <- with(df, impute(bmi, mean))
+df$glucoseimputed <- with(df, impute(glucose, mean))
+df$bpimputed <- with(df, impute(bp, mean))
+df$tricepsimputed <- with(df, impute(triceps, mean))
+df$insulinimputed <- with(df, impute(insulin, mean))
+df$bmiimputed <- with(df, impute(bmi, mean))
 
 ##Convert all imputed variables to nummeric
 #df$glucose <-as.numeric(df$glucose)
