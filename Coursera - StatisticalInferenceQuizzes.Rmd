@@ -1,0 +1,324 @@
+---
+title: "StatisticalInferenceQuiz"
+author: "Dr. B"
+date: "Saturday, December 13, 2014"
+output: html_document
+---
+
+---
+Quiz 1
+---
+Question 1
+Consider influenza epidemics for two parent heterosexual families. Suppose that the probability is 17% that at least one of the parents has contracted the disease. The probability that the father has contracted influenza is 12% while the probability that both the mother and father have contracted the disease is 6%. What is the probability that the mother has contracted influenza?
+
+Question Explanation
+A=Mother, B = Father, P(A???B)=17%, P(B)=12%, P(A???B)=6%. Since we know P(A???B)=P(A)+P(B)???P(A???B) we get 17%=P(A)+12%???6%.
+
+Question 2
+A random variable, X is uniform, a box from 0 to 1 of height 1. (So that its density is f(x)=1 for 0???x???1.) What is its 75th percentile? 
+```{r}
+qunif(0.75)
+```
+
+Question 3
+You are playing a game with a friend where you flip a coin and if it comes up heads you give her X dollars and if it comes up tails she gives you Y dollars. The probability that the coin is heads is p (some number between 0 and 1.) What has to be true about X and Y to make so that both of your expected total earnings is 0. The game would then be called "fair". 
+
+Question Explanation
+Your expected earnings is ???pX+(1???p)Y=0 Then it must be the case that p1???p=YX Or that the ratio of the payouts has to equal the odds. So consider, for example, if p1???p=2. The game is 2 to 1 against you, p=2/3; she is twice as likely to win as you. Then she will have to pay out twice as much if you win to make the game fair.
+
+Question 4
+A density that looks like a normal density (but may or may not be exactly normal) is exactly symmetric about zero. (Symmetric means if you flip it around zero it looks the same.) What is its median? 
+
+Question Explanation
+The median must be 0 since 50 percent of the mass is below 0 and 50% is above
+
+Question 5
+Consider the following PMF shown below in R
+
+x <- 1:4
+p <- x/sum(x)
+temp <- rbind(x, p)
+rownames(temp) <- c("X", "Prob")
+temp
+##      [,1] [,2] [,3] [,4]
+## X     1.0  2.0  3.0  4.0
+## Prob  0.1  0.2  0.3  0.4
+What is the mean? 
+
+```{r}
+x <- 1:4
+p <- x/sum(x)
+sum(x * p)
+```
+Question 6
+A web site (www.medicine.ox.ac.uk/bandolier/band64/b64-7.html) for home pregnancy tests cites the following: "When the subjects using the test were women who collected and tested their own samples, the overall sensitivity was 75%. Specificity was also low, in the range 52% to 75%." Assume the lower value for the specificity. Suppose a subject has a positive test and that 30% of women taking pregnancy tests are actually pregnant. What number is closest to the probability of pregnancy given the positive test?
+
+Question Explanation
+P(Preg|+)=P(+|Preg)P(Preg)P(+|Preg)P(Preg)+P(+|Pregc)P(Pregc)=.75×.30/.75×.30+(1???.52)×(1???.3)???0.40
+
+---
+Quiz 2
+---
+
+Question 1
+What is the variance of the distribution of the average an IID draw of n observations from a population with mean ?? and variance ??2.
+Question Explanation
+
+Var(X¯)=??2/n
+
+Question 2
+Suppose that diastolic blood pressures (DBPs) for men aged 35-44 are normally distributed with a mean of 80 (mm Hg) and a standard deviation of 10. About what is the probability that a random 35-44 year old has a DBP less than 70?
+```{r}
+pnorm(70, mean = 80, sd = 10)
+```
+
+Question 3
+Brain volume for adult women is normally distributed with a mean of about 1,100 cc for women with a standard deviation of 75 cc. About what brain volume represents the 95th percentile?
+```{r}
+qnorm(0.95, mean = 1100, sd = 75)
+```
+
+Question 4
+Refer to the previous question. Brain volume for adult women is about 1,100 cc for women with a standard deviation of 75 cc. Consider the sample mean of 100 random adult women from this population. Around what is the 95th percentile of the distribution of that sample mean?
+```{r}
+qnorm(0.95, mean = 1100, sd = 75/sqrt(100))
+```
+
+Question 5
+You flip a fair coin 5 times, about what's the probability of getting 4 or 5 heads?
+```{r}
+pbinom(3, size = 5, prob = 0.5, lower.tail = FALSE)
+```
+
+Question 6
+The respiratory disturbance index (RDI), a measure of sleep disturbance, for a specific population has a mean of 15 (sleep events per hour) and a standard deviation of 10. They are not normally distributed. Give your best estimate of the probability that a sample mean RDI of 100 people is between 14 and 16 events per hour?
+```{r}
+##The standard error of the mean is 10/sqrt(100)=1. Thus between 14 and 16 is with one standard deviation of the mean of the distribution of the sample mean. Thus it should be about 68%.
+pnorm(16, mean = 15, sd = 10/sqrt(100)) - pnorm(14, mean = 15, sd = 10/sqrt(100))
+```
+Question 7
+Consider a standard uniform density. The mean for this density is .5 and the variance is 1 / 12. You sample 1,000 observations from this distribution and take the sample mean, what value would you expect it to be near?
+
+Answer
+Via the LLN it should be near .5.
+
+Question 8
+The number of people showing up at a bus stop is assumed to be Poisson with a mean of 5 people per hour. You watch the bus stop for 3 hours. About what's the probability of viewing 10 or fewer people?
+```{r}
+ppois(10, lambda = 15)
+round(ppois(10, lambda = 15),2)
+```
+---
+
+Quiz 3
+---
+Question 1
+In a population of interest, a sample of 9 men yielded a sample average brain volume of 1,100cc and a standard deviation of 30cc. What is a 95% Student's T confidence interval for the mean brain volume in this new population?
+```{r}
+x_bar <- 1100
+s <- 30
+n <- 9
+alpha <- 0.05
+ts <- qt(1 - alpha / 2, n - 1) # 2.306004
+round(x_bar + c(-1, 1) * ts * s / sqrt(n)) # 1077 1123
+```
+
+Question 2
+A diet pill is given to 9 subjects over six weeks. The average difference in weight (follow up - baseline) is -2 pounds. What would the standard deviation of the difference in weight have to be for the upper endpoint of the 95% T confidence interval to touch 0?
+```{r}
+x_bar <- -2
+n <- 9
+alpha <- 0.05
+ts <- qt(1 - alpha / 2, n - 1) # 2.306004
+s <- -x_bar*sqrt(n) / ts
+s # 2.601903
+```
+
+Question 3
+In an effort to improve running performance, 5 runners were either given a protein supplement or placebo. Then, after a suitable washout period, they were given the opposite treatment. Their mile times were recorded under both the treatment and placebo, yielding 10 measurements with 2 per subject. The researchers intend to use a T test and interval to investigate the treatment. Should they use a paired or independent group T test and interval?
+
+Question Explanation
+The observations are clearly paired so that a paired interval is preferable here to an independent group interval.
+
+Question 4
+In a study of emergency room waiting times, investigators consider a new and the standard triage systems. To test the systems, administrators selected 20 nights and randomly assigned the new triage system to be used on 10 nights and the standard system on the remaining 10 nights. They calculated the nightly median waiting time (MWT) to see a physician. The average MWT for the new system was 3 hours with a variance of 0.60 while the average MWT for the old system was 5 hours with a variance of 0.68. Consider the 95% confidence interval estimate for the differences of the mean MWT associated with the new system. Assume a constant variance. What is the interval? Subtract in this order (New System - Old System).
+
+Question Explanation
+
+Sp=.5×0.60+.5???0.68????????????????????????????????????????????????=0.8
+The interval is then
+t18,.975=2.10
+3???5±2.10×0.8×110+110????????????????????????=[???2.75,???1.25]
+
+```{r}
+n_x <- 10 
+n_y <- 10
+x_bar <- 5 # old_system
+y_bar <- 3 # new_system
+var_x <- 0.6
+var_y <- 0.68
+alpha <- 0.05
+sp_2 <- ((n_x - 1)*var_x + (n_y - 1)*var_y) / (n_x + n_y - 2)
+sp <- sqrt(sp_2)
+ts <- qt(1 - (alpha/2), n_x + n_y - 2)
+round((y_bar - x_bar) + c(-1, 1) * ts * sp * (sqrt(1/n_x + 1/n_y)), 2) 
+# -2.75 -1.25
+```
+
+
+
+
+
+Question 5
+Suppose that you create a 95% T confidence interval. You then create a 90% interval using the same data. What can be said about the 90% interval with respect to the 95% interval?
+
+Question Explanation
+
+tdf,.975>tdf,.95
+
+The interval will be narrower.
+
+Question 6
+To further test the hospital triage system, administrators selected 200 nights and randomly assigned a new triage system to be used on 100 nights and a standard system on the remaining 100 nights. They calculated the nightly median waiting time (MWT) to see a physician. The average MWT for the new system was 4 hours with a standard deviation of 0.5 hours while the average MWT for the old system was 6 hours with a standard deviation of 2 hours. Consider the hypothesis of a decrease in the mean MWT associated with the new treatment. What does the 95% independent group confidence interval with unequal variances suggest vis a vis this hypothesis? (Because there's so many observations per group, just use the Z quantile instead of the T.)
+```{r}
+n1 <- n2 <- 100
+xbar1 <- 4
+xbar2 <- 6
+s1 <- 0.5
+s2 <- 2
+xbar2 - xbar1 + c(-1, 1) * qnorm(0.975) * sqrt(s1^2/n1 + s2^2/n2)
+##Since this interval is above zero (old - new), we reject the null hypothesis and conclude that the new system does reduce MWTs.
+```
+
+Question 7
+Suppose that 18 obese subjects were randomized, 9 each, to a new diet pill and a placebo. Subjects' body mass indices (BMIs) were measured at a baseline and again after having received the treatment or placebo for four weeks. The average difference from follow-up to the baseline (followup - baseline) was ???3 kg/m2 for the treated group and 1 kg/m2 for the placebo group. The corresponding standard deviations of the differences was 1.5 kg/m2 for the treatment group and 1.8 kg/m2 for the placebo group. Does the change in BMI over the four week period appear to differ between the treated and placebo groups? Assuming normality of the underlying data and a common population variance, calculate the relevant *90%* t confidence interval. Subtract in the order of (Treated - Placebo) with the smaller (more negative) number first.
+```{r}
+n1 <- n2 <- 9
+x1 <- -3  ##treated
+x2 <- 1  ##placebo
+s1 <- 1.5  ##treated
+s2 <- 1.8  ##placebo
+s <- sqrt(((n1 - 1) * s1^2 + (n2 - 1) * s2^2)/(n1 + n2 - 2))
+(x1 - x2) + c(-1, 1) * qt(0.95, n1 + n2 - 2) * s * sqrt(1/n1 + 1/n2)
+````
+
+---
+Quiz 4
+---
+Question 1
+A pharmaceutical company is interested in testing a potential blood pressure lowering medication. Their first examination considers only subjects that received the medication at baseline then two weeks later. The data are as follows (SBP in mmHg)
+Subject        Baseline	Week 2
+1	140	132
+2	138	135
+3	150	151
+4	148	146
+5	135	130
+Consider testing the hypothesis that there was a mean reduction in blood pressure? Give the P-value for the associated two sided T test.
+
+Answer:
+H0:??d=0 versus H0:??d???0 where ??d is the mean difference between followup and baseline.
+```{r}
+bl <- c(140, 138, 150, 148, 135)
+fu <- c(132, 135, 151, 146, 130)
+t.test(fu, bl, alternative = "two.sided", paired = TRUE)
+
+##Could use
+t.test(fu - bl, alternative = "two.sided")
+```
+
+Question 2
+A sample of 9 men yielded a sample average brain volume of 1,100cc and a standard deviation of 30cc. What is the complete set of values of ??0 that a test of H0:??=??0 would fail to reject the null hypothesis in a two sided 5% Students t-test?
+This is the 95% student's T confidence interval.
+```{r}
+1100 + c(-1, 1) * qt(0.975, 8) * 30/sqrt(9)
+## 1077 1123
+
+##Potential incorrect answers
+1100 + c(-1, 1) * qnorm(0.975) * 30/sqrt(9)
+## 1080 1120
+
+1100 + c(-1, 1) * qt(0.95, 8) * 30/sqrt(9)
+## 1081 1119
+1100 + c(-1, 1) * qt(0.975, 8) * 30
+##1031 1169
+```
+
+Question 3
+Researchers conducted a blind taste test of Coke versus Pepsi. Each of four people was asked which of two blinded drinks given in random order that they preferred. The data was such that 3 of the 4 people chose Coke. Assuming that this sample is representative, report a P-value for a test of the hypothesis that Coke is preferred to Pepsi using a one sided exact test.
+
+Answer
+Let p be the proportion of people who prefer Coke. Then, we want to test H0:p=.5 versus Ha:p>.5. Let X be the number out of 4 that prefer Coke; assume X???Binomial(p,.5). Pvalue=P(X???3)=choose(4,3)0.530.51+choose(4,4)0.540.50
+```{r}
+pbinom(2, size = 4, prob = 0.5, lower.tail = FALSE)
+##Or
+choose(4, 3) * 0.5^4 + choose(4, 4) * 0.5^4
+```
+
+Question 4
+Infection rates at a hospital above 1 infection per 100 person days at risk are believed to be too high and are used as a benchmark. A hospital that had previously been above the benchmark recently had 10 infections over the last 1,787 person days at risk. About what is the one sided P-value for the relevant test of whether the hospital is *below* the standard?
+
+Answer
+H0:??=0.01 versus Ha:??<0.01. X=11, t=1,787 and assume X???H0Poisson(0.01×t)
+```{r}
+ppois(10, lambda = 0.01 * 1787)
+```
+
+Question5
+Suppose that 18 obese subjects were randomized, 9 each, to a new diet pill and a placebo. Subjects' body mass indices (BMIs) were measured at a baseline and again after having received the treatment or placebo for four weeks. The average difference from follow-up to the baseline (followup - baseline) was ???3 kg/m2 for the treated group and 1 kg/m2 for the placebo group. The corresponding standard deviations of the differences was 1.5 kg/m2 for the treatment group and 1.8 kg/m2 for the placebo group. Does the change in BMI appear to differ between the treated and placebo groups? Assuming normality of the underlying data and a common population variance, give a pvalue for a two sided t test.
+
+Answer
+H0:??difference,treated=??difference,placebo
+```{r}
+n1 <- n2 <- 9
+x1 <- -3  ##treated
+x2 <- 1  ##placebo
+s1 <- 1.5  ##treated
+s2 <- 1.8  ##placebo
+s <- sqrt(((n1 - 1) * s1^2 + (n2 - 1) * s2^2)/(n1 + n2 - 2))
+ts <- (x1 - x2)/(s * sqrt(1/n1 + 1/n2))
+2 * pt(ts, n1 + n2 - 2)
+```
+
+Question 6
+Brain volumes for 9 men yielded a 90% confidence interval of 1,077 cc to 1,123 cc. Would you reject in a two sided 5% hypothesis test of H0:??=1,078?
+
+Answer:
+No, you would fail to reject. The 95% interval would be wider than the 90% interval. Since 1,078 is in the narrower 90% interval, it would also be in the wider 95% interval. Thus, in either case it's in the interval and so you would fail to reject.
+
+Question 7
+Researchers would like to conduct a study of 100 healthy adults to detect a four year mean brain volume loss of .01 mm^3. Assume that the standard deviation of four year volume loss in this population is .04 mm^3. About what would be the power of the study for a 5% one sided test versus a null hypothesis of no volume loss?
+
+Answer
+The hypothesis is H0:????=0 versus Ha:????>0 where ???? is volume loss (change defined as Baseline - Four Weeks). The test statistics is 10X¯??.04 which is rejected if it is larger than Z.95=1.645.
+We want to calculate
+P(X¯??????/10>1.645 | ????=.01)=P(X¯?????.01.004>1.645???.01.004 | ????=.01)=P(Z>???.855)=.80
+Or note that X¯?? is N(.01,.004) under the alternative and we want the P(X¯??>1.645???.004) under Ha.
+```{r}
+pnorm(1.645 * 0.004, mean = 0.01, sd = 0.004, lower.tail = FALSE)
+```
+
+Question 8
+Researchers would like to conduct a study of n healthy adults to detect a four year mean brain volume loss of .01 mm^3. Assume that the standard deviation of four year volume loss in this population is .04 mm^3. About what would be the value of n needded for 90% power of type one error rate of 5% one sided test versus a null hypothesis of no volume loss?
+
+Question Explanation
+The hypothesis is H0:????=0 versus Ha:????>0 where ???? is volume loss (change defined as Baseline - Four Weeks). The test statistics is X¯??.04/n??? which is rejected if it is larger than Z.95=1.645.
+We want to calculate
+P(X¯??????/n?????????>1.645 | ????=.01)=P(X¯?????.01.04/n?????????>1.645???.01.04/n????????? | ????=.01)=P(Z>1.645???n?????????/4)=.90
+So we need 1.645???n?????????/4=Z.10=???1.282 and thus n=(4???(1.645+1.282))2.
+```{r}
+ceiling((4 * (qnorm(0.95) - qnorm(0.1)))^2)
+```
+
+Question 9
+As you increase the type one error rate, ??, what happens to power?
+
+Question Explanation
+As you require less evidence to reject, i.e. your ?? rate goes up, you will have larger power.
+
+
+
+
+
+
+
+

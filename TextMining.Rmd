@@ -10,7 +10,7 @@ output: html_document
 source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
 #Set name of datafile
-datafile <- paste(datadir,"marks.dat",sep = "")
+datafile <- paste(datadir,"rpttext.txt",sep = "")
 call("tm") # Framework for text mining.
 call("SnowballC") # Provides wordStem() for stemming.
 call("RColorBrewer") # Generate palette of colours for plots.
@@ -18,11 +18,6 @@ call("ggplot2") # Plot word frequencies.
 call("magrittr")
 call("wordcloud")
 ##library(Rgraphviz)
-
-```
-
-
-```{r, warning=FALSE,message=FALSE}
 ##Set variables used 
 min_freq=25
 max_freq=1000000
@@ -35,18 +30,14 @@ correlation = .45
 ##txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/TextDocs/bill.txt")
 
 ##Load an entire directory
-txt.in <-Corpus(DirSource("C:/Users/bryan_000/Documents/GitHub/Data/Blog_Data/set 2/"), readerControl = list(language="lat"))
-```
+txt.in <-Corpus(DirSource("C:/Users/bryan_000/Documents/GitHub/Data/Blog_Data/set 1/"), readerControl = list(language="lat"))
 
-```{r}
 ##Convert to corpus
 txt <-VectorSource(txt.in)
 txt.corpus <-Corpus(txt)
 rm(txt.in)
 rm(txt)
-```
 
-```{r}
 ##Clean up the text
 
 ##Conversion to lower case by:
@@ -69,23 +60,15 @@ txt.corpus<- tm_map(txt.corpus, stripWhitespace)
 
 ##Inspect the corpus
 #inspect(txt.corpus)
-```
 
-
-```{r}
 ##Ready to Analyze the data
 tdm <-TermDocumentMatrix(txt.corpus)
 #inspect(tdm)
-```
 
-```{r}
 tdm <- removeSparseTerms(tdm, sparse_terms_nbr)
 ##Establish Frequence  can set Low freq and high freq
 findFreqTerms(x=tdm, lowfreq=min_freq, highfreq=max_freq)
-```
 
-
-```{r,warning=FALSE,message=FALSE}
 # Make a word cloud
 m <- as.matrix(tdm)
 v <- sort(rowSums(m),decreasing=TRUE)
@@ -96,10 +79,7 @@ pal2 <- brewer.pal(8,"Dark2")
 
 ##png("wordcloud.png", width=1280,height=800)
 wordcloud(d$word,d$freq, scale=c(8,.3),min.freq=min_freq, max.words=max_words, random.order=T, rot.per=.15, colors=pal2, vfont=c("sans serif","plain"))
-##dev.off()
-```
 
-```{r}
 ##Find assocaitions with a selected word
 findAssocs(tdm, assoc_word, correlation)
 ```
