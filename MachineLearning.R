@@ -3,6 +3,7 @@ call("caret")
 call("randomForest")
 call("knitr")
 call("AppliedPredictiveModeling")
+call("rpart")
 
 #Set name of training and validating datafiles
 train.data=paste(datadir,"pml-training.csv",sep = "")
@@ -79,6 +80,22 @@ varImpPlot(fsRF, type=1)
 
 ##Set the training control
 ctrl <- trainControl(method = "cv", number = 5, allowParallel = TRUE)
+
+##Stochastic Gradient Boosting 
+modelgbm <- train(classe ~ ., training, method = "gbm", trControl = ctrl)
+resultsgbm <- data.frame(modelgbm$results)
+
+##ADA Boosting - requries rpart and adaboost
+modelada <-boosting(classe ~ ., training, mfinal=10)
+modelada$weight #here we get weights for all trees.
+modelada$importance #here we get the importance for all variables
+modelada$trees #here we get the trees 
+
+t1<-modelada$trees[[1]] #Here we only plot one tree
+library(tree)
+plot(t1)
+text(t1,1.5)
+
 
 ##k-nearest neighbors
 modelknn <- train(classe ~ ., training, method = "knn", trControl = ctrl)
