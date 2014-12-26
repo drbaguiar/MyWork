@@ -8,16 +8,16 @@ options(scipen = 999)
 Sys.setlocale("LC_ALL", "English") 
 
 ##Load libraries
-call <- function(x)
-{
-        if (!require(x,character.only = TRUE))
-        {
+call <- function(x){
+        if (!require(x,character.only = TRUE)){
                 install.packages(x,dep=TRUE)
         }
 }
 
 ##Use
-#call("Hmisc")
+call("dplyr")
+call("Hmisc")
+call("doBy")
 
 ##Split a datafram
 dfsplit <-function(dataframe,nbr1=2,nbr2=1){
@@ -41,5 +41,5 @@ dfsplit <-function(dataframe,nbr1=2,nbr2=1){
 ##Set seed for reproducibility
 set.seed(2345)
 
+##Set data directory
 datadir=('C:/Users/bryan_000/Documents/GitHub/Data/')
-

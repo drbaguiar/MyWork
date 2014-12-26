@@ -11,7 +11,7 @@ First, we need to load the `Hmisc' R package, which we will use to impute missin
 ```{r,warning=FALSE, message=FALSE}
 ##Use my standard openning including call function
 source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
-call("Hmisc")
+
 call("xtable")
 ```
 

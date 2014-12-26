@@ -5,31 +5,14 @@ date: "Saturday, November 08, 2014"
 output: html_document
 ---
 
-```{r, warning=FALSE,message=FALSE}
-##Clear the environment
-rm(list=ls())
+```{r,warning=FALSE, message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
-##Turn off scientific notations for numbers
-options(scipen = 999)  
-
-##Set locale
-Sys.setlocale("LC_ALL", "English") 
-
-##Load libraries
-call <- function(x)
-{
-  if (!require(x,character.only = TRUE))
-        {
-                install.packages(x,dep=TRUE)
-        }
-}
 call("cluster")
 call("fpc")
 call("flexclust")
 call("NbClust")
-
-##Set seed for reproducibility
-set.seed(2489)
 
 ##Set printing to 1 row of 3 columns
 par(mfrow=c(1,3))

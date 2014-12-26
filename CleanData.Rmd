@@ -9,8 +9,6 @@ output: html_document
 ```{r, warning=FALSE, message=FALSE}
 ##Use my standard openning including call function
 source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
-
-call("Hmisc")
 ```
 
 
@@ -68,6 +66,12 @@ df$tricepsimputed <- with(df, impute(triceps, mean))
 df$insulinimputed <- with(df, impute(insulin, mean))
 df$bmiimputed <- with(df, impute(bmi, mean))
 
+df$glucose<- NULL
+df$bp<- NULL
+df$triceps <- NULL
+df$insulin <- NULL
+df$bmi <- NULL
+
 ##Convert all imputed variables to nummeric
 #df$glucose <-as.numeric(df$glucose)
 #df$bp <- as.numeric(df$bp)
@@ -115,23 +119,6 @@ qqline(df$triceps)
 hist(df$insulin)
 #qqnorm(df$insulin, main="QQ Plot \n Insulin Variable")
 #qqline(df$insulin)
-```
-
-```{r splitdata}
-##define % of training and test set 
-##(use 2 then 1 for 50%, 4 then 3 for 75%, 5 then 4 for 80%, 5 than 3 for 60%, 5 than 4.5 for 90%)
-bound <- floor((nrow(df)/4)*3)         
-
-##sample rows 
-df <- df[sample(nrow(df)), ]  
-
-##get training set
-df.train <- df[1:bound, ]   
-#df.train
-
-##get test set
-df.test <- df[(bound+1):nrow(df), ]    
-#df.test
 ```
 
 Logistic Regession

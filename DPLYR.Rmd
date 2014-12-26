@@ -24,7 +24,6 @@ Dplyr aims to provide a function for each basic verb of data manipulating:
 source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
 call ("nycflights13")
-call ("dplyr")
 ```
 
 ###Fliter  

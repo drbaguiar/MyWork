@@ -10,9 +10,7 @@ A few different T Tests
 ##Use my standard openning including call function
 source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
-call("doBy")
 call("reshape2")
-call("dplyr")
 data(ToothGrowth)
 
 ##Make dose a factor
