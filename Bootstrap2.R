@@ -1,5 +1,9 @@
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+if (Sys.info()["sysname"]=="Linux"){
+        source('/home/bryan/git/MyWork/StdOpen.R')     
+}else{
+        source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
+}
 
 call("UsingR")
 

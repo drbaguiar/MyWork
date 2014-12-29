@@ -21,27 +21,14 @@ Bootstrap resampling is a computational method of measuring the error in a stati
 
 First, set the seed
 ```{r, warning=FALSE,message=FALSE}
-##Clear the environment
-rm(list=ls())
-
-##Turn off scientific notations for numbers
-options(scipen = 999)  
-
-##Set locale
-Sys.setlocale("LC_ALL", "English") 
-
-##Load libraries
-call <- function(x)
-{
-  if (!require(x,character.only = TRUE))
-        {
-                install.packages(x,dep=TRUE)
-        }
+##Use my standard openning including call function
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/git/MyWork/StdOpen.R')     
+}else{
+  source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
 }
-call("UsingR")
 
-#set the seed for reporducability
-set.seed(2)
+call("UsingR")
 ```
 
 Hypertension Dataset (adopted from Statistical methods in genetic epidemiology)

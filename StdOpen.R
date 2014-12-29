@@ -42,4 +42,9 @@ dfsplit <-function(dataframe,nbr1=2,nbr2=1){
 set.seed(2345)
 
 ##Set data directory
-datadir=('C:/Users/bryan_000/Documents/GitHub/Data/')
+##Use my standard openning including call function
+if (Sys.info()["sysname"]=="Linux"){
+        datadir=('/home/bryan/git/Data/')    
+}else{
+        datadir=('C:/Users/bryan_000/Documents/GitHub/Data/') 
+}

@@ -40,7 +40,12 @@ On of the simpliest wways to perform an analysis of variance is to use the onewa
 The data are from an agricultural experiment in which six different insect sprays were tested in many different fields, and the response variable (DV) was a count of insects found in each field after spraying.
 ```{r,message=FALSE,warning=FALSE}
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/git/MyWork/StdOpen.R')     
+}else{
+  source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
+}
+
 call("lawstat")
 
 data(InsectSprays)

@@ -8,7 +8,11 @@ output: html_document
 A few different T Tests
 ```{r,warning=FALSE}
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/git/MyWork/StdOpen.R')     
+}else{
+  source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
+}
 
 call("reshape2")
 data(ToothGrowth)
