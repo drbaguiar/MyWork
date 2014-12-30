@@ -21,8 +21,11 @@ Dplyr aims to provide a function for each basic verb of data manipulating:
         sample_n() and sample_frac()
 ```{r, warning=FALSE, message=FALSE}
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
-
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/GitHub/MyWork/StdOpen.R')     
+}else{
+  source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
+}
 call ("nycflights13")
 ```
 
