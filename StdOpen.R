@@ -25,6 +25,10 @@ call("devtools")
 call("ggplot2")
 call("knitr")
 call("reshape2")
+call("adabag")
+call("ada")
+call("caret")
+call("survival")
 
 ##Split a datafram
 dfsplit <-function(dataframe,nbr1=2,nbr2=1){

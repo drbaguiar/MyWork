@@ -125,12 +125,15 @@ sample_frac(flights, 0.05)
 
 
 ```{r}
-
+library(hflights)
+df=tbl_df(hflights)
+names(df) <-tolower(names(df))
 ```
 
 
 ```{r}
-
+distinct(select(df, tailnum))
+filter(df,month == 2)
 ```
 
 
