@@ -44,7 +44,7 @@ set.seed(2345)
 ##Set data directory
 ##Use my standard openning including call function
 if (Sys.info()["sysname"]=="Linux"){
-        datadir=('/home/bryan/git/Data/')    
+        datadir=('/home/bryan/GitHub/Data/')    
 }else{
         datadir=('C:/Users/bryan_000/Documents/GitHub/Data/') 
 }
