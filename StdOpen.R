@@ -18,6 +18,13 @@ call <- function(x){
 call("dplyr")
 call("Hmisc")
 call("doBy")
+call("rattle")
+call("lattice")
+call("data.table")
+call("devtools")
+call("ggplot2")
+call("knitr")
+call("reshape2")
 
 ##Split a datafram
 dfsplit <-function(dataframe,nbr1=2,nbr2=1){
