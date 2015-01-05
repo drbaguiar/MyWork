@@ -55,3 +55,49 @@ a<-cor(training_data$Price,training_data$predict.price)
 b<-cor(validation_data$Price,validation_data$predict.price)
 a*a
 b*b
+
+##Logistic Regression
+library(ISLR)
+library(MASS)
+attach(Default)
+summary(Default)
+#regression
+model.1 <- glm(default~income, data=Default,family=binomial())
+summary(model.1)
+
+model.1.pred.prob <- predict(model.1,type="response")
+plot(model.1.pred.prob,default)
+plot(model.1.pred.prob,jitter(as.numeric(default)))
+
+# 3. Split data
+set.seed(110)
+sub <- sample(nrow(Default), floor(nrow(Default) * 0.6))
+training_data <- Default[sub,]
+validation_data <- Default[-sub,]
+
+model.stock <- glm(default~.,data=training_data,family=binomial())
+summary(model.stock)
+model.step <- stepAIC(model.stock)
+summary(model.step)
+
+training_data$pred.prob <- predict(model.step,type="response")
+validation_data$pred.prob <- predict(model.step,type="response",newdata=validation_data)
+plot(training_data$pred.prob,jitter(as.numeric(training_data$default)))
+plot(validation_data$pred.prob,jitter(as.numeric(validation_data$default)))
+
+# 6.1 Confusion matrix
+training_data$class <- ifelse(training_data$pred.prob>.07,1,0)
+validation_data$class <- ifelse(validation_data$pred.prob>.07,1,0)
+table(training_data$default,training_data$class)
+table(validation_data$default,validation_data$class)
+
+#ROC
+
+library(ROCR)
+train_pred <- prediction(training_data$pred.prob, training_data$default)
+train_perf <- performance(train_pred, measure = "tpr", x.measure = "fpr")
+plot(train_perf, col=rainbow(5), main="training")
+val_pred <- prediction(validation_data$pred.prob, validation_data$default)
+val_perf <- performance(val_pred, measure = "tpr", x.measure = "fpr")
+plot(val_perf, col=rainbow(10), main="validation")
+
