@@ -5,6 +5,7 @@ if (Sys.info()["sysname"]=="Linux"){
         source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
 }
 
+##Regression
 call("MASS")
 call("car")
 datafile <- paste(datadir,"house-prices.csv",sep = "")
@@ -101,3 +102,31 @@ val_pred <- prediction(validation_data$pred.prob, validation_data$default)
 val_perf <- performance(val_pred, measure = "tpr", x.measure = "fpr")
 plot(val_perf, col=rainbow(10), main="validation")
 
+##CLuster
+
+data <- iris[,-5]
+class <- iris[,5]
+results <- kmeans(data,3)
+table(class,results$cluster)
+
+plot(data$Petal.Length,data$Petal.Width,col=results$cluster)
+plot(data$Petal.Length,data$Petal.Width,col=class)
+plot(data$Sepal.Length, data$Sepal.Width,col=results$cluster)
+plot(data$Sepal.Length, data$Sepal.Width,col=class)
+
+##Factor Analysis
+datafile <- paste(datadir,"employee-factor.csv",sep = "")
+emp_factor <- read.csv(datafile)
+names(emp_factor)
+emp_factor <- emp_factor[,-1] ##Remove employee id
+
+#How many factors?
+pca <- princomp(emp_factor)
+summary(pca)
+plot(pca)
+
+fact <- factanal(emp_factor,5,rotation="varimax")
+fact
+
+fact.final<-factanal(emp_factor,5, rotation="varimax",score="regression")
+fact.final

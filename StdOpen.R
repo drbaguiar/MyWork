@@ -29,6 +29,12 @@ call("adabag")
 call("ada")
 call("caret")
 call("survival")
+call("rCharts")
+call("cluster")
+call("NbClust")
+call("psych")
+call("RColorBrewer")
+call("ROCR")
 
 ##Split a datafram
 dfsplit <-function(dataframe,nbr1=2,nbr2=1){
