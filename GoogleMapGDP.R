@@ -12,3 +12,6 @@ Map<- data.frame(input$Country.Name, round(input$X2013/1000000000),2)
 names(Map)<- c("Country", "GDP")
 Geo=gvisGeoMap(Map, locationvar="Country", numvar="GDP",options=list(height=350, dataMode='regions'))
 plot(Geo)
+
+M <-gvisMotionChart(Fruits,"Fruit","Year", options=list(width=600,height=400))
+plot(M)
