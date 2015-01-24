@@ -1,0 +1,207 @@
+---
+title: "Spam01"
+author: "Dr. B"
+date: "Friday, January 16, 2015"
+output: html_document
+---
+```{r standard opening, echo=FALSE,warning=FALSE}
+##My standard opening
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+```
+
+Locating Spam E-Mails for testing
+---
+[SpamAssassin] (https://spamassassin.apache.org/publiccorpus/
+) has a public corpus of both spam and non-spam messages. 
+
+Publicly available [database] (http://untroubled.org/spam/)
+
+What is a Support Vector Machine?
+---
+Let´s take a look at what wikipedia says about SVMs: An SVM model is a representation of the examples as points in space, mapped so that the examples of the separate categories are divided by a clear gap that is as wide as possible. New examples are then mapped into that same space and predicted to belong to a category based on which side of the gap they fall on. http://en.wikipedia.org/wiki/Support_vector_machine
+
+So in general the SVM algorithm tries to separate the data with a gap that is as wide as possible. It does so with the help of vectors which define hyperplanes.
+
+The Data for our SPAM model
+---
+Our purpose is to build a spam detection engine. This is a classification problem as the outcome should be either 0 for no spam (ham) and 1 for spam. So if the SVM analyses a single email it will return a 0 or a 1.
+
+We get our dataset from the UCI Machine Learning Repository: https://archive.ics.uci.edu/ml/datasets/Spambase
+
+This so called "Spambase" dataset contains real data examples. So the author analysed real emails.  
+The dataset contains 57 attributes or features. 
+
+These consist of:
+
+        48 continuous real [0,100] attributes of type word_freq_WORD = percentage of words in the e-mail that match WORD, e.g. 100 * (number of times the WORD appears in the e-mail) / total number of words in e-mail. A "word" in this case is any string of alphanumeric characters bounded by non-alphanumeric characters or end-of-string.
+
+        6 continuous real [0,100] attributes of type char_freq_CHAR = percentage of characters in the e-mail that match CHAR, i.e. 100 * (number of CHAR occurences) / total characters in e-mail
+
+        1 continuous real [1,...] attribute of type capital_run_length_average = average length of uninterrupted sequences of capital letters
+
+        1 continuous integer [1,...] attribute of type capital_run_length_longest = length of longest uninterrupted sequence of capital letters
+
+        1 continuous integer [1,...] attribute of type capital_run_length_total = sum of length of uninterrupted sequences of capital letters = total number of capital letters in the e-mail
+
+        1 nominal {0,1} class attribute of type spam = denotes whether the e-mail was considered spam (1) or not (0), e.g. unsolicited commercial e-mail.
+
+The first 48 attributes show the frequency of single words in the email. These words are (        At this point it is not important for us how the author of the dataset found out that these words are important.):
+
+        word_freq_make:         continuous.
+        word_freq_address:      continuous.
+        word_freq_all:          continuous.
+        word_freq_3d:           continuous.
+        word_freq_our:          continuous.
+        word_freq_over:         continuous.
+        word_freq_remove:       continuous.
+        word_freq_internet:     continuous.
+        word_freq_order:        continuous.
+        word_freq_mail:         continuous.
+        word_freq_receive:      continuous.
+        word_freq_will:         continuous.
+        word_freq_people:       continuous.
+        word_freq_report:       continuous.
+        word_freq_addresses:    continuous.
+        word_freq_free:         continuous.
+        word_freq_business:     continuous.
+        word_freq_email:        continuous.
+        word_freq_you:          continuous.
+        word_freq_credit:       continuous.
+        word_freq_your:         continuous.
+        word_freq_font:         continuous.
+        word_freq_000:          continuous.
+        word_freq_money:        continuous.
+        word_freq_hp:           continuous.
+        word_freq_hpl:          continuous.
+        word_freq_george:       continuous.
+        word_freq_650:          continuous.
+        word_freq_lab:          continuous.
+        word_freq_labs:         continuous.
+        word_freq_telnet:       continuous.
+        word_freq_857:          continuous.
+        word_freq_data:         continuous.
+        word_freq_415:          continuous.
+        word_freq_85:           continuous.
+        word_freq_technology:   continuous.
+        word_freq_1999:         continuous.
+        word_freq_parts:        continuous.
+        word_freq_pm:           continuous.
+        word_freq_direct:       continuous.
+        word_freq_cs:           continuous.
+        word_freq_meeting:      continuous.
+        word_freq_original:     continuous.
+        word_freq_project:      continuous.
+        word_freq_re:           continuous.
+        word_freq_edu:          continuous.
+        word_freq_table:        continuous.
+        word_freq_conference:   continuous.
+        
+It also contains attributes which show the number of certain chars in the Email like
+
+        char_freq_;:            continuous.
+        char_freq_(:            continuous.
+        char_freq_[:            continuous.
+        char_freq_!:            continuous.
+        char_freq_$:            continuous.
+        char_freq_#:            continuous
+
+And also 3 attributes focusing on capital letters.
+
+        capital_run_length_average: continuous.
+        capital_run_length_longest: continuous.
+        capital_run_length_total:   continuous.
+        
+They are about the average length uninterrupted sequence of capital letters, the length of longest uninterrupted sequence and the total number of capital letters in the e-mail.
+
+And of course the last attribute which denoted whether the e-mail was considered spam (1) or not (0).
+
+Download and Load the Data
+---
+```{r load data, warning=FALSE}
+##Set destination file for download 
+spamfile <-paste(datadir,"spamdata.csv",sep = "")
+spamnames <-paste(datadir,"spamnames.csv",sep = "")
+
+#Check for the File. If not there, download the data 
+if (!file.exists(spamfile)) {
+        file.url <- 'http://thinktostart.com/data/data.csv'
+        download.file(file.url, spamfile)
+}
+
+if (!file.exists(spamnames)) {
+        file.url <- 'http://thinktostart.com/data/names.csv'
+        download.file(file.url, spamnames)
+}
+
+#Load the two files into R:
+spamdataset <- read.csv(spamfile,header=FALSE,sep=";")
+spamnames <- read.csv(spamnames,header=FALSE,sep=";")
+```
+
+Preprocess the Data
+---
+The data frame does not have useful column names as they were not defined in the csv, so we have to rename them properly.  In the next step we transform the y column, which is numeric, to factor values. If we would call the SVM function with a numeric output column it would automatically assume that we want to use a regression even if there are just two different variables in the dataset. Transforming this column to factor values makes the SVM to use a classification output.
+
+The data actually consists of 4,601 classified e-mails. These could be a little bit too much for our way to create a Support Vector Machine. We build it with a sample of our dataset based on 1,000 e-mails.  Finally, we have to split our dataset in two parts: One we need to train the SVM model and one to actually test if it works.
+
+```{r preprocess,warning=FALSE}
+#Set the names of the spamdataset dataframe:
+names(spamdataset) <- sapply((1:nrow(spamnames)),function(i) toString(spamnames[i,1]))
+
+#make column y a factor variable for binary classification (spam or non-spam)
+spamdataset$y <- as.factor(spamdataset$y)
+
+#get a sample of 1000 rows
+sample <- spamdataset[sample(nrow(spamdataset), 1000),]
+
+#Split the data in dataTrain and dataTest
+trainIndex <- createDataPartition(sample$y, p = .8, list = FALSE, times = 1)
+dataTrain <- sample[ trainIndex,]
+dataTest  <- sample[-trainIndex,]
+```
+
+SVM
+---
+
+We use on the sigest function from the kernlab package to find the best sigma value and we create a TuneGrid with that. So the SVM needs two parameters for the training process:
+
+sigma and C
+
+If you want to know what these parameters are exactly you can take a look at: http://feature-space.com/en/post65.html and http://stats.stackexchange.com/questions/31066/what-is-the-influence-of-c-in-svms-with-linear-kernel
+
+```{r tuning, warning=FALSE}
+call("kernlab")
+
+### finding optimal value of a tuning parameter
+sigDist <- sigest(y ~ ., data = dataTrain, frac = 1)
+
+### creating a grid of two tuning parameters, .sigma comes from the earlier line. we are trying to find best value of .C
+svmTuneGrid <- data.frame(.sigma = sigDist[1], .C = 2^(-2:7))
+```
+
+Train the SVM
+---
+This is probably the most important step. We train the SVM with the train() function of the caret package. This function can be used for all the models and algorithms in the caret package. We define which data we want to use and what method to create the model.
+
+```{r svmmodel,warning=FALSE}
+#Create the SVM model:
+x <- train(y ~ .,
+           data = dataTrain,
+           method = "svmRadial",
+           preProc = c("center", "scale"),
+           tuneGrid = svmTuneGrid,
+           trControl = trainControl(method = "repeatedcv", repeats = 5, 
+                                    classProbs =  TRUE))
+```
+
+Evaluate the Model
+---
+
+For the evaluation of the model we use the dataframe dataTest and the predict() function of the caret package. We exclude the last column of the dataframe which contents the label if the email is spam or no spam.
+
+We save the predicted results in the variable pred and compare the results based on our model with the actual results in the last column of the dataTest dataframe.
+
+```{r evaluate,warning=FALSE}
+pred <- predict(x,dataTest[,1:57])
+confusionMatrix(pred,dataTest$y)
+```

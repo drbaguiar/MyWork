@@ -1,0 +1,78 @@
+---
+title: "Untitled"
+author: "Dr. B"
+date: "Saturday, January 17, 2015"
+output: html_document
+---
+
+Kappa Coefficient
+---
+
+The kappa coefficient (K) measures pairwise agreement among a set of coders making
+category judgments, correcting for expected chance agreement.
+
+K = P(A) - P(P) / 1 - P(E)
+     
+where P(A) is the proportion of times that the coders agree and P(E) is the proportion
+of times that we would expect them to agree by chance, calculated along the lines of the
+intuitive argument presented above. 
+
+When there is no agreement other than that which would be expected by chance K is zero. When there is total agreement, K is one. When it is useful to do so, it is possible to test whether or not K is significantly different from chance, but more importantly, interpretation of the scale of agreement is possible. 
+
+Example
+---
+
+Suppose that you were analyzing data related to a group of 50 people applying for a grant. Each grant proposal was read by two readers and each reader either said "Yes" or "No" to the proposal.
+
+Suppose the dis/agreement count data were as follows, where A and B are readers, data on the diagonal slanting left shows the count of agreements and the data on the diagonal slanting right, disagreements:
+
+```{r}
+x <-matrix(c(20,5,10,15),ncol=2,byrow=TRUE)
+colnames(x) <- c("Yes","No")
+rownames(x) <- c("Yes","No")
+x <- as.table(x)
+x
+margin.table(x)
+margin.table(x,1)
+margin.table(x,2)
+
+x/margin.table(x)
+prop.table(x)
+
+margin.table(x,1)/margin.table(x)
+margin.table(x,2)/margin.table(x)
+
+prop.table(x,1)
+prop.table(x,2)
+
+summary(x)
+
+mosaicplot(x,main="Grants",xlab="Reviewer A",ylab="Reviewer B")
+```
+
+Note that there were 20 proposals that were granted by both reader A and reader B, and 15 proposals that were rejected by both readers. Thus, the observed percentage agreement is Pr(a) = (20 + 15) / 50 = 0.70
+
+To calculate Pr(e) (the probability of random agreement) we note that:
+
+Reader A said "Yes" to 25 applicants and "No" to 25 applicants. Thus reader A said "Yes" 50% of the time.
+Reader B said "Yes" to 30 applicants and "No" to 20 applicants. Thus reader B said "Yes" 60% of the time.
+
+Therefore the probability that both of them would say "Yes" randomly is 0.50 x 0.60 = 0.30 and the probability that both of them would say "No" is 0.50 x 0.40 = 0.20. Thus the overall probability of random agreement is Pr(E) = 0.3 + 0.2 = 0.5.
+
+So now applying our formula for Cohen's Kappa we get:
+
+        .7 - .5 / 1 - .5 = .4
+
+Interpreting K
+---
+
+The K value can be interpreted as follows (Altman, 1991):
+
+        Value of K        Strength of agreement
+        < 0.20	                Poor
+        0.21 - 0.40	        Fair
+        0.41 - 0.60	        Moderate
+        0.61 - 0.80	        Good
+        0.81 - 1.00	        Very good
+
+
