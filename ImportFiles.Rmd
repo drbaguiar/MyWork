@@ -1,0 +1,50 @@
+---
+title: "School List"
+author: "Dr. B"
+date: "Sunday, January 18, 2015"
+output: html_document
+---
+
+First we read all of the files in the directory
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+rm(list=ls())
+setwd("C:/GradeSheets")
+file_list <- list.files()
+library(gdata)  
+for (file in file_list){
+        
+        # if the merged dataset doesn't exist, create it
+        if (!exists("dataset")){
+                dataset <- read.xls(file,perl="C:/Strawberry/perl/bin/perl.exe")
+        }
+        
+        # if the merged dataset does exist, append to it
+        if (exists("dataset")){
+                temp_dataset <-read.xls(file,perl="C:/Strawberry/perl/bin/perl.exe")
+                dataset<-rbind(dataset, temp_dataset)
+                rm(temp_dataset)
+        }
+}
+```
+
+There were `r length(file_list)` files read.  Next we clean the data and output two csv files for backup purposes.
+```{r, warning=FALSE, message=FALSE}
+##Make sure total is a numeric field
+dataset$Total<-as.numeric(dataset$Total)
+
+##Remove Names
+dataset2 <- dataset[,3:5]
+
+##Back up the data
+write.csv(dataset, file = "MyDataComplete.csv")
+write.csv(dataset2, file = "MyData.csv")
+
+##Removethe full dataset
+rm(dataset)
+```
+
+```{r, echo=FALSE}
+hist(dataset2$Total, main="Grade Distribution Fall 2012 - Fall 2014", xlab="Total Points")
+```
+

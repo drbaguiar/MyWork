@@ -1,0 +1,87 @@
+---
+title: "SmokerDiseasesSex"
+author: "Dr. B"
+date: "Friday, January 30, 2015"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+##Simpson Paradox
+In probability and statistics, Simpson's paradox (Yule-Simpson effect) is an apparent paradox in which a trend present in different groups is reversed when the groups are combined. 
+
+This result is often encountered in social-science and medical-science statistics.  Simpson's Paradox disappears when causal relations are brought into consideration.  
+
+```{r setup, echo=FALSE, warning=FALSE,message=FALSE}
+##Use my standard openning including call function
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+
+call("epicalc")
+call("survival")
+call("graphics")
+
+datafile <- paste(datadir,"smokerdisease.csv",sep = "")
+studydata<- read.csv(datafile)
+```
+
+Create a table of the data
+```{r createit, echo=FALSE, warning=FALSE,message=FALSE}
+df <- ftable(table(studydata$smoker, studydata$disease,studydata$female))
+##Nonsmokers - Nondisease
+df[1,1] #Male Nonsmokers Nondisease
+df[1,2] #Female Nonsmokers Nondisease
+
+##Nonsmokers - disease
+df[2,1] #Male Nonsmokers Disease
+df[2,2] #Female Nonsmokers Disease
+
+##Smokers - Nondisease
+df[3,1] #Male Smokers Nondisease
+df[3,2] #Female Smokers Nondisease
+
+##Smokers - Disease
+df[4,1] #Male Smokers Disease
+df[4,2] #Female Smokers Disease
+```
+
+Raw results
+```{r raw, echo=FALSE, warning=FALSE,message=FALSE}
+##OVerall results no breakdown for Sex
+##csi(exposed-positive,exposed-negative,nonexposed-positive,nonexposed-negative)
+## Risk Ratio = .93
+## Risk difference = -.02
+csi(df[4,1]+df[4,2],df[3,1]+df[3,2],df[2,1]+df[2,2],df[1,1]+df[1,2])
+
+## OR = .91
+cci(df[4,1]+df[4,2],df[3,1]+df[3,2],df[2,1]+df[2,2],df[1,1]+df[1,2])
+```
+
+Interpret the estimate risk difference:  2% fewer people in the smoker group got the disease (as compared to the non smoking group).
+
+
+Results for males only:
+```{r male,warning=FALSE, echo=FALSE,message=FALSE}
+##results for males only
+## Risk Ratio = 1.81
+## Risk difference = .08
+csi(df[4,1],df[3,1],df[2,1],df[1,1])
+
+## OR = 1.99
+cci(df[4,1],df[3,1],df[2,1],df[1,1])
+```
+
+Interpret the estimate risk difference:  8% more males in the smoker group got the disease (as compared to the non smoking group).
+
+
+Results for only the females
+```{r female, warning=FALSE,echo=FALSE,message=FALSE}
+##results for females only
+## Risk Ratio = 1.53
+## Risk difference = .16
+csi(df[4,2],df[3,2],df[2,2],df[1,2])
+
+## OR = 1.99
+cci(df[4,2],df[3,2],df[2,2],df[1,2])
+```
+
+Interpret the estimate risk difference:  16% more females in the smoker group got the disease (as compared to the non smoking group).
