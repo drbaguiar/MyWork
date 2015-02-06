@@ -63,5 +63,5 @@ set.seed(2345)
 if (Sys.info()["sysname"]=="Linux"){
         datadir=('/home/bryan/GitHub/Data/')    
 }else{
-        datadir=('C:/Users/bryan_000/Documents/GitHub/Data/') 
+        datadir=('G:/Data/') 
 }

@@ -6,7 +6,7 @@ output: html_document
 ---
 ```{r standard opening, echo=FALSE,warning=FALSE}
 ##My standard opening
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+source('C:/GitHub/MyWork/StdOpen.R')
 ```
 
 Locating Spam E-Mails for testing
