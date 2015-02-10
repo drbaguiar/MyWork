@@ -2,6 +2,8 @@
 # This is for R version 1.3
 # with comments for Splus
 
+source('C:/GitHub/MyWork/StdOpen.R')
+
 # this dataset is built into R
 data(OrchardSprays)
 # for Splus:
@@ -39,5 +41,4 @@ stripchart(x ~ sf, method="jitter",pch=1,vert=TRUE,col="brown",
 boxplot(log(x) ~ sf, col="bisque",xlab="Spray",ylab="log(Loss)")
 # Splus:
 # boxplot(split(log(x), sf))
-stripchart(log(x) ~ sf, method="jitter",pch=1,vert=TRUE,col="brown",
-           xlab="Spray",ylab="log(Loss)")
+stripchart(log(x) ~ sf, method="jitter",pch=1,vert=TRUE,col="brown", xlab="Spray",ylab="log(Loss)")

@@ -1,6 +1,10 @@
+source('C:/GitHub/MyWork/StdOpen.R')
+
+call("plotly")
+
 py <- plotly()
 trace0 <- list(
-  x = c(1, 2, 3, 4),
+  x = c(2, 4, 6, 8),
   y = c(10, 15, 13, 17)
 )
 trace1 <- list(
