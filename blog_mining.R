@@ -1,12 +1,6 @@
-# Load libraries
-call <- function(x)
-{
-  if (!require(x,character.only = TRUE))
-  {
-    install.packages(x,dep=TRUE)
-    if(!require(x,character.only = TRUE)) stop("Package not found")
-  }
-}
+###My standard opening
+source('C:/GitHub/MyWork/StdOpen.R')
+
 call("tm")
 call("wordcloud")
 call("Rstem")
