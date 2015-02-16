@@ -1,0 +1,174 @@
+---
+title: "Classificiation & Regression Tree"
+author: "Dr. B"
+date: "Sunday, February 15, 2015"
+output: html_document
+---
+
+```{r, warning=FALSE,message=FALSE,echo=FALSE}
+##Use my standard openning including call function
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/GitHub/MyWork/StdOpen.R')     
+}else{
+  source('C:/GitHub/MyWork/StdOpen.R')   
+}
+```
+
+##Tree-Based Models
+Recursive partitioning is a fundamental tool in data mining. It helps us explore the stucture of a set of data, while developing easy to visualize decision rules for predicting a categorical (classification tree) or continuous (regression tree) outcome. 
+
+Classification and regression trees (as described by Brieman, Freidman, Olshen, and Stone) can be generated through the cpart package.
+
+##Grow the tree
+To grow a tree, use rpart(formula, data=, method=,control=) where formula  is in the format:
+
+  outcome ~ predictor1+predictor2+predictor3+ect.
+  
+  data=	specifies the data frame
+  
+  method=	"class" for a classification tree, "anova" for a regression tree
+  
+  control=	optional parameters for controlling tree growth. For example, control      =rpart.control(minsplit=30, cp=0.001) requires that the minimum number of observations in a node be 30 before attempting a split and that a split must decrease the overall lack of fit by a factor of 0.001 (cost complexity factor) before being attempted.
+
+```{r grow}
+# grow tree 
+ctfit <- rpart(Kyphosis ~ Age + Number + Start,method="class", data=kyphosis)
+```
+
+##Examine the Results
+The following functions help you to examine the results:
+
+  printcp(fit)  display cp table
+  
+  plotcp(fit)	plot cross-validation results
+  
+  rsq.rpart(fit)	plot approximate R-squared and relative error for different splits (2 plots). labels are only appropriate for the "anova" method.
+  
+  print(fit)	print results
+  
+  summary(fit)	detailed results including surrogate splits
+  
+```{r}
+printcp(ctfit) # display the results 
+plotcp(ctfit) # visualize cross-validation results 
+rsq.rpart(ctfit) # 
+summary(ctfit) # detailed summary of splits
+```
+
+  plot(fit)  plot decision tree
+  
+  text(fit)	label the decision tree plot
+  
+  post(fit, file=)	create postscript plot of decision tree
+
+```{r}
+# plot tree 
+plot(ctfit, uniform=TRUE, main="Classification Tree for Kyphosis")
+text(ctfit, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+In trees created by rpart( ), move to the LEFT branch when the stated condition is true.
+
+##Prune the Tree
+
+Prune back the tree to avoid overfitting the data. Typically, you will want to select a tree size that minimizes the cross-validated error, the xerror column printed by printcp( ).
+
+Prune the tree to the desired size using:
+
+      prune(fit, cp= )
+
+Specifically, use printcp( ) to examine the cross-validated error results, select the complexity parameter associated with minimum error, and place it into the prune( ) function. 
+
+Alternatively, you can use the code fragment:
+
+    fit$cptable[which.min(fit$cptable[,"xerror"]),"CP"]
+
+```{r}
+# prune the tree 
+pctfit<- prune(ctfit, cp=ctfit$cptable[which.min(ctfit$cptable[,"xerror"]),"CP"])
+summary(pctfit)
+
+# plot the pruned tree 
+#plot(pctfit, uniform=TRUE, main="Pruned Classification Tree for Kyphosis")
+#text(pctfit, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+##Regression tree
+
+In this example we will predict car mileage from price, country, reliability, and car type. The data frame is cu.summary.
+
+##Grow the Tree
+```{r}
+# grow tree 
+rtfit <- rpart(Mileage~Price + Country + Reliability + Type,method="anova", data=cu.summary)
+```
+
+##Examine the Results
+```{r}
+printcp(rtfit) # display the results 
+plotcp(rtfit) # visualize cross-validation results 
+summary(rtfit) # detailed summary of splits
+```
+
+
+##Plot the Results
+```{r}
+# create additional plots 
+par(mfrow=c(1,2)) # two plots on one page 
+rsq.rpart(rtfit) # visualize cross-validation results    
+
+# plot tree 
+plot(rtfit, uniform=TRUE,main="Regression Tree for Mileage ")
+text(rtfit, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+##Prune the Tree
+```{r}
+# prune the tree 
+prtfit<- prune(rtfit, cp=0.011604) # cp value from cptable   
+
+# plot the pruned tree 
+plot(prtfit, uniform=TRUE,main="Pruned Regression Tree for Mileage")
+text(prtfit, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+##Conditional Inference
+The party package provides nonparametric regression trees for nominal, ordinal, numeric, censored, and multivariate responses.
+
+You can create a regression or classification tree via the function
+
+    ctree(formula, data=)
+
+The type of tree created will depend on the outcome variable (nominal factor, ordered factor, numeric, etc.). Tree growth is based on statistical stopping rules, so pruning should not be required.
+
+The previous two examples are re-analyzed below.
+
+###Conditional Inference Tree for Kyphosis
+```{r}
+# 
+call("party")
+ctfit <- ctree(Kyphosis ~ Age + Number + Start, data=kyphosis)
+plot(ctfit, main="Conditional Inference Tree for Kyphosis")
+```
+
+###Conditional Inference Tree for Mileage
+```{r}
+# Conditional Inference Tree for Mileage
+ctfit2 <- ctree(Mileage~Price + Country + Reliability + Type, data=na.omit(cu.summary))
+plot(ctfit2, main="Conditional Inference Tree for Mileage")
+```
+
+##Random Forest
+
+Random forests improve predictive accuracy by generating a large number of bootstrapped trees (based on random samples of variables), classifying a case using each tree in this new "forest", and deciding a final predicted outcome by combining the results across all of the trees (an average in regression, a majority vote in classification).
+
+```{r}
+# Random Forest prediction of Kyphosis data
+call("randomForest")
+rffit <- randomForest(Kyphosis ~ Age + Number + Start,   data=kyphosis)
+print(rffit) # view results 
+importance(rffit) # importance of each predictor
+```
+
+----
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.

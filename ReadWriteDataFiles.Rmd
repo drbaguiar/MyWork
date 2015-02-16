@@ -4,6 +4,15 @@ author: "Dr. B"
 date: "Monday, September 22, 2014"
 output: html_document
 ---
+```{r,echo=FALSE}
+##Use my standard openning including call function
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/GitHub/MyWork/StdOpen.R')     
+}else{
+  source('C:/GitHub/MyWork/StdOpen.R')   
+}
+```
+
 Generate some random data
 ```{r}
 mydata = matrix(rbinom(10*1000, 1, .5), ncol=10)
@@ -15,25 +24,34 @@ Write Files
 Write the data to a csv file
 ```{r}
 # Write CSV in R
-write.csv(mydata, file = "MyData.csv")
+datafile <-paste(datadir,"MyData.csv", sep="")
+write.csv(mydata,datafile)
 ```
 
 To omit the row names, add a comma and then row.names=FALSE. 
 ```{r}
 # Write CSV in R
-write.csv(mydata, file = "MyDataNoRowName.csv",row.names=FALSE)
+datafile <-paste(datadir,"MyDataNoRowName.csv", sep="")
+write.csv(mydata, datafile,row.names=FALSE)
 ```
 
 To omit NAs, add a comma and then na="".
 ```{r}
 # Write CSV in R
-write.csv(mydata, file = "MyDataNoRowNameNoNA.csv",row.names=FALSE, na="")
+write.csv(mydata, datafile,row.names=FALSE, na="")
 ```
 
 To save as an R file.
 ```{r}
 # Write R
-save(mydata, file = "MyData.Rdata")
+datafile <-paste(datadir,"MyData.Rdata")
+save(mydata, file=datafile)
+```
+
+To write a text file
+```{r}
+datafile <-paste(datadir,"mydata.txt")
+write.table(mydata, datafile, sep="\t")
 ```
 
 Read Files
@@ -41,42 +59,60 @@ Read Files
 Read a csv file 
 ```{r}
 # Write R
-read.csv("MyData.csv")  # read csv file
+datafile <-paste(datadir,"MyData.csv", sep="")
+tbl <- read.csv(datafile)  # read csv file
 ```
 
 To read a R file
 ```{r}
 # Load R
-load(file = "MyData.Rdata")
+datafile <-paste(datadir,"MyData.Rdata")
+tbl <- load(file = datafile)
 ```
 
 To read a text file
 ```{r}
 # Read text file
-read.table("y_test.txt")
+datafile <-paste(datadir,"mydata.txt")
+tbl <- read.table(datafile)
+```
+
+To read a text file
+```{r}
+datafile <-paste(datadir,"LaptopSales.txt",sep = "")
+tbl <- read.delim(datafile, fileEncoding="UCS-2LE")
 ```
 
 Download csv from the Internet
 ```{r}
 #Check to see if file (or directory) exists. If not, download the file
-if (!file.exists("log.csv")) {
+
+datafile <-paste(datadir,"log.csv")
+
+if (!file.exists(datafile)) {
   # Url for downloading - Does not contain login credentials.
   url <- "http://statcounter.com/p7447608/csv/download_log_file?ufrom=1323783441&uto=1323860282" 
   #using download file
-  download.file(url, destfile = "log.csv" )
+   download.file(url, datafile)
 }
+
 #read the data into a
-MyData <- read.csv("log.csv" )
-str(MyData)
+mydata <- read.csv(datafile)
+str(mydata)
 ```
 
 Download zip from the Internet and unzip it
 ```{r}
+datafile <-paste(datadir,"dataset.zip")
+
 #Check for the file. If not there, download the data and extract it
-if (!file.exists("dataset.zip")) {
+if (!file.exists(datafile)) {
   zip.url <- 'http://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip'
-  zip.file <- 'dataset.zip'
-  download.file(zip.url, destfile = zip.file)
-  unzip(zip.file)
+  ##zip.file <- 'dataset.zip'
+  download.file(zip.url, datafile)
+  unzip(datafile)
 }
+
+##get a List of files in the archive
+list.files <- unzip(datafile,list=TRUE)
 ```
