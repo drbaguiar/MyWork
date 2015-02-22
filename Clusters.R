@@ -1,5 +1,4 @@
 source('C:/GitHub/MyWork/StdOpen.R')
-call("rgl")
 
 data(iris)
 
@@ -38,7 +37,6 @@ for (i in 1:nrow(pc$loadings)) {
 lines3d(coords, col="red", lwd=4)
 
 ##cLUSTER
-set.seed(42)
 cl <- kmeans(iris[,1:4],3)
 iris$cluster <- as.factor(cl$cluster)
 

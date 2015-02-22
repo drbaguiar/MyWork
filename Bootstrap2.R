@@ -2,10 +2,10 @@
 if (Sys.info()["sysname"]=="Linux"){
         source('/home/bryan/GitHub/MyWork/StdOpen.R')     
 }else{
-        source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
+        source('C:/GitHub/MyWork/StdOpen.R')   
 }
 
-call("UsingR")
+library(UsingR)
 
 data(father.son)
 

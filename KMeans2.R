@@ -1,11 +1,7 @@
 ##Clear the environment
-##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+##Use my standard opening including call function
+source('C:/GitHub/MyWork/StdOpen.R')
 
-call("cluster")
-call("fpc")
-call("flexclust")
-call("NbClust")
 
 ##Set printing to 1 row of 3 columns
 par(mfrow=c(1,3))

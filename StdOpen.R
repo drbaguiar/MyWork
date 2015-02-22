@@ -36,25 +36,10 @@ call("psych")
 call("RColorBrewer")
 call("ROCR")
 call("dummies")
-
-##Split a dataframe
-##Use
-## splits <- dfsplit(dataframe,4,3)
-##df.train<- splits$trainset
-##df.test <- splits$testset
-
-dfsplit <-function(dataframe,nbr1=2,nbr2=1){
-        ##define % of training and test set 
-        ##(use 2 then 1 for 50%, 4 then 3 for 75%, 5 then 4 for 80%, 5 than 3 for 60%, 5 than 4.5 for 90%)
-        bound <- floor((nrow(dataframe)/nbr1)*nbr2)         
-        ##sample rows 
-        dataframe <- dataframe[sample(nrow(dataframe)), ]  
-        ##get training set
-        df.train <- dataframe[1:bound, ]   
-        ##get test set
-        df.test <- dataframe[(bound+1):nrow(dataframe), ]  
-        list(trainset=df.train,testset=df.test)
-}
+call("flexclust")
+call("gmodels")
+call("rgl")
+call("fpc")
 
 #Function to clean the data frame
 clean <- function(df){

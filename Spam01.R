@@ -1,5 +1,7 @@
 #Download Data Files:
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+source('C:/GitHub/MyWork/StdOpen.R')
+
+call("kernlab")
 
 ##Set destination file for download 
 spamfile <-paste(datadir,"spamdata.csv",sep = "")

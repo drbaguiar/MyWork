@@ -1,5 +1,5 @@
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+source('C:/GitHub/MyWork/StdOpen.R')
 
 #Set name of datafile
 datafile=paste(datadir,"diabetes.csv",sep = "")
