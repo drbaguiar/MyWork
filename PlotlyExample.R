@@ -1,6 +1,9 @@
-source('C:/GitHub/MyWork/StdOpen.R')
-
-call("plotly")
+##Use my standard openning including call function
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/GitHub/MyWork/StdOpen.R')     
+}else{
+  source('C:/GitHub/MyWork/StdOpen.R')   
+}
 
 py <- plotly()
 trace0 <- list(

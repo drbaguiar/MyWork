@@ -19,9 +19,9 @@
 
 
 
-library(lars)
-library(fields)
-library(sva)
+require(lars)
+require(fields)
+require(sva)
 
 lassoAccuracy <- function(y,x,x2){
         l1 = lars(t(x),y)

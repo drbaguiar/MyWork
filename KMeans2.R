@@ -1,7 +1,10 @@
 ##Clear the environment
-##Use my standard opening including call function
-source('C:/GitHub/MyWork/StdOpen.R')
-
+##Use my standard openning including call function
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/GitHub/MyWork/StdOpen.R')     
+}else{
+  source('C:/GitHub/MyWork/StdOpen.R')   
+}
 
 ##Set printing to 1 row of 3 columns
 par(mfrow=c(1,3))

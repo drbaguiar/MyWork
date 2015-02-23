@@ -1,5 +1,9 @@
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/GitHub/MyWork/StdOpen.R')     
+}else{
+  source('C:/GitHub/MyWork/StdOpen.R')   
+}
 
 ##Copy the original dataset
 #df<- read.csv("C:/Users/bryan_000/Documents/GitHub/Data/ccFraud.csv")
@@ -57,5 +61,3 @@ dfsplit <-function(dataframe){
 ##df.train<- splits$trainset
 ##df.test <- splits$testset
 
-splits <_
-d
