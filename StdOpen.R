@@ -43,7 +43,7 @@ call("fpc")
 call("plotrix")
 call("plotly")
 call("gdata")
-
+call("neuralnet")
 
 #Function to clean the data frame
 clean <- function(df){

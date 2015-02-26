@@ -13,21 +13,41 @@ for (file in file_list){
   
   # if the merged dataset doesn't exist, create it
   if (!exists("dataset")){
-    ##Read text or csv files
-    #dataset <- read.table(file, header=TRUE, sep=",")  
-    ##Read xls file (need perl loaded)
-    dataset <- read.xls(file,perl="C:/Strawberry/perl/bin/perl.exe")
+    if ((length(Sys.glob("*.txt") > 0)) || (length(Sys.glob("*.TXT") > 0))){
+      ##Read text or csv files
+      dataset <- read.table(file, header=TRUE, sep=",")  
+    }
+    else if ((length(Sys.glob("*.csv") > 0)) || (length(Sys.glob("*.CSV") > 0))){
+      ##Read text or csv files
+      dataset <- read.table(file, header=TRUE, sep=",")  
+    }
+    else if ((length(Sys.glob("*.xls") > 0)) || (length(Sys.glob("*.XLS") > 0))){
+      ##Read xls file (need perl loaded)
+      dataset <- read.xls(file,perl="C:/Strawberry/perl/bin/perl.exe")
+      
+    }
   }
   
   # if the merged dataset does exist, append to it
   else if (exists("dataset")){
-    ##Read text or csv files
-    #temp_dataset <-read.table(file, header=TRUE, sep=",") 
-    ##Read xls file (need perl loaded)
-    temp_dataset <- read.xls(file,perl="C:/Strawberry/perl/bin/perl.exe")
-        
-    dataset<-rbind(dataset, temp_dataset)
-    rm(temp_dataset)
+    if ((length(Sys.glob("*.txt") > 0)) || (length(Sys.glob("*.TXT") > 0))){
+      ##Read text or csv files
+      temp_dataset <- read.table(file, header=TRUE, sep=",") 
+      dataset<-rbind(dataset, temp_dataset)
+      rm(temp_dataset)
+    }
+    else if ((length(Sys.glob("*.csv") > 0)) || (length(Sys.glob("*.CSV") > 0))){
+      ##Read text or csv files
+      temp_dataset <- read.table(file, header=TRUE, sep=",")  
+      dataset<-rbind(dataset, temp_dataset)
+      rm(temp_dataset)
+    }
+    else if((length(Sys.glob("*.xls") > 0)) || (length(Sys.glob("*.XLS") > 0))){
+      ##Read xls file (need perl loaded)
+      temp_dataset <- read.xls(file,perl="C:/Strawberry/perl/bin/perl.exe")
+      dataset<-rbind(dataset, temp_dataset)
+      rm(temp_dataset)
+    }
   }
   
 }
@@ -36,21 +56,3 @@ dataset <- clean(dataset)
 ##Back up the data combined data
 datafile <-paste(datadir,"MyDataComplete.csv",sep = "")
 write.csv(dataset, file = datafile)
-
-
-# ##Removethe full dataset
-# rm(dataset)
-# 
-# aggrades <- aggregate(Total~Course, data=dataset2,mean)
-# 
-# aggrades$Total <-round(aggrades$Total,0)
-# 
-# #Number of students in each course
-# nbrpercourse<-data.frame(table(dataset2$Course))
-# 
-# #Number of students (based on userid)
-# nbrstudents <-data.frame(table(dataset2$Username))
-# 
-# ##Query
-# subset(dataset2, Username=="s130080499")
-# subset(dataset2, Course=="201202-ECN-500-1")
