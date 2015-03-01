@@ -8,10 +8,11 @@ output: html_document
 Load the required packages. 
 ```{r setup,warning=FALSE,message=FALSE}
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
-
-##Load libraries
-call("NbClust")
+if (Sys.info()["sysname"]=="Linux"){
+  source('/home/bryan/GitHub/MyWork/StdOpen.R')     
+}else{
+  source('C:/GitHub/MyWork/StdOpen.R')   
+}
 ```
 
 Load and clean the data.
@@ -40,7 +41,7 @@ df <- read.table(datafile,sep = ",",header=FALSE)
 ##9. Class variable (0 or 1)
 
 ##Change the column names
-colnames(df) <- c("timespregnant", "twohourglucose","diastolicbp","tricepskinfold","twohourinsulin","bmi","pedigree","age","diabetestest")
+colnames(df) <- c("timespregnant", "twoHourglucose","diast,,,olicbp","tricepskinfold","twohourInsulin","b((mi","ped..igree","age","diabetestest")
 
 #Remove na's from the data
 df <- na.omit(df)

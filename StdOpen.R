@@ -7,6 +7,9 @@ options(scipen = 999)
 ##Set locale
 Sys.setlocale("LC_ALL", "English") 
 
+##Set seed for reproducibility
+set.seed(2345)
+
 ##Load libraries
 call <- function(x){
         if (!require(x,character.only = TRUE)){
@@ -15,35 +18,35 @@ call <- function(x){
 }
 
 ##Use
-call("dplyr")
-call("Hmisc")
-call("doBy")
-call("rattle")
-call("lattice")
-call("data.table")
-call("devtools")
-call("ggplot2")
-call("knitr")
-call("reshape2")
 call("adabag")
 call("ada")
 call("caret")
-call("survival")
-call("rCharts")
 call("cluster")
-call("NbClust")
-call("psych")
-call("RColorBrewer")
-call("ROCR")
+call("data.table")
+call("devtools")
+call("doBy")
+call("dplyr")
 call("dummies")
 call("flexclust")
-call("gmodels")
-call("rgl")
 call("fpc")
+call("gdata")
+call("ggplot2")
+call("gmodels")
+call("Hmisc")
+call("knitr")
+call("lattice")
+call("neuralnet")
+call("NbClust")
 call("plotrix")
 call("plotly")
-call("gdata")
-call("neuralnet")
+call("psych")
+call("rattle")
+call("rCharts")
+call("RColorBrewer")
+call("reshape2")
+call("rgl")
+call("ROCR")
+call("survival")
 
 #Function to clean the data frame
 clean <- function(df){
@@ -55,11 +58,8 @@ clean <- function(df){
   names(df) <- gsub("-","",names(df))
   names(df) <- gsub("_","",names(df))
   names(df) <- gsub(",","",names(df))
-  return (df)
+  return(df)
 }
-
-##Set seed for reproducibility
-set.seed(2345)
 
 ##Set data directory
 ##Use my standard openning including call function

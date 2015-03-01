@@ -4,12 +4,14 @@ if (Sys.info()["sysname"]=="Linux"){
 }else{
   source('C:/GitHub/MyWork/StdOpen.R')   
 }
+
 #datafile <-paste(datadir,"LaptopSales.txt",sep = "")
 datafile <-paste(datadir,"meteors.CSV",sep = "")
+tbl <-read.csv(datafile)
 
 #call("corrgram")
 #tbl <- read.delim(datafile, fileEncoding="UCS-2LE")
-tbl <-read.csv(datafile)
-clean(tbl)
+
+tbl<-clean(tbl)
 #corrgram(tbl) 
 names(tbl) <- gsub("_","",names(tbl))
