@@ -1,0 +1,255 @@
+---
+title: "RegressionSplines"
+author: "Dr. B"
+date: "Saturday, February 28, 2015"
+output: html_document
+---
+
+Load the Data
+
+```{r}
+fpe <- read.table("http://data.princeton.edu/wws509/datasets/effort.dat")
+attach(fpe)
+summary(fpe)
+cor(effort,change)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(effort, change, pch=21, bg="gold")
+title("Scatterplot of Change by Effort", col.main="#3366CC")
+identify(effort, change, row.names(fpe), ps=9)
+```
+
+
+##4.1 Fitting a Model
+
+To fit an ordinary linear model with fertility change as the response and setting and effort as predictors, try:
+```{r}
+lmfit = lm( change ~ setting + effort )
+lmfit2 = lm( change ~ setting * effort )
+```
+
+Note first that lm is a function, and we assign the result to an object that we choose to call lmfit (for linear model fit). This stores the results of the fit for later examination.
+
+The argument to lm is a model formula, which has the response on the left of the tilde ~ (read "is modeled as") and a Wilkinson-Rogers model specification formula on the right. R uses
+
+      +  to combine elementary terms, as in A+B
+      :	for interactions, as in A:B;
+      *	for both main effects and interactions, so A*B = A+B+A:B
+
+A nice feature of R is that it lets you create interactions between categorical variables, between categorical and continuous variables, and even between numeric variables (it just creates the cross-product).
+
+##4.2 Examining a Fit
+
+Let us look at the results of the fit. One thing you can do with lmfit, as you can with any R object, is print it:
+```{r}
+lmfit
+lmfit2
+```
+
+The output includes the model formula and the coefficients. You can get a bit more detail by requesting a summary:
+```{r}
+summary(lmfit)
+summary(lmfit2)
+```
+
+The output includes a more conventional table with parameter estimates and standard errors, as well the residual standard error and multiple R-squared. (By default S-Plus includes the matrix of correlations among parameter estimates, which is often bulky, while R sensibly omits it. If you really need it, add the option correlation=TRUE to the call to summary.)
+
+To get a hierarchical analysis of variance table corresponding to introducing each of the terms in the model one at a time, in the same order as in the model formula, try the anova function:
+```{r}
+anova(lmfit)
+anova(lmfit2)
+```
+
+Plot
+```{r}
+plot(lmfit)
+plot(lmfit2)
+```
+
+This will produce a set of four plots: residuals versus fitted values, a Q-Q plot of standardized residuals, a scale-location plot (square roots of standardized residuals versus fitted values, and a plot of residuals versus leverage that adds bands corresponding to Cook's distances of 0.5 and 1.
+
+R will prompt you to click on the graph window or press Enter before showing each plot, but we can do better. Type par(mfrow=c(2,2)) to set your graphics window to show four plots at once, in a layout with 2 rows and 2 columns. Then redo the graph using plot(lmfit). To go back to a single graph per window use par(mfrow=c(1,1)). There are many other ways to customize your graphs by setting high-level parameters, type ?par to learn more.
+
+You may have noticed that we have used the function plot with all kinds of arguments: one or two variables, a data frame, and now a linear model fit. In R jargon plot is a generic function. It checks for the kind of object that you are plotting and then calls the appropriate (more specialized) function to do the work. There are actually many plot functions in R, including plot.data.frame and plot.lm. For most purposes the generic function will do the right thing and you don't need to be concerned about its inner workings.
+
+##4.3 Extracting Results
+
+There are some specialized functions that allow you to extract elements from a linear model fit. For example:
+```{r}
+fitted(lmfit)
+fitted(lmfit2)
+```
+
+extracts the fitted values. In this case it will also print them, because we did not asign them to anything. (The longer form fitted.values is an alias.)
+
+To extract the coefficients use the coef function (or the longer form coefficients):
+```{r}
+coef(lmfit)
+coef(lmfit2)
+```
+
+To get the residuals, use the residuals function (or the abbreviation resid):
+```{r}
+residuals(lmfit)
+residuals(lmfit2)
+```
+
+If you are curious to see exactly what a linear model fit produces, try the function
+```{r}
+names(lmfit)
+```
+
+which lists the named components of a linear fit. All of these objects may be extracted using the $ operator. However, whenever there is a special extractor function you are encouraged to use it.
+
+##4.4 Factors and Covariates
+
+So far our predictors have been continuous variables or covariates. We can also use categorical variables or factors. Let us group family planning effort into three categories:
+```{r}
+effortg = cut(effort, breaks = c(-1, 4, 14, 100),label=c("weak","moderate","strong"))
+```
+
+The function cut creates a factor or categorical variable. The first argument is an input vector, the second is a vector of breakpoints, and the third is a vector of category labels. Note that there is one more breakpoint than there are categories. All values greater than the i-th breakpoint and less than or equal to the (i+1)-st breakpoint go into the i-th category. Any values below the first breakpoint or above the last one are coded NA (a special R code for missing values). If the labels are omitted, R generates a suitable default of the form "(a,b]". By default the intervals are closed on the right, so our intervals are < 4; 5-14; 15+. To change this use the option right=FALSE.
+
+Try fitting the analysis of covariance model:
+```{r}
+covfit = lm( change ~ setting + effortg )
+covfit
+
+covfit2 = lm( change ~ setting * effortg )
+covfit2
+```
+
+As you can see, family planning effort has been treated automatically as a factor, and R has generated the necessary dummy variables for moderate and strong programs treating weak as the reference cell.
+
+Choice of Contrasts: R codes unordered factors using the reference cell or "treatment contrast" method. The reference cell is always the first category which, depending on how the factor was created, is usually the first in alphabetical order. If you don't like this choice, R provides a special function to re-order levels, check out help(relevel).
+
+S codes unordered factors using the Helmert contrasts by default, a choice that is useful in designed experiments because it produces orthogonal comparisons, but has baffled many a new user. Both R and S-Plus code ordered factors using polynomials. To change to the reference cell method for unordered factors use the following call
+
+```{r}
+##options(contrasts=c("contr.treatment","contr.poly"))
+```
+
+You can obtain a hierarchical anova table for the analysis of covariance model using the anova function:
+```{r}
+anova(covfit)
+anova(covfit2)
+```
+
+##4.5 Regression Splines
+
+The real power of R begins to shine when you consider some of the other functions you can include in a model formula. First, you can include mathematical functions, for example log(setting) is a perfectly legal term in a model formula. You don't have to create a variable representing the log of setting and then use it, R will create it 'on the fly', so you can type
+```{r}
+lm( change ~ log(setting) + effort)
+
+```
+
+If you wanted to use orthogonal polynomials of degree 3 on setting, you could include a term of the form poly(setting,3)
+```{r}
+lm( change ~ poly(setting,3) + effort)
+```
+You can also get R to calculate a well-conditioned basis for regression splines. First you must load the splines library (this step is not needed in S-Plus).  This makes available the function bs to generate B-splines. For example the call
+```{r}
+library(splines)
+setting.bs <- bs(setting, knots = c(66,74,84)) + effort
+```
+
+will generate cubic B-splines with interior knots placed at 66, 74 and 84. This basis will use seven degrees of freedom, four corresponding to the constant, linear, quadratic and cubic terms, plus one for each interior knot. Alternatively, you may specify the number of degrees of freedom you are willing to spend on the fit using the parameter df. For cubic splines R will choose df-4 interior knots placed at suitable quantiles. You can also control the degree of the spline using the parameter degree, the default being cubic.
+
+If you like natural cubic splines, you can obtain a well-conditioned basis using the function ns, which has exactly the same arguments as bs except for degree, which is always three. To fit a natural spline with five degrees of freedom, use the call
+```{r}
+##setting.ns <- ns(setting, df=5)
+```
+
+Natural cubic splines are better behaved than ordinary splines at the extremes of the range. The restrictions mean that you save four degrees of freedom. You will probably want to use two of them to place additional knots at the extremes, but you can still save the other two.
+
+To fit an additive model to fertility change using natural cubic splines on setting and effort with only one interior knot each, placed exactly at the median of each variable, try the following call:
+```{r}
+splinefit = lm( change ~ ns(setting, knot=median(setting)) + ns(effort, knot=median(effort)) )
+```
+Here we used the parameter knot to specify where we wanted the knot placed, and the function median to calculate the median of setting and effort.
+
+Do you think the linear model was a good fit? Natural cubic splines with exactly one interior knot require the same number of parameters as an ordinary cubic polynomial, but are much better behaved at the extremes.
+
+##5 Generalized Linear Models
+
+Generalized linear models are just as easy to fit in R as ordinary linear model. In fact, they require only an additional parameter to specify the variance and link functions.
+
+##5.1 Variance and Link Families
+
+The basic tool for fitting generalized linear models is the glm function, which has the folllowing general structure:
+```{r}
+##glm(formula, family, data, weights, subset, ...)
+```
+
+where ... stands for more esoteric options. The only parameter that we have not encountered before is family, which is a simple way of specifying a choice of variance and link functions. There are six choices of family:
+
+    Family            Variance	        Link
+    gaussian	        gaussian	        identity  
+    binomial	        binomial	        logit, probit or cloglog
+    poisson	          poisson	log,      identity or sqrt
+    Gamma	            Gamma	inverse,    identity or log
+    inverse.gaussian	inverse.gaussian	1/mu^2
+    quasi	            user-defined	    user-defined
+
+As can be seen, each of the first five choices has an associated variance function (for binomial the binomial variance m(1-m)), and one or more choices of link functions (for binomial the logit, probit or complementary log-log).
+
+As long as you want the default link, all you have to specify is the family name. If you want an alternative link, you must add a link argument. For example to do probits you use
+```{r}
+##glm( formula, family=binomial(link=probit))
+```
+
+The last family on the list, quasi, is there to allow fitting user-defined models by maximum quasi-likelihood.
+
+##5.2 Logistic Regression
+
+We will illustrate fitting logistic regression models using the contraceptive use data shown below:
+```{r}
+cuse <- read.table("http://data.princeton.edu/wws509/datasets/cuse.dat",header=TRUE)
+attach(cuse)
+```
+
+Let us first try a simple additive model where contraceptive use depends on age, education and wantsMore:
+```{r}
+lrfit <- glm(cbind(using, notUsing) ~ age + education + wantsMore , family = binomial)
+```
+There are a few things to explain here. First, the function is called glm and I have assigned its value to an object called lrfit (for logistic regression fit). The first argument of the function is a model formula, which defines the response and linear predictor.
+
+With binomial data the response can be either a vector or a matrix with two columns.
+
+If the response is a vector it can be numeric with 0 for failure and 1 for success, or a factor with the first level representing "failure" and all others representing "success". In these cases R generates a vector of ones to represent the binomial denominators.
+Alternatively, the response can be a matrix where the first column is the number of "successes" and the second column is the number of "failures". In this case R adds the two columns together to produce the correct binomial denominator.
+Because the latter approach is clearly the right one for us I used the function cbind to create a matrix by binding the column vectors containing the numbers using and not using contraception.
+
+Following the special symbol ~ that separates the response from the predictors, we have a standard Wilkinson-Rogers model formula. In this case we are specifying main effects of age, education and wantsMore. Because all three predictors are categorical variables, they are treated automatically as factors, as you can see by inspecting the results:
+```{r}
+lrfit
+```
+
+Recall that R sorts the levels of a factor in alphabetical order. Because <25 comes before 25-29, 30-39, and 40-49, it has been picked as the reference cell for age. Similarly, high is the reference cell for education because high comes before low! Finally, R picked no as the base for wantsMore.
+
+If you are unhappy about these choices you can (1) use relevel to change the base category, or (2) define your own indicator variables. I will use the latter approach by defining indicators for women with high education and women who want no more children:
+```{r}
+noMore <- wantsMore == "no"
+hiEduc <- education == "high"
+
+##Now try the model again:
+lrfit2 <-glm(cbind(using,notUsing) ~ age + hiEduc + noMore, family=binomial)
+lrfit2
+```
+
+The residual deviance of 29.92 on 10 d.f. is highly significant `r 1-pchisq(29.92,10)'  so we need a better model. One of my favorites introduces an interaction between age and desire for no more children:
+```{r}
+lrfit3 <- glm( cbind(using,notUsing) ~ age * noMore + hiEduc , family=binomial)
+lrfit3
+```
+
+Note how R built the interaction terms automatically, and even came up with sensible labels for them. The model's deviance of 12.63 on 7 d.f. is not significant at the conventional five per cent level, so we have no evidence against this model.
+
+
+------------
+Source: http://data.princeton.edu/R/glms.html
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.

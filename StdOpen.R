@@ -61,6 +61,22 @@ clean <- function(df){
   return(df)
 }
 
+permwo = function(n, x) {
+  ##Ordered without replacement
+  return(factorial(n) / factorial(n-x))
+}
+
+permw = function(n, x) {
+  ##Ordered with replacement
+  return (n**x)
+}
+
+comb = function(n, x) {
+  ##Unordered (sample or subset) Can use choose(n,x)
+  return(factorial(n) / (factorial(x) * factorial(n-x)))
+}
+
+
 ##Set data directory
 ##Use my standard openning including call function
 if (Sys.info()["sysname"]=="Linux"){
