@@ -10,7 +10,7 @@ output: html_document
 if (Sys.info()["sysname"]=="Linux"){
   source('/home/bryan/GitHub/MyWork/StdOpen.R')     
 }else{
-  source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')   
+  source('C:/GitHub/MyWork/StdOpen.R')   
 }
 
 #Set name of datafile
@@ -30,11 +30,20 @@ sparse_terms_nbr = .99   # Enter number as a decimal Higer removes less
 assoc_word = "data"
 correlation = .45
 
+##
+#con <- file("G:/DataCapstone/en_US.twitter.txt", "r")
+#readLines(con, 1)
+#close(con)
+
 ##Load the text file
-##txt.in <- readLines("C:/Users/bryan_000/Documents/GitHub/Data/TextDocs/bill.txt")
+#txt1.in <- readLines("G:/DataCapstone/en_US.twitter.txt")
+#txt3.in <- readLines("G:/DataCapstone/en_US.news.txt")
+txt2.in <- readLines("G:/DataCapstone/en_US.blogs.txt")
+
+#txt.in <- readLines(con)
 
 ##Load an entire directory
-txt.in <-Corpus(DirSource("C:/Users/bryan_000/Documents/GitHub/Data/Blog_Data/set 1/"), readerControl = list(language="lat"))
+##txt.in <-Corpus(DirSource("C:/Users/bryan_000/Documents/GitHub/Data/Blog_Data/set 1/"), readerControl = list(language="lat"))
 
 ##Convert to corpus
 txt <-VectorSource(txt.in)
@@ -63,7 +72,7 @@ txt.corpus<- tm_map(txt.corpus, stemDocument)
 txt.corpus<- tm_map(txt.corpus, stripWhitespace)
 
 ##Inspect the corpus
-#inspect(txt.corpus)
+inspect(txt.corpus)
 
 ##Ready to Analyze the data
 tdm <-TermDocumentMatrix(txt.corpus)
