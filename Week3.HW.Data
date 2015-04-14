@@ -1,10 +1,10 @@
 ---
-title: "Week2.HW.data"
+title: "Week3.HW.data"
 author: "Bryan Aguiar"
 date: "Sunday, April 05, 2015"
 output: html_document
 ---
-##Week 2 Homework
+##Week 3 Homework
 The  data	file contains	the	systolic	blood	pressure	(SBP),	body	size	(QUET),	age	(AGE),	and	smoking	history	(SMK	=	0	if	nonsmoker,	SMK	=	1	if	a	current	or	previous	smoker)	for	a	hypothetical sample	of	32	white	males	over	40	years	old	from	the	town	of	Angina.
 
 ```{r,warnings=FALSE, messages=FALSE}
@@ -46,7 +46,7 @@ plot.add.ci <- function(x, y, interval='confidence', level=0.95, regressionColor
 	lines(newX$x, fitPred[,3], lty=2, ...)
 }
 
-DF<- read.csv("D:/Data/week2-HW-data.csv")
+DF<- read.csv("G:/Data/week2-HW-data.csv")
 summary(DF)
 ```
 
@@ -57,7 +57,7 @@ Generate	scatter	diagrams	for	each	of	the	following	variable	pairs.  Using  scat
 1. SPB	(Y) vs.	QUET	(X)
 ```{r, echo=FALSE}
 plot(DF$QUET,DF$SBP)
-abline(lm(SBP~QUET, data = DF), col="blue")
+abline(lm(DF$SBP~DF$QUET), col="blue")
 ```
 
 2. SBP  (Y) vs.	SMK	(X)
@@ -68,13 +68,13 @@ plot(DF$SMK,DF$SBP)
 3. QUET	(Y) vs.	AGE	(X)
 ```{r, echo=FALSE}
 plot(DF$AGE,DF$QUET)
-abline(lm(QUET~AGE, data = DF), col="blue")
+abline(lm(DF$QUET~DF$AGE), col="blue")
 ```
 
 4. SBP	(Y) vs.	AGE	(X)
 ```{r, echo=FALSE}
 plot(DF$AGE,DF$SBP)
-abline(lm(SBP~AGE, data = DF), col="blue")
+abline(lm(DF$SBP~DF$AGE), col="blue")
 ```
 
 ##Exercise  Three
@@ -82,14 +82,14 @@ abline(lm(SBP~AGE, data = DF), col="blue")
 
 1. Determine  the	least-squares	estimates	of	slope	and	intercept for	the	straight line regression	of	SBP	(Y) on	SMK	(X).
 ```{r}
-model01 <- lm(SBP ~ SMK, data = DF)
+model01 <- lm(DF$SBP ~ DF$SMK)
 coef(model01)
 ```
 
 2. Sketch  the  estimated	regression	line	on	the	scatter	diagram	involving	SBP	and	SMK.		
 ```{r, echo=FALSE}
 plot(DF$SMK,DF$SBP)
-abline(lm(SBP~SMK, data = DF), col="blue")
+abline(lm(DF$SBP~DF$SMK), col="blue")
 ```
 
 3. Test  the	hypothesis	of	zero	slope
@@ -107,14 +107,14 @@ legend("bottomright",,c("Confidence","Prediction"),pch=c(5,9),col=c("blue","gree
 
 1. Determine  the	least-squares	estimates	of	slope	and	intercept	for	the	straight-line	regression	of	SBP	(Y) on	QUET	(X). Slope  and  intercept are:
 ```{r}
-model02 <- lm(SBP ~ QUET, data = DF)
+model02 <- lm(DF$SBP ~ DF$QUET)
 coef(model02)
 ```
 
 2. Sketch  the	estimated	regression	line	on	the	scatter	diagram	involving	SBP	and	QUET.		
 ```{r, echo=FALSE}
 plot(DF$QUET,DF$SBP)
-abline(lm(SBP~QUET, data = DF), col="blue")
+abline(lm(DF$SBP~DF$QUET), col="blue")
 ```
 
 3. Test	the	hypothesis	of	zero	slope

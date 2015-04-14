@@ -1,0 +1,128 @@
+---
+title: "TimeSeries"
+author: "Dr. B"
+date: "Sunday, April 12, 2015"
+output: html_document
+---
+
+```{r,warnings=FALSE, messages=FALSE}
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+# load the libraries
+library(forecast)
+library(TTR)
+```
+
+January 1990 to April 2004.  
+Air RPM per (000)
+Rail PM
+VMT (billions)
+```{r,warnings=FALSE, messages=FALSE}
+# Load the data and make it into time series
+air <- scan("D:/Data/911air.txt")
+airtimeseries <- ts(air, frequency=12, start=c(1990,1))
+
+rail <- scan("D:/Data/911rail.txt")
+railtimeseries <- ts(rail, frequency=12, start=c(1990,1))
+
+car <- scan("D:/Data/911car.txt")
+cartimeseries <- ts(car, frequency=12, start=c(1990,1))
+```
+
+You plot the timeseries data:
+```{r, echo=FALSE}
+plot.ts(airtimeseries, main="Air")
+plot.ts(railtimeseries, main="Rail")
+plot.ts(cartimeseries, main="Car")
+```
+
+###Tramsforming data
+When it appears that an additive model is not appropriate for describing a time series, such as when the size of the seasonal fluctuations and random fluctuations seem to increase with the level of the time series, we may need to transform the time series in order to get a transformed time series that can be described using an additive model. 
+
+For example, we can transform the time series by calculating the natural log of the original data:
+```{r,warnings=FALSE, messages=FALSE}
+logairtimeseries <- log(airtimeseries)
+plot.ts(logairtimeseries, main="Air (Log Transformed)")
+
+lograiltimeseries <- log(railtimeseries)
+plot.ts(lograiltimeseries, main="Rail (Log Transformed)")
+
+logcartimeseries <- log(cartimeseries)
+plot.ts(logcartimeseries, main="Car (Log Transformed)")
+```
+
+##Decomposing Time Series
+Decomposing a time series means separating it into its various components, which are usually a trend component and an irregular component, and if it is a seasonal time series, a seasonal component.
+
+###Decomposing Non-Seasonal Data
+A non-seasonal time series consists of a trend component and an irregular component. Decomposing the time series involves trying to separate the time series into these components, that is, estimating the the trend component and the irregular component.  To estimate the trend component of a non-seasonal time series that can be described using an additive model, it is common to use a smoothing method, such as calculating the simple moving average of the time series.  The SMA() function in the "TTR" package can be used to smooth time series data using a simple moving average. 
+
+To use the SMA() function, you need to specify the order (span) of the simple moving average, using the parameter "n". For example, to calculate a simple moving average of order 5, we set n=5 in the SMA() function.
+```{r,warnings=FALSE, messages=FALSE}
+# 
+n=8
+airtimeseriesSMA <- SMA(airtimeseries,n=n)
+railtimeseriesSMA <- SMA(railtimeseries,n=n)
+cartimeseriesSMA <- SMA(cartimeseries,n=n)
+
+plot.ts(airtimeseriesSMA, main="Air (Smoothed)")
+plot.ts(railtimeseriesSMA, main="Rail (Smoothed)")
+plot.ts(cartimeseriesSMA, main="Car (Smoothed)")
+```
+
+###Decomposing Seasonal Data
+A seasonal time series consists of a trend component, a seasonal component and an irregular component. Decomposing the time series means estimating these three components.  To estimate the trend component and seasonal component of a seasonal time series that can be described using an additive model, we can use the "decompose()" function in R. This function estimates the trend, seasonal, and irregular components of a time series that can be described using an additive model.  
+
+The function "decompose()" returns a list object as its result, where the estimates of the seasonal component, trend component and irregular component are stored in named elements of that list objects, called "seasonal", "trend", and "random" respectively.
+```{r,warnings=FALSE, messages=FALSE}
+# 
+airtimeseriescomponents <- decompose(airtimeseries)
+railtimeseriescomponents <- decompose(railtimeseries)
+cartimeseriescomponents <- decompose(cartimeseries)
+
+plot(airtimeseriescomponents)
+plot(railtimeseriescomponents)
+plot(cartimeseriescomponents)
+```
+
+
+
+##Forecast
+
+###ARIMA Model
+```{r,warnings=FALSE, messages=FALSE}
+# fit an ARIMA(0,1,1) model
+airtimeseriesarima <- arima(airtimeseries, order=c(0,1,1)) 
+railtimeseriesarima <- arima(railtimeseries, order=c(0,1,1)) 
+cartimeseriesarima <- arima(cartimeseries, order=c(0,1,1)) 
+
+```
+
+We can then use the ARIMA model to make forecasts for future values of the time series, using the "forecast.Arima()" function in the "forecast" R package. 
+
+For example, to forecast the travel for the next 5 months we type:
+```{r,warnings=FALSE, messages=FALSE}
+airtimeseriesforecasts <- forecast.Arima(airtimeseriesarima, h=19)
+airtimeseriesforecasts
+
+railtimeseriesforecasts <- forecast.Arima(railtimeseriesarima, h=19)
+railtimeseriesforecasts
+
+cartimeseriesforecasts <- forecast.Arima(cartimeseriesarima, h=20)
+cartimeseriesforecasts
+
+```
+
+
+----
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.

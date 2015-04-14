@@ -1,0 +1,75 @@
+---
+title: "Week3.HW.data"
+author: "Bryan Aguiar"
+date: "Sunday, April 05, 2015"
+output: html_document
+---
+##Week 3 Homework
+The  data	file contains	the	systolic	blood	pressure	(SBP),	body	size	(QUET),	age	(AGE),	and	smoking	history	(SMK	=	0	if	nonsmoker,	SMK	=	1	if	a	current	or	previous	smoker)	for	a	hypothetical sample	of	32	white	males	over	40	years	old	from	the	town	of	Angina.
+
+```{r,warnings=FALSE, messages=FALSE}
+##Clear the environment
+rm(list=ls())
+
+##Turn off scientific notations for numbers
+options(scipen = 999)  
+
+##Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+##Set seed for reproducibility
+set.seed(2345)
+
+DF<- read.csv("D:/Data/week2-HW-data.csv")
+summary(DF)
+```
+
+##Exercise One and Two
+
+Determine  the	ANOVA	tables	for	the	following	regressions:
+
+1.  SBP  (Y)	on	QUET	(X)
+2.  SBP	(Y)	on	SMK	(X)
+3.  QUET	(Y)	on	AGE	(X)
+4.  SBP	(Y)	on	AGE	(X)
+
+Use	the	ANOVA	tables	to	perform	the	F	test	for	the	significance	of	each	straight-line	regression.
+
+1. SPB	(Y) vs.	QUET	(X)
+```{r, echo=FALSE}
+fit1<-lm(SBP~QUET, data=DF)
+summary(fit1)
+```
+
+2. SBP  (Y) vs.	SMK	(X)
+```{r, echo=FALSE}
+fit2 <- lm(SBP~SMK, data=DF)
+summary(fit2)
+```
+
+3. QUET	(Y) vs.	AGE	(X)
+```{r, echo=FALSE}
+fit3 <- lm(QUET~AGE, data=DF)
+summary(fit3)
+```
+
+4. SBP	(Y) vs.	AGE	(X)
+```{r, echo=FALSE}
+fit4 <- lm(SBP~AGE, data=DF)
+summary(fit4)
+```
+
+##Prediction
+Lets make some predictions
+
+First let's use the last regression equation to predict SBP for someone who is 25 years old:
+```{r, echo=FALSE}
+predict(fit4, data.frame(AGE=25))
+```
+
+Nexts, let's use the last regression equation to predict SBP for people ages 1 to 32 years old:
+```{r, echo=FALSE}
+predict(fit4, data.frame(AGE=1:32))
+```
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details, see [R Markdown](http://rmarkdown.rstudio.com).
