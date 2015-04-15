@@ -1,0 +1,15 @@
+library(fpp)
+# load the libraries
+library(forecast)
+library(TTR)
+# Load the data and make it into time series
+air <- scan("D:/Data/911air.txt")
+airtimeseries <- ts(air, frequency=12, start=c(1990,1))
+airtimeseries2 <- window(airtimeseries,start=1990,end=2004-.1)
+airfit1 <- meanf(airtimeseries2, h=11)
+airfit2 <- naive(airtimeseries2, h=11)
+airfit3 <- snaive(airtimeseries2, h=11)
+airtimeseries3 <- window(airtimeseries2, start=2004)
+accuracy(airfit1, airtimeseries3)
+accuracy(airfit2, airtimeseries3)
+accuracy(airfit3, airtimeseries3)
