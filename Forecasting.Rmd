@@ -136,16 +136,99 @@ plot(rwfcarfcast)
 ```
 
 
+###Other 
+
+####Simple exponential smoothing
+he simplest of the exponentially smoothing methods is naturally called "simple exponential smoothing" (SES). In some books, it is called "single exponential smoothing". This method is suitable for forecasting data with no trend or seasonal pattern. 
+```{r,warnings=FALSE, messages=FALSE}
+air2 <- window(airtimeseries,start=1990,end=2004)
+plot(air2, ylab="Number",xlab="Year")
+```
+
+Using the naïve method, all forecasts for the future are equal to the last observed value of the series.
+
+![NAIVE method](NAIVE.png)
+
+Using the average method, all future forecasts are equal to a simple average of the observed data
+
+![Average method](AVERAGE.png)
+
+We often want something between these two extremes. For example it may be sensible to attach larger weights to more recent observations than to observations from the distant past. This is exactly the concept behind simple exponential smoothing. Forecasts are calculated using weighted averages where the weights decrease exponentially as observations come from further in the past --- the smallest weights are associated with the oldest observations:
+
+
+![Exponential smoothing method](EXPON.png)
+```{r, ,warnings=FALSE, messages=FALSE}
+fit1 <- ses(air2, alpha=0.2, initial="simple", h=11)
+fit2 <- ses(air2, alpha=0.6, initial="simple", h=11)
+fit3 <- ses(air2, h=11)
+
+summary(fit1)
+summary(fit2)
+summary(fit3)
+```
+
+
+```{r, echo=FALSE}
+plot(fit1, plot.conf=FALSE, ylab="Oil (millions of tonnes)",
+  xlab="Year", main="", fcol="white", type="o")
+lines(fitted(fit1), col="blue", type="o")
+lines(fitted(fit2), col="red", type="o")
+lines(fitted(fit3), col="green", type="o")
+lines(fit1$mean, col="blue", type="o")
+lines(fit2$mean, col="red", type="o")
+lines(fit3$mean, col="green", type="o")
+legend("topleft",lty=1, col=c(1,"blue","red","green"), 
+  c("data", expression(alpha == 0.2), expression(alpha == 0.6),
+  expression(alpha == 0.71)),pch=1)
+````
+
+####Holt's linear trend method
+Holt (1957) extended simple exponential smoothing to allow forecasting of data with a trend. This method involves a forecast equation and two smoothing equations (one for the level and one for the trend):
+
+![Holt's linear trend method](HOLTS.png)
+
+```{r, ,warnings=FALSE, messages=FALSE}
+fit1 <- holt(air2, alpha=0.8, beta=0.2, initial="simple", h=11) 
+fit2 <- holt(air2, alpha=0.8, beta=0.2, initial="simple", exponential=TRUE, h=11) 
+fit3 <- holt(air2, alpha=0.8, beta=0.2, damped=TRUE, initial="simple", h=11) 
+
+# Results for models:
+#fit1$model$state
+#fitted(fit1)
+#fit1$mean
+summary(fit1)
+summary(fit2)
+summary(fit3)
+```
+
+```{r, echo=FALSE}
+plot(fit2, type="o", ylab="Air passengers", xlab="Year", 
+     fcol="white", plot.conf=FALSE)
+lines(fitted(fit1), col="blue") 
+lines(fitted(fit2), col="red")
+lines(fitted(fit3), col="green")
+lines(fit1$mean, col="blue", type="o") 
+lines(fit2$mean, col="red", type="o")
+lines(fit3$mean, col="green", type="o")
+legend("topleft", lty=1, col=c("black","blue","red","green"), 
+   c("Data","Holt's linear trend","Exponential trend","Additive damped trend"))
+```
 
 ##Forecast Error
 The forecast error (epsilon) is simply the actual value of Y less the predicted value of Y, which is on the same scale as the data. Accuracy measures that are based on epsilon are therefore scale-dependent and cannot be used to make comparisons between series that are on different scales.
 
-The two most commonly used scale-dependent measures are based on the [absolute errors or squared errors](MAERMSE.png).   When comparing forecast methods on a single data set, the MAE is popular as it is easy to understand and compute.
+The two most commonly used scale-dependent measures are based on the 
+![absolute errors or squared errors](MAERMSE.png).   
+
+When comparing forecast methods on a single data set, the MAE is popular as it is easy to understand and compute.
 
 ###Percentage error
 Percentage errors have the advantage of being scale-independent, and so are frequently used to compare forecast performance between different data sets. 
 
-The most commonly used measure is [Mean Absolute Percentage Error](MAPE.png).  Percentage errors assume a meaningful zero. For example, a percentage error makes no sense when measuring the accuracy of temperature forecasts on the Fahrenheit or Celsius scales.  Percentage errors also put a heavier penalty on negative errors than on positive errors. This observation led to the use of the so-called "symmetric" MAPE (sMAPE) proposed by Armstrong (1985, p.348), although in general sMAPE should not be used.
+The most commonly used measure is: 
+![Mean Absolute Percentage Error](MAPE.png).  
+
+Percentage errors assume a meaningful zero. For example, a percentage error makes no sense when measuring the accuracy of temperature forecasts on the Fahrenheit or Celsius scales.  Percentage errors also put a heavier penalty on negative errors than on positive errors. This observation led to the use of the so-called "symmetric" MAPE (sMAPE) proposed by Armstrong (1985, p.348), although in general sMAPE should not be used.
 
 
 
