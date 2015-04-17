@@ -21,6 +21,7 @@ set.seed(2345)
 # load the libraries
 library(forecast)
 library(TTR)
+library(fpp)
 ```
 
 January 1990 to April 2004.  
@@ -124,5 +125,5 @@ cartimeseriesforecasts
 ```
 
 
-----
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+___
+This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.
