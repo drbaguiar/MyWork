@@ -22,6 +22,31 @@ set.seed(2345)
 library(forecast)
 library(TTR)
 library(fpp)
+
+##Make a Histogram of forecast errors
+plotForecastErrors <- function(forecasterrors)
+  {
+     # make a histogram of the forecast errors:
+     mybinsize <- IQR(forecasterrors)/4
+     mysd   <- sd(forecasterrors)
+     mymin  <- min(forecasterrors) - mysd*5
+     mymax  <- max(forecasterrors) + mysd*3
+     # generate normally distributed data with mean 0 and standard deviation mysd
+     mynorm <- rnorm(10000, mean=0, sd=mysd)
+     mymin2 <- min(mynorm)
+     mymax2 <- max(mynorm)
+     if (mymin2 < mymin) { mymin <- mymin2 }
+     if (mymax2 > mymax) { mymax <- mymax2 }
+     # make a red histogram of the forecast errors, with the normally distributed data overlaid:
+     mybins <- seq(mymin, mymax, mybinsize)
+     hist(forecasterrors, col="red", freq=FALSE, breaks=mybins)
+     # freq=FALSE ensures the area under the histogram = 1
+     # generate normally distributed data with mean 0 and standard deviation mysd
+     myhist <- hist(mynorm, plot=FALSE, breaks=mybins)
+     # plot the normal curve as a blue line on top of the histogram of forecast errors:
+     points(myhist$mids, myhist$density, type="l", col="blue", lwd=2)
+  }
+
 ```
 
 Forecasting is a common statistical task in business, where it helps to inform decisions about the scheduling of production, transportation and personnel, and provides a guide to long-term strategic planning. Business forecasting is often done poorly, and is frequently confused with planning and goals. They are three different things.
@@ -155,9 +180,9 @@ Using the average method, all future forecasts are equal to a simple average of 
 
 We often want something between these two extremes. For example it may be sensible to attach larger weights to more recent observations than to observations from the distant past. This is exactly the concept behind simple exponential smoothing. Forecasts are calculated using weighted averages where the weights decrease exponentially as observations come from further in the past --- the smallest weights are associated with the oldest observations:
 
-
 ![Exponential smoothing method](EXPON.png)
-```{r, ,warnings=FALSE, messages=FALSE}
+
+```{r,warnings=FALSE, messages=FALSE}
 fit1 <- ses(air2, alpha=0.2, initial="simple", h=11)
 fit2 <- ses(air2, alpha=0.6, initial="simple", h=11)
 fit3 <- ses(air2, h=11)
@@ -212,6 +237,66 @@ lines(fit2$mean, col="red", type="o")
 lines(fit3$mean, col="green", type="o")
 legend("topleft", lty=1, col=c("black","blue","red","green"), 
    c("Data","Holt's linear trend","Exponential trend","Additive damped trend"))
+```
+
+####Holt-Winters exponential smoothing
+If you have a time series that can be described using an additive model with increasing or decreasing trend and seasonality, you can use Holt-Winters exponential smoothing to make short-term forecasts.
+Holt-Winters exponential smoothing estimates the level, slope, and seasonal component at the current time point. 
+
+Smoothing is controlled by three parameters: alpha, beta, and gamma, for the estimates of the level, slope b of the trend component, and the seasonal component, respectively, at the current time point. The parameters alpha, beta and gamma all have values between 0 and 1, and values that are close to 0 mean that relatively little weight is placed on the most recent observations when making forecasts of future values.
+
+```{r,warnings=FALSE, messages=FALSE}
+logairtimeseries <- log(airtimeseries)
+lograiltimeseries <- log(railtimeseries)
+logcartimeseries <- log(cartimeseries)
+
+airHWforecast <- HoltWinters(logairtimeseries)
+airHWforecast
+railHWforecast <- HoltWinters(lograiltimeseries)
+railHWforecast
+carHWforecast <- HoltWinters(logcartimeseries)
+carHWforecast
+#carHWforecast$SSE
+```
+
+We can plot the original time series as a black line, with the forecasted values as a red line on top of that:
+```{r, echo=FALSE}
+plot(airHWforecast)
+plot(railHWforecast)
+plot(carHWforecast)
+```
+
+To make forecasts for future times not included in the original time series, we use the "forecast.HoltWinters()" function in the "forecast" package. For example, the original data is from January 1990 to December 2003. If we wanted to make forecasts for January 2004 to December 2007 (48 more months), and plot the forecasts, we would type:
+```{r, echo=FALSE}
+plot.forecast(forecast.HoltWinters(airHWforecast, h=48))
+plot.forecast(forecast.HoltWinters(railHWforecast, h=48))
+plot.forecast(forecast.HoltWinters(carHWforecast, h=48))
+```
+
+The forecasts are shown as a blue line, and the shaded areas show 80% and 95% prediction intervals.
+
+We can investigate whether the predictive model can be improved upon by checking whether the in-sample forecast errors show non-zero autocorrelations at lags 1-20, by making a correlogram and carrying out the Ljung-Box test:
+```{r}
+acf(forecast.HoltWinters(airHWforecast, h=48)$residuals, lag.max=20)
+Box.test(forecast.HoltWinters(airHWforecast, h=48)$residuals, lag=20, type="Ljung-Box")
+
+acf(forecast.HoltWinters(railHWforecast, h=48)$residuals, lag.max=20)
+Box.test(forecast.HoltWinters(railHWforecast, h=48)$residuals, lag=20, type="Ljung-Box")
+
+acf(forecast.HoltWinters(carHWforecast, h=48)$residuals, lag.max=20)
+Box.test(forecast.HoltWinters(carHWforecast, h=48)$residuals, lag=20, type="Ljung-Box")
+```
+
+Look to see if the correlogram shows that the autocorrelations for the in-sample forecast errors exceed the significance bounds for lags 1-20. Furthermore, if the p-value for Ljung-Box test is > .05, there is little evidence of non-zero autocorrelations at lags 1-20.
+
+We can check whether the forecast errors have constant variance over time, and are normally distributed with mean zero, by making a time plot of the forecast errors and a histogram (with overlaid normal curve):
+```{r, echo=FALSE}
+plot.ts(forecast.HoltWinters(airHWforecast, h=48)$residuals)            # make a time plot
+plotForecastErrors(forecast.HoltWinters(airHWforecast, h=48)$residuals) # make a histogram
+plot.ts(forecast.HoltWinters(railHWforecast, h=48)$residuals)            # make a time plot
+plotForecastErrors(forecast.HoltWinters(railHWforecast, h=48)$residuals) # make a histogram
+plot.ts(forecast.HoltWinters(carHWforecast, h=48)$residuals)            # make a time plot
+plotForecastErrors(forecast.HoltWinters(carHWforecast, h=48)$residuals) # make a histogram
 ```
 
 ##Forecast Error

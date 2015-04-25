@@ -4,7 +4,7 @@ author: "Dr. B"
 date: "Sunday, April 12, 2015"
 output: html_document
 ---
-
+Source: [Time Series and Forecasting] (http://www.statmethods.net/advstats/timeseries.html)
 ```{r,warnings=FALSE, messages=FALSE}
 # Clear the environment
 rm(list=ls())

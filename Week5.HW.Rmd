@@ -1,0 +1,163 @@
+---
+title: "Week2.HW.data"
+author: "Bryan Aguiar"
+date: "Sunday, April 05, 2015"
+output: html_document
+---
+##Week 5 Homework
+The  data	file contains	the	systolic	blood	pressure	(SBP),	body	size	(QUET),	age	(AGE),	and	smoking	history	(SMK	=	0	if	nonsmoker,	SMK	=	1	if	a	current	or	previous	smoker)	for	a	hypothetical sample	of	32	white	males	over	40	years	old	from	the	town	of	Angina.
+
+```{r, warning=FALSE,message=FALSE}
+##Clear the environment
+rm(list=ls())
+
+##Turn off scientific notations for numbers
+options(scipen = 999)  
+
+##Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+##Set seed for reproducibility
+set.seed(2345)
+
+# load libraries
+library(car)
+
+##Function for pi
+plot.add.pi <- function(x, y, interval='prediction', level=0.95, regressionColor='red', ...) {
+  xOrder  <- order(x)
+	x       <- x[xOrder]  
+	y       <- y[xOrder]
+        fit     <- lm(y ~ x, data=data.frame(x=x, y=y))
+	newX    <- data.frame(x=jitter(x))
+	fitPred <- predict.lm(fit, newdata=newX, interval=interval, level=level, ...)
+	abline(lm(y ~ x), col=regressionColor)
+	lines(newX$x, fitPred[,2], lty=2, ...)
+	lines(newX$x, fitPred[,3], lty=2, ...)
+}
+
+##Function for ci
+plot.add.ci <- function(x, y, interval='confidence', level=0.95, regressionColor='red', ...) {
+  xOrder  <- order(x)
+  x       <- x[xOrder]  
+	y       <- y[xOrder]
+        fit     <- lm(y ~ x, data=data.frame(x=x, y=y))
+	newX    <- data.frame(x=jitter(x))
+	fitPred <- predict.lm(fit, newdata=newX, interval=interval, level=level, ...)
+	#abline(lm(y ~ x), col=regressionColor)
+	lines(newX$x, fitPred[,2], lty=2, ...)
+	lines(newX$x, fitPred[,3], lty=2, ...)
+}
+
+# Function to extract the overall ANOVA p-value out of a linear model object
+lmp <- function (modelobject) {
+  if (class(modelobject) != "lm") stop("Not an object of class 'lm' ")
+	f <- summary(modelobject)$fstatistic
+	p <- pf(f[1],f[2],f[3],lower.tail=F)
+	attributes(p) <- NULL
+	return(p)
+}
+ 
+DF<- read.csv("D:/Data/week2-HW-data.csv")
+summary(DF)
+```
+
+##Exercise One
+
+Earlier in the course we studied the multiple regression relationship of SBP (Y) to AGE (X1), SMK (X2), and QUET (X3) using the data in Homework 1 of Week 2. 
+
+Three regression models will now be considered:
+
+
+Model Independent Variables Used
+
+model 1 AGE (X1)
+```{r,echo=FALSE}
+fit01 <- lm(SBP ~ AGE, data = DF)
+summary(fit01)
+```
+
+Confidence intervals for all parameters
+```{r,echo=FALSE}
+# CIs for all parameters
+confint(fit01)
+```
+
+model 2 AGE (X1), SMK (X2)
+```{r,echo=FALSE}
+fit02 <- lm(SBP ~ AGE+SMK, data = DF)
+summary(fit02)
+```
+
+Confidence intervals for all parameters
+```{r,echo=FALSE}
+# CIs for all parameters
+confint(fit02)
+```
+
+Multicollinearity is a phenomenon in which two or more predictor variables in a multiple regression model are highly correlated, meaning that one can be linearly predicted from the others with a non-trivial degree of accuracy.   A tolerance of less than 0.10 and/or a VIF of 10 and above indicates a multicollinearity problem.
+
+Compute VIF and Tolerence
+```{r}
+#VIFs - requires car package
+vif (fit02)
+1/vif(fit02)
+```
+
+model 3 AGE (X1), SMK (X2), QUET (X3
+```{r,echo=FALSE}
+fit03 <- lm(SBP ~ AGE+SMK+QUET, data = DF)
+summary(fit03)
+```
+
+Confidence intervals for all parameters
+```{r,echo=FALSE}
+# CIs for all parameters
+confint(fit03) 
+```
+
+Multicollinearity is a phenomenon in which two or more predictor variables in a multiple regression model are highly correlated, meaning that one can be linearly predicted from the others with a non-trivial degree of accuracy   A tolerance of less than 0.10 and/or a VIF of 10 and above indicates a multicollinearity problem.
+
+Compute VIF and Tolerence
+```{r}
+#VIFs - requires car package
+vif (fit03)
+1/vif(fit03)
+```
+
+Complete the following:
+
+Use model 3 to determine:
+
+  What is the predicted SBP for a 50-year old smoker with a quetelet (QUET) index of 3.5?
+```{r}
+predict(fit03,data.frame(AGE=50, SMK=1, QUET=3.5)) 
+```
+  
+  What is the predicted SBP for a 50-year-old non-smoker with a quetelet index of 3.5?
+```{r}
+predict(fit03,data.frame(AGE=50, SMK=0, QUET=3.5))
+```
+ 
+ For 50-year-old smokers, give an estimate of the change in SBP corresponding to an increase in quetelet index from 3.0 to 3.5.
+```{r}
+predict(fit03,data.frame(AGE=50, SMK=0, QUET=3.5)) - predict(fit03,data.frame(AGE=50, SMK=0, QUET=3.0))
+```
+Using the ANOVA tables, compute and compare the R2-values for models 1,2, and 3:
+
+      Model 1 R2: `r summary(lm(SBP ~ AGE, data = DF))$r.squared` Adjusted R2: `r summary(lm(SBP ~ AGE, data = DF))$adj.r.squared`
+      
+      Model 2 R2: `r summary(lm(SBP ~ AGE+SMK, data = DF))$r.squared` Adjusted R2: `r summary(lm(SBP ~ AGE+SMK, data = DF))$adj.r.squared`
+       
+      Model 3 R3: `r summary(lm(SBP ~ AGE+SMK+QUET, data = DF))$r.squared` Adjusted R2: `r summary(lm(SBP ~ AGE+SMK+QUET, data = DF))$adj.r.squared`
+
+Conduct (separately) the overall F-tests for significant regression under models 1,2, and 3. 
+
+      Model 1 F: `r summary(lm(SBP ~ AGE, data = DF))$f[1]` p-value: `r lmp(fit01)`
+      
+      Model 2 F: `r summary(lm(SBP ~ AGE+SMK, data = DF))$f[1]` p-value: `r anova(fit02)$Pr[1]`
+       
+      Model 3 F: `r summary(lm(SBP ~ AGE+SMK+QUET, data = DF))$f[1]` p-value: `r anova(fit03)$Pr[1]`
+
+-----
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details, see [R Markdown](http://rmarkdown.rstudio.com).
