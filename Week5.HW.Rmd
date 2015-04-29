@@ -59,6 +59,7 @@ lmp <- function (modelobject) {
 }
  
 DF<- read.csv("D:/Data/week2-HW-data.csv")
+DF2<-read.csv("D:/Data/week5-HW-data.csv")
 summary(DF)
 ```
 
@@ -158,6 +159,86 @@ Conduct (separately) the overall F-tests for significant regression under models
       Model 2 F: `r summary(lm(SBP ~ AGE+SMK, data = DF))$f[1]` p-value: `r anova(fit02)$Pr[1]`
        
       Model 3 F: `r summary(lm(SBP ~ AGE+SMK+QUET, data = DF))$f[1]` p-value: `r anova(fit03)$Pr[1]`
+
+##Exercise Two
+```{r}
+summary(DF2)
+```
+
+Generate  the	separate	straight-line	regressions	of	Y	on	X1	(model	1)	and	Y	on	X2
+(model	2).	 Which	of	the	two	independent	variables	would	you	say	is	the	more	important	
+predictor	of	Y?	Discuss	your	response	in	the	homework	forum.
+
+
+model 1 Weight (X1)
+```{r,echo=FALSE}
+fit04 <- lm(choles ~ weight, data = DF2)
+summary(fit04)
+```
+
+Confidence intervals for all parameters
+```{r,echo=FALSE}
+# CIs for all parameters
+confint(fit04)
+```
+
+model 2 age (X2)
+```{r,echo=FALSE}
+fit05 <- lm(choles ~ age, data = DF2)
+summary(fit05)
+```
+
+Confidence intervals for all parameters
+```{r,echo=FALSE}
+# CIs for all parameters
+confint(fit05)
+```
+
+      Model 1 R2: `r summary(lm(choles ~ weight, data = DF2))$r.squared` Adjusted R2: `r summary(lm(choles ~ weight, data = DF2))$adj.r.squared`  p-value of F test: `r anova(fit04)$Pr[1]`
+      
+      Model 2 R2: `r summary(lm(choles ~ age, data = DF2))$r.squared` Adjusted R2: `r summary(lm(choles ~ age, data = DF2))$adj.r.squared`  p-value of F test: `r anova(fit05)$Pr[1]`
+
+      Model 2 is better based on R2 and the p-value of the F-test.
+
+model 3 Weight (X1) and age (X2)
+```{r,echo=FALSE}
+fit06 <- lm(choles ~ weight+age, data = DF2)
+summary(fit06)
+```
+
+Confidence intervals for all parameters
+```{r,echo=FALSE}
+# CIs for all parameters
+confint(fit06)
+```
+
+For  each	of	the	models	in	questions	1	and	2,	determine	the	predicted	cholesterol	level	(Y)	for	patient	4	(with	Y	=263,	X1=	70,	and	X2	=	30)	and	compare	these	predicted	cholesterol	levels	with	the	observed	value.		Comment	on	your	findings	in	the	homework	forum.
+```{r, echo=FALSE}
+predict(fit04,data.frame(weight=70)) 
+predict(fit05,data.frame(age=30)) 
+predict(fit06,data.frame(weight=70,age=30))
+```
+
+      Models 2 and 3 are close to the actual value.  Model 3 is the closest.  Model 1 is the worst predictor.
+
+Carry out the overall F-test for the two-variable model and the partial F-test for the addition of X1 to the model, given that X2 is already in the model.
+```{r,echo=FALSE}
+anova(fit05,fit06)
+```
+
+        P-value is greater than .05; therfore, no benefit in added weight to model that already has age.
+        
+Compute and compare the R2-values for each of the three models considered in questions 1 and 2.
+      
+      Model 1 R2: `r summary(lm(choles ~ weight, data = DF2))$r.squared` Adjusted R2: `r summary(lm(choles ~ weight, data = DF2))$adj.r.squared`
+      
+      Model 2 R2: `r summary(lm(choles ~ age, data = DF2))$r.squared` Adjusted R2: `r summary(lm(choles ~ age, data = DF2))$adj.r.squared`  
+
+      Model 3 R2: `r summary(lm(choles ~ weight+age, data = DF2))$r.squared` Adjusted R2: `r summary(lm(choles ~ weight+age, data = DF2))$adj.r.squared` 
+
+Based on the results obtained in questions 1-5, what do you consider to be the best predictive model involving either one or both of the independent variables considered? Why? Discuss your response in the homework forum.
+
+      I would use model 2 which just uses age as the predictor.
 
 -----
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details, see [R Markdown](http://rmarkdown.rstudio.com).

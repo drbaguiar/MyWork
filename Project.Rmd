@@ -1,0 +1,328 @@
+---
+title: "Forecasting"
+author: "Dr. B"
+date: "Thursday, April 16, 2015"
+output: word_document
+---
+
+##Problem Overview
+A public transportation company is expecting increasing demand for its services and is planning to acquire new buses and to extend its terminals.  These investments require a reliable forecast of future demand which should be based on historic demand stored in the company's data warehouse.  
+
+For each 15-minute interval between 6:30 hours and 22 hours the number of passengers arriving at the terminal has been recorded and stored. 
+
+As a forecasting consultant you have been asked to forecast the number of passengers arriving at the terminal.
+
+```{r open,warning=FALSE, message=FALSE,echo=FALSE}
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+# load the libraries
+library(knitr)
+library(forecast)
+library(TTR)
+library(fpp)
+library(xts)
+```
+
+###Data
+The data were divided into a training set and a testing set.  Demand data from March 1 to March 14 were used for the testing set.  
+
+```{r loadtrain,warnings=FALSE, messages=FALSE}
+# Load the traing data and make it into time series
+train <- read.csv("D:/Data/bicup2006train.csv")
+#Convert to a timeseries using 63 periods (15 minutes) per day
+trainseries <- ts(train, frequency=63, start=c(1))
+summary(trainseries)
+```
+
+Demand data for March 15 to March 21 were used for the testing set.
+```{r loadtest,warnings=FALSE, messages=FALSE}
+# Load the test data and make it into time series
+test <- read.csv("D:/Data/bicup2006test.csv")
+#Convert to a timeseries using 63 periods (15 minutes) per day
+testseries <- ts(test, frequency=63, start=c(15))
+summary(testseries)
+```
+
+The data is shown below
+```{r,echo=FALSE}
+par(mfrow=c(1,2))
+plot(coredata(trainseries) ~ index(trainseries),type="l",ylab="Number",xlab="Date/Time",main="Training Data")
+#Fit a trend line
+abline(lm(coredata(trainseries) ~ index(trainseries)),col="Red")
+plot(coredata(testseries) ~ index(testseries),type="l",ylab="Number",xlab="Date/Time",main="Testing Data")
+#Fit a trend line
+abline(lm(coredata(testseries) ~ index(testseries)),col="Red")
+```
+
+##Decomposing Seasonal Time Series
+Decomposing a time series means separating it into its constituent components, which are usually a trend component and an irregular component, and if it is a seasonal time series, a seasonal component.
+```{r}
+trainseriescomponents <- decompose(trainseries)
+plot(trainseriescomponents)
+```
+
+
+##Forecasting
+
+####Average method
+The forecasts of all future values are equal to the mean of the historical data.  
+```{r avemethod,warnings=FALSE, messages=FALSE}
+#Forcast 7 days
+meanfcast <- meanf(trainseries,441)
+```
+
+####Naive Method
+All forecasts are simply set to be the value of the last observation. 
+```{r naivemethod,warnings=FALSE, messages=FALSE}
+#Forcast 7 days
+naivefcast <- naive(trainseries,441)
+```
+
+####Seasonal naive method
+A similar method to the naive method.  It is useful for highly seasonal data. In this case, we set each forecast to be equal to the last observed value from the same season of the year (e.g., the same month of the previous year).
+```{r smaivemethod,warnings=FALSE, messages=FALSE}
+#Forcast 7 days
+snaivefcast <- snaive(trainseries,441)
+```
+
+Of the methods used so far, the seasonal naive method seems to match the data the best.
+```{r,message=FALSE,warning=FALSE}
+#Forcast 7days
+fcastdata<-window(trainseries,start=1)
+fit1 <- meanf(fcastdata, h=441)
+fit2 <- naive(fcastdata, h=441)
+fit3 <- snaive(fcastdata, h=441)
+```
+
+####Comparisions
+```{r,echo=FALSE}
+plot(meanfcast)
+plot(naivefcast)
+plot(snaivefcast)
+plot(fit1, plot.conf=FALSE,main="Comparisions")
+lines(fit2$mean,col=2)
+lines(fit3$mean,col=3)
+legend("topleft",lty=1,col=c(4,2,3),
+legend=c("Mean method","Naive method","Seasonal naive method"))
+```
+
+####Forecast Accuracy
+The forecast error is simply actiual value less the projected value, which is on the same scale as the data. The two most commonly used scale-dependent measures are based on the Mean Absolute Error or the Root Mean Squared Error.  Percentage errors have the advantage of being scale-independent. The most commonly used measure is Mean Absolute Percentage Error.  Measures based on percentage errors have the disadvantage of being infinite or undefined if yi=0 for any i in the period of interest, and having extreme values when any yi is close to zero. Scaled errors were proposed as an alternative to using percentage errors. The Mean Absolute Scaled Error and the Mean Squared Scaled Error are two common scaled measures.
+
+We compute the forecast accuracy measures for test period:
+
+#####Average forecast method
+```{r,echo=FALSE}
+errordata <- window(testseries,start=15)
+accuracy(fit1, errordata)
+```
+
+#####Naive forecast method
+```{r,echo=FALSE}
+accuracy(fit2, errordata)
+```
+
+#####Seasonal naive method
+```{r,echo=FALSE}
+accuracy(fit3, errordata)
+```
+
+###Simple exponential smoothing
+This method is suitable for forecasting data with no trend or seasonal pattern. In R, HoltWInters with gamma=FALSE computes the simple exponential smoothing forecast.
+```{r expmethod,warnings=FALSE, messages=FALSE}
+exptimeseries <- HoltWinters(trainseries, gamma=FALSE)
+expfcast <-forecast.HoltWinters(exptimeseries,441)
+```
+
+```{r,echo=FALSE}
+plot(expfcast)
+```
+
+The 'forecast errors' are calculated as the observed values minus predicted values, for each time point. We can only calculate the forecast errors for the time period covered by our original time series. One measure of the accuracy of the predictive model is the sum-of-squared-errors (SSE) for the in-sample forecast errors.  
+
+If there are correlations between forecast errors for successive predictions, it is likely that the simple exponential smoothing forecasts could be improved upon by another forecasting technique.  To determine if this is the case, we can obtain a correlogram of the in-sample forecast errors for lags 1-7. 
+```{r,echo=FALSE}
+acf(expfcast$residuals, lag.max=7)
+```
+
+We can see from the sample correlogram that the several of the autocorrelation touch or exceed the significance bounds. To test whether there is significant evidence for non-zero correlations at lags 1-7, we run a Ljung-Box test. 
+```{r,echo=FALSE}
+Box.test(expfcast$residuals, lag=7, type="Ljung-Box")
+```
+
+Here the p-value for the Ljung-Box test statistic is less than 0.05, so there is evidence of non-zero autocorrelations in the in-sample forecast errors at lags 1-7.  
+
+###Holt Winters' linear trend method
+Holt (1957) extended simple exponential smoothing to allow forecasting of data with a trend. This method involves a forecast equation and two smoothing equations (one for the level and one for the trend):
+```{r,warnings=FALSE, messages=FALSE}
+exptimeseries2 <- HoltWinters(trainseries)
+expfcast2 <-forecast.HoltWinters(exptimeseries2,441)
+```
+
+```{r,echo=FALSE}
+plot(expfcast2)
+```
+
+If there are correlations between forecast errors for successive predictions, it is likely that the simple exponential smoothing forecasts could be improved upon by another forecasting technique.  To determine if this is the case, we can obtain a correlogram of the in-sample forecast errors for lags 1-7. 
+```{r,echo=FALSE}
+acf(expfcast2$residuals, lag.max=7)
+```
+
+We can see from the sample correlogram that the several of the autocorrelation touch or exceed the significance bounds. To test whether there is significant evidence for non-zero correlations at lags 1-7, we run a Ljung-Box test. 
+```{r,echo=FALSE}
+Box.test(expfcast2$residuals, lag=7, type="Ljung-Box")
+```
+
+Here the p-value for the Ljung-Box test statistic is less than 0.05, so there is evidence of non-zero autocorrelations in the in-sample forecast errors at lags 1-7.  
+
+###ARIMA Models
+Exponential smoothing methods are useful for making forecasts, and make no assumptions about the correlations between successive values of the time series. However, if you want to make prediction intervals for forecasts made using exponential smoothing methods, the prediction intervals require that the forecast errors are uncorrelated and are normally distributed with mean zero and constant variance.
+While exponential smoothing methods do not make any assumptions about correlations between successive values of the time series, in some cases you can make a better predictive model by taking correlations in the data into account. Autoregressive Integrated Moving Average (ARIMA) models include an explicit statistical model for the irregular component of a time series, that allows for non-zero autocorrelations in the irregular component.
+
+```{r,warning=FALSE,message=FALSE}
+#fit <- Arima(trainseries, order=c(3,0,1), seasonal=c(0,1,2))
+#fit <- Arima(trainseries, order=c(0,1,3), seasonal=c(0,1,1))
+#res <- residuals(fit)
+#tsdisplay(res)
+#Box.test(res, lag=7, type="Ljung")
+arimatrainseries <- arima(trainseries, order=c(3,0,1), seasonal=c(1,0,0))
+arimafcast <-forecast.Arima(arimatrainseries,441)
+#res <residuals(arimafcast)
+```
+
+```{r,echo=FALSE}
+plot(arimafcast)
+```
+
+####Comparison
+```{r,warning=FALSE,message=FALSE}
+fcastdata3<-window(trainseries,start=1)
+fit4 <- forecast.HoltWinters(exptimeseries,441)
+fit5 <- forecast.HoltWinters(exptimeseries2,441)
+fit6 <- forecast.Arima(arimatrainseries,441)
+```
+
+```{r,echo=FALSE}
+plot(fit4, plot.conf=FALSE,main="Forecasts for daily ridership")
+lines(fit5$mean,col=2)
+lines(fit6$mean,col=3)
+legend("topleft",lty=1,col=c(4,2,3),legend=c("Exp Smoothing","Holt Winters","ARIMA"))
+```
+
+####Forecast Accuracy
+We compute the forecast accuracy measures for test period:
+
+#####Exponential smoothing
+```{r,echo=FALSE}
+errordata2 <- window(testseries,start=15)
+accuracy(fit4, errordata2)
+```
+
+#####Holt Winters'
+```{r,echo=FALSE}
+accuracy(fit5, errordata2)
+```
+
+#####ARIMA
+```{r,echo=FALSE}
+accuracy(fit6, errordata2)
+```
+
+##Forecast for 22 - 24 March 2005
+
+Using thee Holt Winter's method, the forecast for 22 -24 March would be:
+```{r}
+complete<-rbind(train,test)
+timeseries <- ts(complete, frequency=63, start=c(1))
+exptimeseries3 <- HoltWinters(timeseries)
+expfcast3 <-forecast.HoltWinters(exptimeseries3,189)
+plot(expfcast3$mean, main="Forecasted Ridership 0630 March 22 to 2200 March 24", xlab="Day/Time", ylab="Riders")
+```
+
+##APPENDIX
+###Residuals
+A residual in forecasting is the difference between an observed value and its forecast based on other observations.  A good forecasting method will yield residuals with the following properties:
+
+        The residuals are uncorrelated. If there are correlations between residuals, then there is information left in the residuals which should be used in computing forecasts.
+
+        The residuals have zero mean. If the residuals have a mean other than zero, then the forecasts are biased.
+
+In addition to these essential properties, it is useful (but not necessary) for the residuals to also have the following two properties.
+
+        The residuals have constant variance.
+        
+        The residuals are normally distributed.
+
+####From Average Method
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit1, main="Average Method", ylab="", xlab="Day")
+res <- residuals(fit1)
+plot(res, main="Residuals from average method", ylab="", xlab="Day")
+Acf(res, main="ACF of residuals")
+hist(res, nclass="FD", main="Histogram of residuals")
+```
+
+####From Naive Method
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit2, main="Naive Method", ylab="", xlab="Day")
+res <- residuals(fit2)
+plot(res, main="Residuals from naive method", ylab="", xlab="Day")
+Acf(res, main="ACF of residuals")
+hist(res, nclass="FD", main="Histogram of residuals")
+```
+
+####From Seasonal Naive Method
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit3, main="Seasonal Naive Method", ylab="", xlab="Day")
+res <- residuals(fit3)
+plot(res, main="Residuals from seasonal naive method", ylab="", xlab="Day")
+Acf(res, main="ACF of residuals")
+hist(res, nclass="FD", main="Histogram of residuals")
+```
+
+####From Exponential Smoothing Method
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit4, main="ES Method", ylab="", xlab="Day")
+res <- residuals(fit4)
+plot(res, main="Residuals from ES method", ylab="", xlab="Day")
+Acf(res, main="ACF of residuals")
+hist(res, nclass="FD", main="Histogram of residuals")
+```
+
+####From Holt Winters' Method
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit5, main="HWMethod", ylab="", xlab="Day")
+res <- residuals(fit5)
+plot(res, main="Residuals from HW method", ylab="", xlab="Day")
+Acf(res, main="ACF of residuals")
+hist(res, nclass="FD", main="Histogram of residuals")
+```
+
+####From ARIMA Method
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit6, main="ARIMA Method", ylab="", xlab="Day")
+res <- residuals(fit6)
+plot(res, main="Residuals from ARIMA method", ylab="", xlab="Day")
+Acf(res, main="ACF of residuals")
+hist(res, nclass="FD", main="Histogram of residuals")
+```
+
+
+---
+This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.
