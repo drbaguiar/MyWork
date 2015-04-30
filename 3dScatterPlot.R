@@ -79,9 +79,6 @@ table(gasfueldummy)
 table(maledummy)
 table(marrieddummy)
 
-# aggregate group by
-aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=mean, na.rm=TRUE)
-
 # REQUIRES Hmisc package
 describe(dftrain)
 
