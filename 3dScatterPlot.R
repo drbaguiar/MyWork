@@ -6,12 +6,14 @@ library(rgl)
 library(Hmisc)
 library(nFactors)
 library(FactoMineR)
+library(Rcmdr)
+library(vcd)
 
 # Set the seed for reproducibility
 set.seed(1234)
 
 # Load the data
-df <-read.csv("1.csv")
+df <-read.csv("d:/data/1.csv")
 
 # clean the data names and data
 names(df)<-tolower(names(df))
@@ -22,73 +24,139 @@ names(df) <- gsub(",","",names(df))
 names(df) <- gsub("\\.","",names(df))
 
 # Make and recode dummy variables
-df$gasfueldummy <-as.numeric(fueltype)
+df$gasfueldummy <-as.numeric(df$fueltype)
 df$gasfueldummy[df$gasfueldummy == 1] <- 0
 df$gasfueldummy[df$gasfueldummy == 2] <- 1
 
-df$maledummy<-as.numeric(gender)
+df$maledummy<-as.numeric(df$gender)
 df$maledummy[df$maledummy == 1] <- 0
 df$maledummy[df$maledummy == 2] <- 1
 
-df$marrieddummy<-as.numeric(married)
+df$marrieddummy<-as.numeric(df$married)
 df$marrieddummy[df$marrieddummy == 2] <- 0
 
-# remove original columns for the dummies and policy number
-drops <- c("gender","married","fueltype","policynumber")
-df<-df[,!(names(df) %in% drops)]
+# do the random split (25% held out for test), put the label back into the data frame
+df$istest <- runif(nrow(df))<0.25
+df$datalabel <- ifelse(df$istest,"test data","train data")
+dftrain = df[!df$istest,]
+dftest = df[df$istest,]
+
+# remove original columns for the dummies, istest, datatlabels, and policy number
+drops <- c("gender","married","fueltype","policynumber","datalabel","istest")
+dftrain<-dftrain[,!(names(dftrain) %in% drops)]
+dftest<-dftest[,!(names(dftest) %in% drops)]
 
 # attach for working
-attach(df)
+attach(dftrain)
 
 # Explore the data
-str(df)
-summary(df)
-sapply(df, mean, na.rm=TRUE)
+str(dftrain)
+summary(dftrain)
 
-# REQUIRES Hmisc package
-describe(df)
+#fIVE NUMBER SUMMARIES
+fivenum(losses, na.rm = TRUE)
+fivenum(age, na.rm = TRUE)
+fivenum(vehicleage, na.rm = TRUE)
+fivenum(yearsofdrivingexperience, na.rm = TRUE)
+fivenum(numberofvehicles, na.rm = TRUE)
+
+# Apply to all columns
+sapply(dftrain, mean, na.rm=TRUE)
+sapply(dftrain, sd, na.rm=TRUE)
+sapply(dftrain, fivenum, na.rm=TRUE)
 
 # aggregate group by
-aggregate(df, by=list(marrieddummy,gasfueldummy),FUN=mean, na.rm=TRUE)
+aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=mean, na.rm=TRUE)
+aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=sd, na.rm=TRUE)
+aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=fivenum, na.rm=TRUE)
+
+# Tables
+table(age)
+table(vehicleage)
+table(yearsofdrivingexperience)
+table(numberofvehicles)
+table(gasfueldummy)
+table(maledummy)
+table(marrieddummy)
+
+# aggregate group by
+aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=mean, na.rm=TRUE)
+
+# REQUIRES Hmisc package
+describe(dftrain)
 
 # Pricipal Components Analysis
 # princomp( ) function produces an unrotated principal component analysis.
-fit <- princomp(df, cor=TRUE)
+fit <- princomp(dftrain, cor=TRUE)
 summary(fit) # print variance accounted for 
 loadings(fit) # pc loadings 
 plot(fit,type="lines") # scree plot 
 fit$scores # the principal components
 biplot(fit)
 
+# REQUIRES the FactoMiner package 
+result <- PCA(dftrain) # graphs generated automatically
+
+# Maximum Likelihood Factor Analysis
+# entering raw data and extracting 3 factors, 
+# with varimax rotation 
+fit <- factanal(dftrain, 3, rotation="varimax")
+print(fit, digits=2, cutoff=.3, sort=TRUE)
+# plot factor 1 by factor 2 
+load <- fit$loadings[,1:2] 
+plot(load,type="n") # set up plot 
+text(load,labels=names(dftrain),cex=.7) # add variable names
+
 # Determine Number of Factors to Extract
 # REQUIRES nfactors package
-ev <- eigen(cor(df)) # get eigenvalues
-ap <- parallel(subject=nrow(df),var=ncol(df),rep=100,cent=.05)
+ev <- eigen(cor(dftrain)) # get eigenvalues
+ap <- parallel(subject=nrow(dftrain),var=ncol(dftrain),rep=100,cent=.05)
 nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
 plotnScree(nS)
 
-# REQUIRES the FactoMiner package 
-result <- PCA(df) # graphs generated automatically
-
 ## Correlation matrix (and grap)
-cor(df)
+cor(dftrain)
 
 # Correlations with significance levels (p-values)
 # REQUIRES Hmisc package
-rcorr(as.matrix(df))
+rcorr(as.matrix(dftrain))
 
 # Visual
-pairs(df)
+pairs(dftrain)
+
+# Stripchart
+stripchart(losses, method="stack", xlab="Amount", pch=1, col=2, main="Losses", offset=0.5)
+stripchart(age~marrieddummy, method="stack", pch=c(1,2), col=marrieddummy+1, xlab="age", ylab="Married", main="Age by Married", offset=0.5)
 
 # REQUIRES corrgram package
 corrgram(df)
 corrgram(df, order=TRUE, lower.panel=panel.shade,upper.panel=panel.pie, text.panel=panel.txt)
 corrgram(df, order=TRUE, lower.panel=panel.ellipse,upper.panel=panel.pts, text.panel=panel.txt,diag.panel=panel.minmax)
 
-
+# Boxplots
 boxplot(losses~marrieddummy)
 boxplot(losses~maledummy)
 boxplot(losses~gasfueldummy)
+boxplot(losses~vehicleage,notch=TRUE, col=(c("gold","darkgreen")),)
+
+# Kernel Density Plot
+d <- density(age) # returns the density data 
+plot(d) # plots the results
+d<- density(losses) # returns the density data 
+plot(d) # plots the results
+d<- density(vehicleage) # returns the density data 
+plot(d) # plots the results
+d<- density(yearsofdrivingexperience) # returns the density data 
+plot(d) # plots the results
+d<- density(numberofvehicles) # returns the density data 
+plot(d) # plots the results
 
 # Make a 3d Plot
-plot3d(losses,age,years.of.driving.experience,col=gasfueldummy+1)
+plot3d(losses,age,yearsofdrivingexperience,col=gasfueldummy+1)
+
+# Another Spinning 3d Scatterplot
+# REQUIRES Rcmdr package
+scatter3d(losses, age, yearsofdrivingexperience)
+
+# Be nice
+detach(dftrain)
