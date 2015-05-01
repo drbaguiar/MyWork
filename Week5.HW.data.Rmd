@@ -1,0 +1,72 @@
+---
+title: "Week6.HW.data"
+author: "Bryan Aguiar"
+date: "Thursday, April 30, 2015"
+output: html_document
+---
+
+Consider  the	following	scenario
+
+In	a	study	at	the	Ohio	State	University	Medical	Center,	doctors	investigated	the	association	between	ICU	Acquired	Paresis	(ICUAP,	or	muscular	weakness) and	subject's	admission	SOFA	score	dichotomized at	11	(sofa11)	 (0	for	less	than	11	and	1	for	11	and	greater).  Specifically, the	investigators	wanted	to	determine	if	handgrip	strength could	be	used	as a surrogate	for	ICUAP.		The	investigators	believed	that	the	number	of	days	the	patient	was	mechanically ventilated	(MV_days)	could	affect the	relationship	between	weakness	and	dichotomized	SOFA.	Use  the	ICU	acquired	weakness dataset	to	answer	the	following	exercises:
+```{r}
+rm(list=ls())
+
+# Set the seed for reproducibility
+set.seed(1234)
+
+# Load the data
+df <-read.csv("d:/data/Acquired_weakness.csv")
+```
+
+##Exercise One
+
+Using a two-sample t-test, determine whether the two SOFA Score groups differ significantly with respect to ICUAP (measured by max_grip).
+```{r}
+t.test(max_grip~sofa11,df,var.equal=TRUE,alternative=c("two.sided"))
+```
+
+Note the p-value.
+
+##Exercise  Two
+
+Perform	the same	analysis from	Exercise One (i.e.,	2	sample	t-test)	using	a	regression	analysis.
+```{r}
+fit<-lm(max_grip~sofa11,df)
+summary(fit)
+```
+
+Note the p-value is the same as using the t-test.
+
+##Exercise  Three
+
+Using	a	single	model	determine	the	regression	of	max_grip on	MVdays for	each	of	the	two	SOFA	score groups.
+```{r}
+fit2<-lm(max_grip~MVdays+sofa11+MVdays*sofa11,df)
+summary(fit2)
+```
+
+Model:
+when sofa11 = 1 model is max_grip = 20.3503 + (-4.32 × sofa11) + (-.60 × MVdays).    
+when sofa11 = 0 model is max_grip = 20.3503 + (-.60 × MVdays).
+
+##Exercise  Four
+
+Test  whether	the	two	SOFA	cohorts	differ significantly,	controlling	for	mechanically	ventilated	days.  Because interaction effect is not significant, we run the regressin without interaction term:
+```{r}
+fit3<-lm(max_grip~MVdays+sofa11,df)
+summary(fit3)
+```
+
+p-value for sofa11 is 0.294009.  SOFA groups do not differ significantly.
+
+##Exercise  Five
+
+Test	whether	the	two	SOFA	cohorts	have	the	same	slope. Do	they	have	the	same	intercept? Are	they coincident?
+```{r}
+anova(fit2,fit3)
+```
+
+p-value is 0.2909.  They are coincident.
+
+-----
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details, see [R Markdown](http://rmarkdown.rstudio.com).

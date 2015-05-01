@@ -1,5 +1,14 @@
-#install.packages("rgl")
+# Clear the environment
 rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
 
 # Load the libraries
 library(rgl)
@@ -8,9 +17,7 @@ library(nFactors)
 library(FactoMineR)
 library(Rcmdr)
 library(vcd)
-
-# Set the seed for reproducibility
-set.seed(1234)
+library(MASS)
 
 # Load the data
 df <-read.csv("d:/data/1.csv")
@@ -66,9 +73,9 @@ sapply(dftrain, sd, na.rm=TRUE)
 sapply(dftrain, fivenum, na.rm=TRUE)
 
 # aggregate group by
-aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=mean, na.rm=TRUE)
-aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=sd, na.rm=TRUE)
-aggregate(dftrain, by=list(marrieddummy,gasfueldummy),FUN=fivenum, na.rm=TRUE)
+aggregate(dftrain, by=list(marrieddummy,gasfueldummy,maledummy),FUN=mean, na.rm=TRUE)
+aggregate(dftrain, by=list(marrieddummy,gasfueldummy,maledummy),FUN=sd, na.rm=TRUE)
+aggregate(dftrain, by=list(marrieddummy,gasfueldummy,maledummy),FUN=fivenum, na.rm=TRUE)
 
 # Tables
 table(age)
@@ -154,6 +161,31 @@ plot3d(losses,age,yearsofdrivingexperience,col=gasfueldummy+1)
 # Another Spinning 3d Scatterplot
 # REQUIRES Rcmdr package
 scatter3d(losses, age, yearsofdrivingexperience)
+
+
+# Build an train a regression model
+# Stepwise Regression
+# REQUIRES the MASS package
+fit <- lm(losses~.,data=dftrain)
+step <- stepAIC(fit, direction="both")
+step$anova # display results
+
+# Plots
+outlierTest(fit)
+qqPlot(fit, main="QQ Plot") #qq plot for studentized resid 
+leveragePlots(fit) # leverage plots
+
+# Normality of Residuals
+# qq plot for studentized resid
+qqPlot(fit, main="QQ Plot")
+
+# distribution of studentized residuals
+sresid <- studres(fit) 
+hist(sresid, freq=FALSE, main="Distribution of Studentized Residuals")
+xfit<-seq(min(sresid),max(sresid),length=40) 
+yfit<-dnorm(xfit) 
+lines(xfit, yfit)
+
 
 # Be nice
 detach(dftrain)
