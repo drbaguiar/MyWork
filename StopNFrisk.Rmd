@@ -1,0 +1,107 @@
+---
+title: "StopNFrisk"
+author: "Bryan Aguiar"
+date: "Sunday, May 03, 2015"
+output: html_document
+---
+
+
+```{r,warning=FALSE,message=FALSE,echo=FALSE}
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+# Load the libraries
+library(arules)
+library(arulesViz)
+```
+
+##Load the Data:
+
+```{r, echo=FALSE}
+if(!file.exists("D:/Data/SQF_Codebook.pdf")) {
+  download.file("http://www.nyclu.org/files/SQF_Codebook.pdf", "SQF_Codebook.pdf")
+}
+
+if(!file.exists("D:/Data/SQF 2012.csv")) {
+  download.file("http://www.nyclu.org/files/stopandfrisk/Stop-and-Frisk-2012.zip",
+    "D:/Data/Stop-and-Frisk-2012.zip")
+  unzip("D:/Data/Stop-and-Frisk-2012.zip")
+}
+
+dat <- read.csv("D:/Data/SQF 2012.csv")
+dim(dat)
+summary(dat)
+```
+
+##Cleaning the data
+
+###Fix date and time
+
+```{r}
+dat$datestop <- as.Date(sprintf("%08d", dat$datestop), format ="%m%d%Y")
+dat$timestop <- as.integer(substr(sprintf("%04d", dat$timestop), 1, 2))
+```
+
+###Clean continuous variables
+
+####Fix observation period
+```{r}
+dat$perobs[ dat$perobs<1 | dat$perobs>120 ] <- NA
+```
+
+####Fix stop period
+```{r}
+dat$perstop[dat$perstop =="**"] <- NA
+dat$perstop <- as.numeric(dat$perstop)
+```
+
+####Remove DOB (we have age).
+```{r}
+dat$dob <- NULL
+```
+
+####Clean age
+```{r}
+hist(dat$age)
+dat$age[dat$age < 10 | dat$age > 90] <- NA
+hist(dat$age, breaks=20)
+```
+
+####Clean height
+```{r}
+table(dat$height)
+barplot(table(dat$height))
+dat$height[dat$height < 40 | dat$height > 90] <- NA
+hist(dat$height, breaks=20)
+```
+
+####Clean weight
+```{r}
+table(dat$weight)
+barplot(table(dat$weight))
+dat$weight[dat$weight < 50 | dat$weight > 400] <- NA
+hist(dat$weight, breaks=20)
+```
+
+###Change nominal variables into factors
+```{r}
+dat$city <- factor(dat$city, labels=c("Manhattan", "Brooklyn", "Bronx","Queens", "Staten Island"))
+dat$race <- factor(dat$race, labels=c("Black", "Black Hispanic","White Hispanic", "White", "Asian/Pacific Islander", "Am. Indian/ Native Alaskan"))
+dat$sex <- factor(dat$sex+1L, label=c("female", "male"))
+dat$build <- factor(dat$build, labels=c("heavy", "muscular",  "medium", "thin"))
+dat$forceuse <- factor(dat$forceuse, labels =c("defense of other","defense of self", "overcome resistence", "other","suspected flight", "suspected weapon"))
+dat$inout <- factor(dat$inout+1L, labels=c("outside", "inside"))
+dat$trhsloc <- factor(dat$trhsloc+1L, labels=c("neither", "housing authority", "transit authority"))
+```
+
+http://michael.hahsler.net/research/arules_RUG_2015/demo/
+

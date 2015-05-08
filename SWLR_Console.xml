@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<PMML version="4.2" xmlns="http://www.dmg.org/PMML-4_2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dmg.org/PMML-4_2 http://www.dmg.org/v4-2/pmml-4-2.xsd">
+ <Header copyright="Copyright (c) 2015 bryan_000" description="Generalized Linear Regression Model">
+  <Extension name="user" value="bryan_000" extender="Rattle/PMML"/>
+  <Application name="Rattle/PMML" version="1.4"/>
+  <Timestamp>2015-05-07 20:47:23</Timestamp>
+ </Header>
+ <DataDictionary numberOfFields="2">
+  <DataField name="Target" optype="categorical" dataType="string">
+   <Value value="0"/>
+   <Value value="1"/>
+  </DataField>
+  <DataField name="Var2" optype="continuous" dataType="double"/>
+ </DataDictionary>
+ <GeneralRegressionModel modelName="General_Regression_Model" modelType="generalizedLinear" functionName="classification" algorithmName="glm" distribution="binomial" linkFunction="logit">
+  <MiningSchema>
+   <MiningField name="Target" usageType="predicted"/>
+   <MiningField name="Var2" usageType="active"/>
+  </MiningSchema>
+  <Output>
+   <OutputField name="Probability_1" targetField="Target" feature="probability" value="1"/>
+   <OutputField name="Predicted_Target" feature="predictedValue"/>
+  </Output>
+  <ParameterList>
+   <Parameter name="p0" label="(Intercept)"/>
+   <Parameter name="p1" label="Var2"/>
+  </ParameterList>
+  <FactorList/>
+  <CovariateList>
+   <Predictor name="Var2"/>
+  </CovariateList>
+  <PPMatrix>
+   <PPCell value="1" predictorName="Var2" parameterName="p1"/>
+  </PPMatrix>
+  <ParamMatrix>
+   <PCell targetCategory="1" parameterName="p0" df="1" beta="-0.1760921099969"/>
+   <PCell targetCategory="1" parameterName="p1" df="1" beta="8.05756492162766"/>
+  </ParamMatrix>
+ </GeneralRegressionModel>
+</PMML>

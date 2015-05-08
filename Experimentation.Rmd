@@ -1,0 +1,192 @@
+---
+title: "Experiments"
+author: "Bryan Aguiar"
+date: "Sunday, May 03, 2015"
+output: html_document
+---
+
+```{r,warning=FALSE,message=FALSE, echo=FALSE}
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+# Load the ggplot2 library  (the install command i)
+library(ggplot2)  # statistical graphics
+library(FrF2) # charts
+
+
+# Define the "paretoPlot" function; we will reuse it (we looked at this function in the prior class)
+paretoPlot <- function(lsmodel){
+  # This code draws a Pareto plot; it requires the "ggplot2" library
+  library(ggplot2)
+  
+  # Extract all the coefficients, except for the intercept
+  coeff.full <- coef(lsmodel)[2:length(coef(lsmodel))]
+  coeff.full <- na.omit(coeff.full)
+  
+  # Return the absolute values of the coefficients
+  coeff.abs <- unname(abs(coeff.full))
+  
+  coeff <- sort(coeff.abs, index.return=TRUE)
+  grouping <- unname((coeff.full>0)[coeff$ix])
+  grouping[grouping==FALSE]="Negative"
+  grouping[grouping==TRUE]="Positive" 
+  temp <- names(coeff.full)[coeff$ix]
+  fnames <- factor(temp, levels=temp, ordered=TRUE)
+  group.colors <- c("Negative" = "grey", "Positive" = "black")
+  
+  dat <- data.frame(
+    label=fnames,
+    value=coeff$x,
+    group=grouping
+  )
+  p <- ggplot(dat, aes(x=label, y=value, fill=group)) + 
+    geom_bar(stat="identity") +
+    coord_flip() + theme_bw() +
+    scale_fill_manual(values=group.colors,name = "Sign of coefficient") +
+    xlab("Effect") +
+    ylab("Magnitude of effect") + 
+    ggtitle("Pareto plot")
+  p          # Execute the plot (i.e. draw it!)
+  return(p)  # Return the plot, so user can continue to modify it
+}
+
+
+
+```
+
+## Experiments
+
+### Components
+
+Every experiment has these two components:
+
+      1.  An outcome: the result or the response from an experiment.
+      2. One or more factors: a factor is the thing you can change to influence the outcome. Factors are also called variables.
+      
+An important aspect about the outcome is that it is always measurable-in some way. In other words, after you finish the experiment, you must have some measurement.
+
+### Objective
+
+An experiment can have an objective, which combines an outcome and the need to adjust that outcome. Most often you want to
+maximize or minimize the outcome as your objective. Sometimes, though, you want the outcome to be the same even though you are changing factors. For example, you might want to change a recipe for your favorite pastry to be gluten-free but keep the taste the same as the original recipe. Your outcome is taste, and your objective is "the same".
+
+Every experiment always has an outcome. Every experiment does not have to have an objective, but usually we have an objective in our mind.
+
+### Factors
+
+All experiments must have at least one factor that is changed. We distinguish between two types of factors: continuous factors and categorical factors.
+
+
+      Continuous factors are quantified numerically, such as giving 15 mL of water or 30 mL of water to the plant each day.
+      
+      Categorical factors take on a limited number of values. For example, soil type A or soil type B could be used to grow the plants. 
+      
+If you were working in the area of marketing, you might try three different colors of background in your advertising poster. Those colors are categorical variables in the context of the experiment.
+
+Most experiments will have both continuous and categorical factors.
+
+When we perform an experiment, we call it a run. If we perform eight experiments, we can say "there are eight runs" in the set of experiments.
+
+####Single Factor - 2 Levels
+
+This is the simplest type of experiment. It involves an outcome variable (y) and one input variable(x).  The x-variable could be continuous (e.g. temperature) or discrete (e.g. yes/no, on/off, A/B). This type of experiment could be used to answer questions such as the following:
+
+            . Has the reaction yield increased when using catalyst A or B?
+            
+            . Does the concrete's strength improve when adding a particular binder or not?
+      
+            . Does the plastic's stretchability improve when extruded at various temperatures (a low or high temperature)?
+
+We can perform several runs (experiments) at level A, and some runs at level B. These runs are randomized (i.e. do not perform all the A runs, and then the B runs). We strive to hold all other disturbance variables constant so we pick up only the A-to-B effect. Disturbances are any variables that might affect Y but, for whatever reason, we don't wish to quantify. If we cannot control the
+disturbance, then at least we can use pairing (when there is one factor in our experiment) and blocking (when we have more than one factor).
+
+####Factorial Designs - 2 or more levels for 2 or more factors
+
+We should change more than one variable at a time. We will use factorial designs because
+
+          . We can visually interpret these designs, and see where to run future experiments;
+
+          . These designs require relatively few experiments; and
+
+          . They are often building blocks for more complex designs.
+
+Most often we have two or more factors that affect our response variable, Y. We will look at 2 levels.  Some examples would be to operate at low or high pH, select long operating times or short operating times, use catalyst A or B and use mixing system A or B. 
+
+The general guidance is to choose the low and high values at the edges of normal operation. It is not wise to use the minimum and maximum values that each factor could possibly have; they will likely be too extreme. 
+
+
+
+
+
+
+```{r}
+# Here is an R script that creates a simple linear model from the course material and makes some predictions.
+# Results are displayed on a chart using the ggplot2 package
+
+# List the Independt Variables (Categorial Factors that will be coded for 2 levels)
+# Example: Variable C is chemical, Variable T is temp, Variable S is speed
+C<-T<-S<- c(-1,+1)
+
+# Build the matrix of independet variables and values
+# Example this example has 3 independent variables
+design <- expand.grid(C=C, T=T, S=S)
+C <- design$C
+T <- design$T
+S <- design$S
+
+# Record the values for the outcome variable (Numeric continuious)
+# Example  three factors each with 2 outcomes = 2^3 or 8 experiments
+Y <- c(5,30,6,33,4,3,5,4)
+
+# Make a cube plot
+# REQUIRES FrF2 package
+cubePlot(Y, C, T, S)
+
+# Build the model using Linear Regression Algorithm  
+# This builds main efffects and interactions
+model <- lm(Y~ (C+T+S)^3) 
+
+# Summarize the model and obtain some diagnostics
+summary(model)
+
+# Make a Pareto plot
+paretoPlot(model)
+
+# Plots of Main and Interaction Effects
+DanielPlot(model)
+MEPlot(model)
+IAPlot(model)
+
+# Make a single prediction using the model
+predictionSet1 <- data.frame(C=-1,S=1,T=-1)
+prediction1 <- as.numeric(predict(model, predictionSet1))
+prediction1
+
+# # Make many predictions
+# predictionSet2 <- expand.grid(corn, 160:200)
+# names(predictionSet2) <- c('corn', 'time' )  
+# predictionSet2$prediction <- as.numeric(predict(object=model, newdata=predictionSet2, type='response'))
+# predictionSet2
+# 
+# # Create a simple plot showing all of the predictions from pedictionSet2
+# plotPredictions <- ggplot() + 
+# geom_point(data = predictionSet2, aes(x = time, y = prediction, color = corn)) + 
+# theme_bw()+
+# ggtitle("Predictions\n")
+# 
+# # Display the chart!
+# print(plotPredictions)
+```
+
+
+___
+This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.

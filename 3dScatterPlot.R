@@ -21,14 +21,21 @@ library(MASS)
 
 # Load the data
 df <-read.csv("d:/data/1.csv")
+#df2<-read.csv(file.choose())
+
+# count blanks remove blanks
+colSums(!is.na(df))
+df <- na.omit(df)
+colSums(!is.na(df))
 
 # clean the data names and data
 names(df)<-tolower(names(df))
 names(df) <- gsub("\\(","",names(df))
 names(df) <- gsub("\\)","",names(df))
+names(df) <- gsub("\\.","",names(df))
+names(df) <- gsub("_","",names(df))
 names(df) <- gsub("-","",names(df))
 names(df) <- gsub(",","",names(df))
-names(df) <- gsub("\\.","",names(df))
 
 # Make and recode dummy variables
 df$gasfueldummy <-as.numeric(df$fueltype)
@@ -89,14 +96,43 @@ table(marrieddummy)
 # REQUIRES Hmisc package
 describe(dftrain)
 
+# Determine number of clusters
+##LOOK FOR THE BEND
+wss <- (nrow(dftrain)-1)*sum(apply(dftrain,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(dftrain, centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",ylab="Within groups sum of squares")
+
+# K-Means Cluster Analysis
+clusterfit <- kmeans(dftrain, 8) # 6 cluster solution
+# get cluster means 
+aggregate(dftrain,by=list(clusterfit$cluster),FUN=mean)
+# append cluster assignment
+dftrain <- data.frame(dftrain, clusterfit$cluster)
+detach(dftrain)
+attach(dftrain)
+
+#Averages by cluster
+round(aggregate(dftrain, by=list(clusterfit.cluster),FUN=mean, na.rm=TRUE),0)
+aggregate(dftrain, by=list(clusterfit.cluster),FUN=mean, na.rm=TRUE)
+
+#Pull out records by a specific cluster
+clusterextracted <- dftrain[dftrain$clusterfit.cluster==4,]
+summary(clusterextracted)
+
+# REMOVE CLUSTER FROM MODEL
+####Remove DOB (we have age).
+dftrain$clusterfit.cluster <- NULL
+detach(dftrain)
+attach(dftrain)
+
 # Pricipal Components Analysis
 # princomp( ) function produces an unrotated principal component analysis.
-fit <- princomp(dftrain, cor=TRUE)
-summary(fit) # print variance accounted for 
+pcfit <- princomp(dftrain, cor=TRUE)
+summary(pcfit) # print variance accounted for 
 loadings(fit) # pc loadings 
-plot(fit,type="lines") # scree plot 
-fit$scores # the principal components
-biplot(fit)
+plot(pcfit,type="lines") # scree plot 
+pcfit$scores # the principal components
+biplot(pcfit)
 
 # REQUIRES the FactoMiner package 
 result <- PCA(dftrain) # graphs generated automatically
@@ -104,10 +140,10 @@ result <- PCA(dftrain) # graphs generated automatically
 # Maximum Likelihood Factor Analysis
 # entering raw data and extracting 3 factors, 
 # with varimax rotation 
-fit <- factanal(dftrain, 3, rotation="varimax")
-print(fit, digits=2, cutoff=.3, sort=TRUE)
+factfit <- factanal(dftrain, 4, rotation="varimax")
+print(factfit, digits=2, cutoff=.3, sort=TRUE)
 # plot factor 1 by factor 2 
-load <- fit$loadings[,1:2] 
+load <- factfit$loadings[,1:2] 
 plot(load,type="n") # set up plot 
 text(load,labels=names(dftrain),cex=.7) # add variable names
 
@@ -185,7 +221,6 @@ hist(sresid, freq=FALSE, main="Distribution of Studentized Residuals")
 xfit<-seq(min(sresid),max(sresid),length=40) 
 yfit<-dnorm(xfit) 
 lines(xfit, yfit)
-
 
 # Be nice
 detach(dftrain)

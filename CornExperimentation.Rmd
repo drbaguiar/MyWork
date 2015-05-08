@@ -1,0 +1,73 @@
+---
+title: "Experiments"
+author: "Bryan Aguiar"
+date: "Sunday, May 03, 2015"
+output: html_document
+---
+
+```{r,warning=FALSE,message=FALSE}
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+```
+
+
+
+```{r}
+# Here is an R script that creates a simple linear model from the course material and makes some predictions.
+# Results are displayed on a chart using the ggplot2 package
+# See Lecture 2B: Numerical Analysis of two factor experiments.
+
+# Load the ggplot2 library  (the install command i)
+library(ggplot2)  # statistical graphics
+
+# Prepare dataframe with experiment observations
+corn <- c('white', 'yellow')
+time <- c(160, 200)
+experiment <- data.frame(expand.grid(corn, time))
+names(experiment) <- c('corn', 'time')
+experiment$outcome <- c(52, 62, 74, 80)
+print(experiment)
+
+# Create a simple linear model using the input observations
+model <- lm(formula = outcome ~ time + corn, data=experiment )
+
+# Summarize the model and obtain some diagnostics
+summary(model)
+
+# Make a single prediction using the model
+predictionSet1 <- data.frame('corn'= 'yellow', 'time' = 180)
+prediction1 <- as.numeric(predict(object=model, newdata=predictionSet1))
+prediction1
+
+# Make many predictions
+predictionSet2 <- expand.grid(corn, 160:200)
+names(predictionSet2) <- c('corn', 'time' )  
+predictionSet2$prediction <- as.numeric(predict(object=model, newdata=predictionSet2, type='response'))
+predictionSet2
+
+# Create a simple plot showing all of the predictions from pedictionSet2
+plotPredictions <- ggplot() + 
+geom_point(data = predictionSet2, aes(x = time, y = prediction, color = corn)) + 
+theme_bw()+
+ggtitle("Predictions\n")
+
+# Display the chart!
+print(plotPredictions)
+
+# Notice in this case that the predictions form parallel lines.  
+# This demonstrates the effect of time on both types of corn expected to e equal.  
+# In statistical terms, there does not appear to be an 'interaction' between the corn and time variables. 
+```
+
+
+___
+This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.
