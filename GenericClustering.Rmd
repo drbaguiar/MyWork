@@ -1,0 +1,149 @@
+
+Source: [Clustering](http://www.di.fc.ul.pt/~jpn/r/clustering/clustering.html)
+
+```{r,warning=FALSE, message=FALSE}
+
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+# Load the libraries
+library(caret)
+```
+
+Load the data
+```{r,warning=FALSE, message=FALSE}
+# separate data into test and train sets, 70/30 split in this case
+splitIndex <- createDataPartition(iris$Species, p = 0.7, list = FALSE)
+train <- iris[splitIndex, ]
+test <- iris[-splitIndex, ]
+
+# Make some data frames to use
+testInd <- test[ ,!colnames(test) %in% "Species"]
+testDep <- as.factor(test[, names(test) == "Species"]) 
+trainInd <- train[ ,!colnames(train) %in% "Species"]
+trainDep <- as.factor(train[, names(train) == "Species"]) 
+
+# Remove unsed 
+rm(train)
+rm(test)
+rm(splitIndex)
+```
+
+##K-Means
+
+        Pick an initial set of K centroids (this can be random or any other means)
+        For each data point, assign it to the member of the closest centroid according to the given distance function
+        Adjust the centroid position as the mean of all its assigned member data points. Go back to (2) until the membership isn't change and centroid position is stable.
+        Output the centroids.
+      
+Notice that in K-Means, we require the definition of:
+
+        the distance function
+        the mean function
+        the number of centroids \( K \)
+        K-Means is \( O(nkr) \), where \( n \) is the number of points, \( r \) is the number of rounds and \( k \) the number of centroids.
+
+The result of each round is undeterministic. The usual practices is to run multiple rounds of K-Means and pick the result of the best round. The best round is one who minimize the average distance of each point to its assigned centroid.
+
+```{r,echo=FALSE}
+# First Round
+km1 <- kmeans(trainInd, 3)
+plot(trainInd[,1], trainInd[,2], col=km1$cluster)
+points(km1$centers[,c(1,2)], col=1:3, pch=19, cex=2)
+table(km1$cluster, trainDep)
+```
+
+```{r,echo=FALSE}
+# Another ROund
+km2 <- kmeans(trainInd, 3)
+plot(trainInd[,1], trainInd[,2], col=km2$cluster)
+points(km2$centers[,c(1,2)], col=1:3, pch=19, cex=2)
+table(km2$cluster, trainDep)
+```
+
+Compare the 2 Rounds
+```{r,echo=FALSE}
+table(km1$cluster, km2$cluster)
+```
+
+##Hierarchical Clustering
+
+In this approach, it compares all pairs of data points and merge the one with the closest distance.
+
+        Compute distance between every pairs of point/cluster. 
+            (a) Distance between point is just using the distance function. 
+            (b) Compute distance between pointA to clusterB may involve many choices (such as the min/max/avg distance between the pointA and points in the clusterB). © Compute distance between clusterA to clusterB may first compute distance of all points pairs (one from clusterA and the other from clusterB) and then pick either min/max/avg of these pairs.
+        Combine the two closest point/cluster into a cluster. Go back to (1) until only one big cluster remains.
+        
+In hierarchical clustering the output will be a tree of merging steps. It doesn't require us to specify \( K \) or a mean function. Since its high complexity, hierarchical clustering is typically used when the number of points are not too high.
+
+```{r}
+m <- matrix(1:15,5,3)
+dist(m) # computes the distance between rows of m (since there are 3 columns, it is the euclidian distance between tri-dimensional points)
+dist(m,method="manhattan") # using the manhattan metric
+```
+
+
+```{r}
+# each observation has 4 variables, ie, they are interpreted as 4-D points
+distance   <- dist(trainInd, method="euclidean") 
+cluster    <- hclust(distance, method="average")
+plot(cluster, hang=-1, label=trainDep)
+plot(as.dendrogram(cluster), edgePar=list(col="darkgreen", lwd=2), horiz=T) 
+str(as.dendrogram(cluster)) # Prints dendrogram structure as text.
+cluster$labels[cluster$order] # Prints the row labels in the order they appear in the tree.
+```
+
+
+```{r}
+#Prune by cluster
+par(mfrow=c(1,2))
+group.3 <- cutree(cluster, k = 3)  # prune the tree by 3 clusters
+table(group.3, trainDep) # compare with known classes
+plot(trainInd[,c(1,2)], col=group.3, pch=19, cex=2.5, main="3 clusters")
+points(trainInd[,c(1,2)], col=trainDep, pch=19, cex=1)
+
+group.6 <- cutree(cluster, k = 6)  # we can prune by more clusters
+table(group.6, trainDep)
+plot(trainInd[,c(1,2)], col=group.6, pch=19, cex=2.5, main="6 clusters")
+points(trainInd[,c(1,2)], col=trainDep, pch=19, cex=1) # the little points are the true classes
+```
+
+
+```{r}
+par(mfrow=c(1,1))
+plot(cluster, hang=-1, label=trainDep)
+abline(h=0.9,lty=3,col="red")
+height.0.9 <- cutree(cluster, h = 0.9)
+table(height.0.9, trainDep) # compare with known classes
+
+plot(trainInd[,c(1,2)], col=height.0.9, pch=19, cex=2.5, main="3 clusters")
+points(trainInd[,c(1,2)], col=trainDep, pch=19, cex=1)
+
+# Calculate the dissimilarity between observations using the Euclidean distance 
+dist.iris <- dist(trainInd, method="euclidean")
+# Compute a hierarchical cluster analysis on the distance matrix using the complete linkage method 
+h.iris <- hclust(dist.iris, method="complete") 
+h.iris
+head(h.iris$merge, n=10)
+plot(h.iris)
+h.iris.heights <- h.iris$height # height values
+h.iris.heights[1:10]
+subs <- round(h.iris.heights - c(0,h.iris.heights[-length(h.iris.heights)]), 3) # subtract next height
+which.max(subs)
+# Cuts dendrogram at specified level and draws rectangles around the resulting clusters
+plot(cluster); rect.hclust(cluster, k=3, border="red")
+```
+
+
+___
+This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.
