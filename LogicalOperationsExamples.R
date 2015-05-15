@@ -55,5 +55,3 @@ nrow(data2)
 
 # Create a Dummy Variable for Gender (using if statement)
 Records$Gender_dummy<- ifelse(Records$Gender=="M",1,0) ##Assigns 1 to males 0 to females
-
-

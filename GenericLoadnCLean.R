@@ -12,6 +12,8 @@ set.seed(2345)
 
 # Load the libraries
 library(psych)
+library(e1071)
+library(caret)
 
 # Load the data
 #df<-read.csv(file.choose())
@@ -23,7 +25,7 @@ colSums(!is.na(df))
 #colSums(!is.na(df))
 
 # clean the data names and data
-names(df)<-tolower(names(df))
+names(df) <-tolower(names(df))
 names(df) <- gsub("\\(","",names(df))
 names(df) <- gsub("\\)","",names(df))
 names(df) <- gsub("\\.","",names(df))
@@ -34,20 +36,31 @@ names(df) <- gsub(",","",names(df))
 # remove a column
 #df$obsno <-NULL
   
+# REQUIRES caret package to split
+# separate data into test and train sets, 75/25 split in this case
+splitIndex <- createDataPartition(df$diabetes, p = 0.75, list = FALSE)
+train <- df[splitIndex, ]
+test <- df[-splitIndex, ]
+
+# Make some data frames to use
+testInd <- test[ ,!colnames(test) %in% "diabetes"]
+testDep <- as.factor(test[, names(test) == "diabetes"]) 
+trainInd <- train[ ,!colnames(train) %in% "diabetes"]
+trainDep <- as.factor(train[, names(train) == "diabetes"]) 
+
 # do the random split (25% held out for test), put the label back into the data frame
 df$istest <- runif(nrow(df))<0.25
 df$datalabel <- ifelse(df$istest,"test data","train data")
 dftrain = df[!df$istest,]
 dftest = df[df$istest,]
 
-#remove the DF
-rm(df)
+# remove unneeded columns
+cols<-c("istest","datalabel")
+dftrain<-dftrain[,!names(dftrain) %in% cols]
+dftest<-dftest[,!names(dftest) %in% cols]
 
-# remove a column
-dftrain$istest <-NULL
-dftrain$datalabel <-NULL
-dftest$istest <-NULL
-dftest$datalabel <-NULL
+#remove uneeded variables and dataframes
+rm(df,splitIndex,test,train,cols)
 
 # attach for working
 attach(dftrain)
@@ -55,6 +68,61 @@ attach(dftrain)
 # Explore the data
 str(dftrain)
 summary(dftrain)
+
+# Statistics
+sapply(dftrain,mean)
+sapply(dftrain,median)
+sapply(dftrain,sd)
+
+# Continous data use type=6
+quantile(plasmaglucose, probs = c(25, 50, 75)/100, type=6)
+IQR(plasmaglucose,type=6)
+fivenum(plasmaglucose)
+
+# REQUIRES psych package
+describe(plasmaglucose, type=1)
+describeBy(plasmaglucose,diabetes, type=1)
+
+#aggreate
+aggregate(plasmaglucose~diabetes,mean,data=dftrain)
+aggregate(plasmaglucose~diabetes,fivenum,data=dftrain)
+aggregate(plasmaglucose~diabetes,median,data=dftrain)
+aggregate(plasmaglucose~diabetes,sd,data=dftrain)
+aggregate(plasmaglucose~diabetes,IQR,type=6,data=dftrain)
+aggregate(plasmaglucose~diabetes,skewness,type=1,data=dftrain)
+aggregate(plasmaglucose~diabetes,kurtosis,type=1,data=dftrain)
+
+# REQUIRES e1071 package
+# Use type 1
+skewness(plasmaglucose,type=1)
+# Uses excecess kurtisis (should be 0)
+kurtosis(plasmaglucose, type=1)
+
+# View some basic boxplots
+boxplot(plasmaglucose~diabetes, xlab="Diabetes", ylab="Plasma Glucose")
+boxplot(bmi~diabetes, xlab="Diabetes", ylab="Body Mass Index")
+boxplot(diastolic~diabetes, xlab="Diabetes", ylab="Diastolic Blood Pressure")
+boxplot(x2hourseruminsulin~diabetes, xlab="Diabetes", ylab="2 Hour Serum Insulin")
+
+# View a dotplot
+dotchart(plasmaglucose, xlab="Plasma Glucose")
+
+# View Stripchart
+stripchart(plasmaglucose~diabetes,method="jitter", pch=c(1,2), col=c("red","blue"), xlab="Plasma Glucose", ylab="Diabetes", main="Diabetes vs. Plasma Glucose",offset=0.5)
+stripchart(plasmaglucose~diabetes,method="stack", pch=c(1,2), col=c("red","blue"), xlab="Plasma Glucose", ylab="Diabetes", main="Diabetes vs. Plasma Glucose",offset=0.5)
+
+# two-way contingency table of categorical outcome and predictors we want
+#  to make sure there are not 0 cells
+xtabs(~diabetes + timespregnant, data = dftrain)
+
+
+
+
+
+
+
+
+
 
 # Hierarchical Cluster Analysis
 hc <- hclust(dist(dftrain))   # apply hirarchical clustering 

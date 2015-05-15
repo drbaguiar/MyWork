@@ -145,5 +145,14 @@ plot(cluster); rect.hclust(cluster, k=3, border="red")
 ```
 
 
+```{r}
+library(mclust)
+mc <- Mclust(iris[,1:4], 3)
+summary(mc)
+plot(mc, what=c("classification"), dimens=c(1,2))
+plot(mc, what=c("classification"), dimens=c(3,4))
+table(iris$Species, mc$classification)
+```
+
 ___
 This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.

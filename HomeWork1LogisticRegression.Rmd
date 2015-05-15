@@ -1,0 +1,127 @@
+---
+title: "HomeWork1LogisticRegression"
+author: "Bryan Aguiar"
+date: "Monday, May 11, 2015"
+output: html_document
+---
+
+
+
+```{r,warning=FALSE, message=FALSE}
+
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+# Load libraries
+
+```
+
+```{r,warning=FALSE,message=FALSE}
+# Load the data
+#df<-read.csv(file.choose())
+df <-read.csv("d:/data/icu.csv")
+#df <-read.csv("d:/data/myopia.csv")
+
+# count blanks remove blanks
+colSums(!is.na(df))
+#df <- na.omit(df)
+#colSums(!is.na(df))
+
+# clean the data names and data
+names(df)<-tolower(names(df))
+names(df) <- gsub("\\(","",names(df))
+names(df) <- gsub("\\)","",names(df))
+names(df) <- gsub("\\.","",names(df))
+names(df) <- gsub("_","",names(df))
+names(df) <- gsub("-","",names(df))
+names(df) <- gsub(",","",names(df))
+
+# remove the id column
+df$id <-NULL
+df$studyyear<-NULL
+
+# Convert Integers to Factors for ALL but 3 columns
+#cols <-  c("age", "sys", "hra")
+#dfwithout <-df[!names(df) %in% cols]
+#dfwith<-df[names(df) %in% cols]
+#dfwithout[,] <- lapply(dfwithout[,], factor)
+#df<-cbind(dfwithout,dfwith)
+#rm(dfwith)
+#rm(dfwithout)
+
+# do the random split (25% held out for test), put the label back into the data frame
+df$istest <- runif(nrow(df))<0.25
+df$datalabel <- ifelse(df$istest,"test data","train data")
+dftrain = df[!df$istest,]
+dftest = df[df$istest,]
+
+# remove unneeded columns
+cols<-c("istest","datalabel")
+dftrain<-dftrain[,!names(dftrain) %in% cols]
+dftest<-dftest[,!names(dftest) %in% cols]
+df<-df[,!names(df) %in% cols]
+rm(cols)
+
+#remove the DF
+rm(df)
+
+# attach for working and look at a summary
+attach(dftrain)
+summary(dftrain)
+
+# Statistics
+sapply(dftrain,mean)
+sapply(dftrain,median)
+sapply(dftrain,sd)
+
+#Dep and Independent Vars
+# define columns we will be working with
+depvar <- 'sta'
+indepvar <- 'age'
+indepvars <-c('age','sex')
+
+# Scatterplot
+plot(get(indepvar),get(depvar))
+
+# two-way contingency table of categorical outcome and predictors we want
+#  to make sure there are not 0 cells
+xtabs(~get(depvar) + get(indepvar), data = dftrain)
+
+f1 <- paste(depvar,paste(indepvars,collapse=' + '),sep=' ~ ')
+
+#Fit the model
+fit<-glm(f1,data=dftrain,family=binomial)
+summary(fit) # display results
+confint(fit) # 95% CI for the coefficients using profiled log-likelihood
+confint.default(fit) # 95% CI for the coefficients using standard errors
+exp(coef(fit)) # exponentiated coefficients a.k.a odds ratios
+exp(confint(fit)) # 95% CI for exponentiated coefficients
+exp(cbind(OR = coef(fit), confint(fit))) ## odds ratios and 95% CI together
+
+d<-anova(fit,test='Chisq') # or d<-anova(fit,test='LRT')
+
+# get LR
+d$Deviance
+
+# Get loglikelihood
+logLik(fit) ##-168.724
+
+#REQUIRES lmtest package
+lrtest(fit,fit) # get loglikelhood
+
+prediction<-predict(fit, dftest, type="response") # predicted values
+residuals(fit, type="deviance") # residuals
+```
+
+
+___
+This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.
