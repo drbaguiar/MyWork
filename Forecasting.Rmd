@@ -164,7 +164,7 @@ plot(rwfcarfcast)
 ###Other 
 
 ####Simple exponential smoothing
-he simplest of the exponentially smoothing methods is naturally called "simple exponential smoothing" (SES). In some books, it is called "single exponential smoothing". This method is suitable for forecasting data with no trend or seasonal pattern. 
+The simplest of the exponentially smoothing methods is naturally called "simple exponential smoothing" (SES). In some books, it is called "single exponential smoothing". This method is suitable for forecasting data with no trend or seasonal pattern. 
 ```{r,warnings=FALSE, messages=FALSE}
 air2 <- window(airtimeseries,start=1990,end=2004)
 plot(air2, ylab="Number",xlab="Year")

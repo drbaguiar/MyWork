@@ -1,0 +1,251 @@
+---
+title: "RegressionExample"
+author: "Dr.B"
+date: "Sunday, May 17, 2015"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+```{r,warnings=FALSE, messages=FALSE}
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+options(digits=8)
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+```
+
+Load the mtcars dataset and review the variables.
+```{r}
+data(mtcars)
+str(mtcars)
+```
+
+##Graphical Summaries
+
+Univariate
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+## simple data plot
+plot (sort(mtcars$mpg))
+
+## histogram
+hist(mtcars$mpg)
+
+## density plot
+plot(density(mtcars$mpg,na.rm=TRUE))
+
+```
+
+
+Bivariate
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+## scatterplot
+plot(mpg~wt,mtcars)
+
+## boxplot
+boxplot(mpg~am,mtcars)
+```
+
+
+Compute the correlation matrix with all 11 varaiables. Show full correlation matrix
+```{r}
+cor(mtcars)
+```
+
+Trim down the correlation matrix to first column and sort it
+```{r}
+cor.out <- sort(cor(mtcars)[,1])
+round(cor.out, 3)
+```
+
+For more efficient analysis, transform the following 5 variables into factors:
+```{r}
+mtcars$gear <- factor(mtcars$gear,levels=c(3,4,5),labels=c("3gears","4gears","5gears"))
+mtcars$cyl <- factor(mtcars$cyl,levels=c(4,6,8),labels=c("4cyl","6cyl","8cyl")) 
+mtcars$am <- factor(mtcars$am,levels=c(0,1),labels=c("Automatic","Manual"))
+mtcars$vs <- factor(mtcars$vs)
+mtcars$carb <- factor(mtcars$carb)
+```
+
+Base regression model containing only am as the predictor variable.
+```{r}
+basemodel <- lm(mpg ~ am, data = mtcars)
+summary(basemodel)
+coefficients(basemodel) # model coefficients
+confint(basemodel, level=0.95) # CIs for model parameters 
+fitted(basemodel) # predicted values
+anova(basemodel) # anova table 
+vcov(basemodel) # covariance matrix for model parameters 
+```
+
+Inclusive model that included all variables as predictors of mpg.
+```{r}
+inclusivemodel <- lm(mpg ~ ., data = mtcars)
+summary(inclusivemodel)
+coefficients(inclusivemodel) # model coefficients
+confint(inclusivemodel, level=0.95) # CIs for model parameters 
+fitted(inclusivemodel) # predicted values
+anova(inclusivemodel) # anova table 
+vcov(inclusivemodel) # covariance matrix for model parameters 
+```
+
+Compare the base model and the inclusive model
+```{r}
+anova(basemodel, inclusivemodel)
+```
+
+Perform stepwise model selection in order to select significant predictors for the final, best model. The step function will perform this selection by calling lm repeatedly to build multiple regression models and select the best variables from them using both forward selection and backward elimination methods using AIC algorithm. This  ensures that the useful variables are included in the model while omitting ones that do not contribute significantly to predicting mpg.
+```{r}
+bestmodel <- step(inclusivemodel, direction = "both")
+summary(bestmodel)
+coefficients(bestmodel) # model coefficients
+confint(bestmodel, level=0.95) # CIs for model parameters 
+fitted(bestmodel) # predicted values
+anova(bestmodel) # anova table 
+vcov(bestmodel) # covariance matrix for model parameters 
+```
+
+
+Compare the base model and the best model
+```{r}
+anova(basemodel, bestmodel)
+```
+
+Plot
+```{r}
+plot(basemodel)
+plot(inclusivemodel)
+plot(bestmodel)
+```
+
+
+##Model Assumptions
+The assumptions for simple linear regression are:
+
+        Y relates to X by a linear regression model
+        the errors are independent and identically normally distributed with mean zero and common variance
+        
+Violations:
+
+        In the linear regression model:
+                linearity (e.g. quadratic relationship or higher order terms)
+                
+In the residual assumptions:
+
+        non-normal distribution
+        non-constant variances
+        dependence
+        outliers
+        
+Checks:
+
+        look at plot of residuals vs. X
+        look at plot of residuals vs. fitted values
+        look at residuals Q-Q norm plot
+        
+##Checking assumptions graphically
+
+Residuals vs. X
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+plot(resid(basemodel))
+plot(resid(inclusivemodel))
+plot(resid(bestmodel))
+```
+
+Residuals vs. fitted values
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+plot(resid(basemodel)~fitted(basemodel))
+plot(resid(inclusivemodel)~fitted(inclusivemodel))
+plot(resid(bestmodel)~fitted(bestmodel))
+```        
+
+Residuals QQ Plot
+```{r}
+##Set printing
+par(mfrow=c(1,2))
+
+qqnorm(resid(basemodel))
+qqline(resid(basemodel))
+qqnorm(resid(inclusivemodel))
+qqline(resid(inclusivemodel))
+qqnorm(resid(bestmodel))
+qqline(resid(bestmodel))
+
+```
+
+I computed regression diagnostics of the best model to identify leverage points. I computed the top three points in each case of influence measures. The data points with the most leverage in the fit are identfied by hatvalues().
+```{r}
+tail(sort(hatvalues(bestmodel)),3)
+tail(sort(hatvalues(basemodel)),3)
+tail(sort(hatvalues(inclusivemodel)),3)
+```
+
+The data points that influence the model coefficients the most are given by the dfbetas() function.
+```{r}
+tail(sort(dfbetas(bestmodel)[,6]),3)
+tail(sort(dfbetas(basemodel)[,1]),3)
+tail(sort(dfbetas(inclusivemodel)[,6]),3)
+```
+
+The models of vehicles identifyied above are the same models identified with the residual plots
+
+###Global test of model assumptions
+```{r}
+require(gvlma)
+gvmodel <- gvlma(basemodel) 
+summary(gvmodel)
+```
+
+
+The following require the CAR package
+
+ Evaluate homoscedasticity
+```{r}
+library(car)
+# non-constant error variance test
+ncvTest(bestmodel)
+# plot studentized residuals vs. fitted values 
+spreadLevelPlot(bestmodel)
+```
+
+Evaluate Collinearity
+```{r}
+vif(bestmodel) # variance inflation factors 
+sqrt(vif(bestmodel)) > 2 # problem?
+```
+
+Evaluate Nonlinearity
+```{r}
+# component + residual plot 
+crPlots(bestmodel)
+# Ceres plots 
+ceresPlots(bestmodel)
+```
+
+Test for Autocorrelated Errors
+```{r}
+durbinWatsonTest(bestmodel)
+```

@@ -1,0 +1,264 @@
+---
+title: "AirTimeSeriesForecasting"
+author: "Dr. B"
+date: "Friday, May 15, 2015"
+output: html_document
+---
+##Start the Process
+```{r,warnings=FALSE, messages=FALSE}
+# Clear the environment
+rm(list=ls())
+
+# Turn off scientific notations for numbers
+options(scipen = 999)  
+options(digits=8)
+
+# Set locale
+Sys.setlocale("LC_ALL", "English") 
+
+# Set seed for reproducibility
+set.seed(2345)
+
+# load the libraries
+library(forecast)
+library(TTR)
+library(fpp)
+```
+
+##Load the Data and Plot
+Load January 1990 to April 2004: Air Revenue Per Mile per (000)
+
+```{r,warnings=FALSE, messages=FALSE}
+# Load the data and make it into time series
+air <- scan("D:/Data/911air.txt")
+airtimeseries <- ts(air, frequency=12, start=c(1990,1))
+#air <- scan("D:/Data/SampleTimeSeries.txt")
+#airtimeseries <- ts(air, frequency=12, start=c(2010,1))
+```
+
+Plot the timeseries data:
+
+```{r, echo=FALSE}
+plot.ts(airtimeseries, main="Air")
+```
+
+##Seasonal plots
+A seasonal plot is similar to a time plot except that the data are plotted against the individual "seasons" in which the data were observed. An example is given below showing the antidiabetic drug sales.
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+seasonplot(airtimeseries,ylab="Number", xlab="Year", 
+  main="Seasonal plot: Air Travel",
+  year.labels=TRUE, year.labels.left=TRUE, col=1:20, pch=19)
+
+seasonplot(log(airtimeseries),ylab="Number", xlab="Year", 
+  main="Seasonal plot: Log Air Travel",
+  year.labels=TRUE, year.labels.left=TRUE, col=1:20, pch=19)
+
+```
+
+These are exactly the same data shown earlier, but now the data from each season are overlapped. A seasonal plot allows the underlying seasonal pattern to be seen more clearly, and is especially useful in identifying years in which the pattern changes.
+
+In this case, it is clear that there is a large jump in sales in January each year. Actually, these are probably sales in late December as customers stockpile before the end of the calendar year, but the sales are not registered with the government until a week or two later. The graph also shows that there was an unusually low number of sales in March 2008 (most other years show an increase between February and March). The small number of sales in June 2008 is probably due to incomplete counting of sales at the time the data were collected.
+
+##Seasonal subseries plots
+An alternative plot that emphasises the seasonal patterns is where the data for each season are collected together in separate mini time plots.
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+monthplot(airtimeseries,ylab="Number",xlab="Month",xaxt="n",
+  main="Seasonal deviation plot: Air travel")
+axis(1,at=1:12,labels=month.abb,cex=0.8)
+
+
+monthplot(log(airtimeseries),ylab="Number",xlab="Month",xaxt="n",
+  main="Seasonal deviation plot: Log Air travel")
+axis(1,at=1:12,labels=month.abb,cex=0.8)
+
+```
+
+The horizontal lines indicate the means for each month. This form of plot enables the underlying seasonal pattern to be seen clearly, and also shows the changes in seasonality over time. It is especially useful in identifying changes within particular seasons. In the Antidiabetic Drug Sales example, the plot is not particularly revealing; but in some of the other examples, this plot is the most useful way of viewing seasonal changes over time.
+
+##Decomposing Time Series
+Decomposing a time series means separating it into its various components, which are usually a trend component and an irregular component, and if it is a seasonal time series, a seasonal component.
+
+###Decomposing Non-Seasonal Data
+A non-seasonal time series consists of a trend component and an irregular component. Decomposing the time series involves trying to separate the time series into these components, that is, estimating the the trend component and the irregular component.  To estimate the trend component of a non-seasonal time series that can be described using an additive model, it is common to use a smoothing method, such as calculating the simple moving average of the time series.  The SMA() function in the "TTR" package can be used to smooth time series data using a simple moving average. 
+
+To use the SMA() function, you need to specify the order (span) of the simple moving average, using the parameter "n". For example, to calculate a simple moving average of order 5, we set n=5 in the SMA() function.
+```{r,warnings=FALSE, messages=FALSE}
+# 
+n=6
+airtimeseriesSMA <- SMA(airtimeseries,n=n)
+plot.ts(airtimeseriesSMA, main="Air (Smoothed)")
+```
+
+###Decomposing Seasonal Data
+A seasonal time series consists of a trend component, a seasonal component and an irregular component. Decomposing the time series means estimating these three components.  To estimate the trend component and seasonal component of a seasonal time series that can be described using an additive model, we can use the "decompose()" function in R. This function estimates the trend, seasonal, and irregular components of a time series that can be described using an additive model.  
+
+The function "decompose()" returns a list object as its result, where the estimates of the seasonal component, trend component and irregular component are stored in named elements of that list objects, called "seasonal", "trend", and "random" respectively.
+```{r,warnings=FALSE, messages=FALSE}
+# 
+airtimeseriescomponents <- decompose(airtimeseries)
+plot(airtimeseriescomponents)
+```
+
+##Forecasting Methods
+
+###Naive Method
+This method is only appropriate for time series data. All forecasts are simply set to be the value of the last observation. 
+```{r,warnings=FALSE, messages=FALSE}
+# naive(y, h) or rwf(y,h)
+# y contains the time series
+# h is the forecast horizon
+par(mfrow=c(1,2))
+naiveairfcast <- naive(airtimeseries,12)
+plot(naiveairfcast,main="Forecast")
+plot(naiveairfcast$residuals, main="Forecast Errors")
+MANE <-accuracy(naiveairfcast)[,'MAE']
+abline(h=MANE,col="red")
+accuracy(naiveairfcast)
+```
+
+###Average method
+The forecasts of all future values are equal to the mean of the historical data.
+```{r,warnings=FALSE, messages=FALSE}
+# meanf(y, h) 
+# y contains the time series
+# h is the forecast horizon
+par(mfrow=c(1,2))
+meanairfcast <- meanf(airtimeseries,12)
+plot(meanairfcast,main="Forecast")
+plot(meanairfcast$residuals,main="Forecast Errors")
+abline(h=MANE,col="red")
+accuracy(meanairfcast)
+```
+
+###Drift method
+A variation on the naïve method is to allow the forecasts to increase or decrease over time, where the amount of change over time (called the drift) is set to be the average change seen in the historical data.  This is equivalent to drawing a line between the first and last observation, and extrapolating it into the future.
+```{r,warnings=FALSE, messages=FALSE}
+#rwf(y,h, drift=TRUE)
+# y contains the time series
+# h is the forecast horizon
+par(mfrow=c(1,2))
+rwfairfcast <- rwf(airtimeseries,12, drift=TRUE)
+plot(rwfairfcast, main="Forecast")
+plot(rwfairfcast$residuals, main="Forecast Errors")
+abline(h=MANE,col="red")
+accuracy(rwfairfcast)
+```
+
+###Seasonal Naive Method
+A similar method is useful for highly seasonal data. In this case, we set each forecast to be equal to the last observed value from the same season of the year (e.g., the same month of the previous year).
+```{r,warnings=FALSE, messages=FALSE}
+# naive(y, h) or rwf(y,h)
+# y contains the time series
+# h is the forecast horizon
+par(mfrow=c(1,2))
+snaiveairfcast <- snaive(airtimeseries,12)
+plot(snaiveairfcast, main="Forecast")
+plot(snaiveairfcast$residuals, main="Forecast Errors")
+abline(h=MANE,col="red") #MANE from naive
+accuracy(snaiveairfcast)
+```
+
+###Simple exponential smoothing
+The simplest of the exponentially smoothing methods is naturally called "simple exponential smoothing" (SES). 
+```{r,warnings=FALSE, messages=FALSE}
+par(mfrow=c(1,2))
+exponairfcast<- ses(airtimeseries, alpha=0.8, initial="simple", h=12)
+plot(exponairfcast, main="Forecast")
+plot(exponairfcast$residuals, main="Forecast Errors")
+abline(h=MANE,col="red") #MANE from naive
+accuracy(exponairfcast)
+````
+
+###Holt's linear trend method
+Holt (1957) extended simple exponential smoothing to allow forecasting of data with a trend. This method involves a forecast equation and two smoothing equations (one for the level and one for the trend):
+```{r,warnings=FALSE, messages=FALSE}
+par(mfrow=c(1,2))
+holt1 <- holt(airtimeseries, alpha=0.8, beta=0.2, initial="simple", h=12) 
+holt2 <- holt(airtimeseries, alpha=0.8, beta=0.2, initial="simple", exponential=TRUE, h=12) 
+holt3 <- holt(airtimeseries, alpha=0.8, beta=0.2, damped=TRUE, initial="simple", h=12) 
+plot(holt1, main="Forecast")
+plot(holt1$residuals, main="Forecast Errors")
+abline(h=MANE,col="red") #MANE from naive
+accuracy(holt1)
+plot(holt2, main="Forecast")
+plot(holt2$residuals, main="Forecast Errors")
+abline(h=MANE,col="red") #MANE from naive
+accuracy(holt2)
+plot(holt3, main="Forecast")
+plot(holt3$residuals, main="Forecast Errors")
+abline(h=MANE,col="red") #MANE from naive
+accuracy(holt3)
+````
+
+###Holt-Winters exponential smoothing
+If you have a time series that can be described using an additive model with increasing or decreasing trend and seasonality, you can use Holt-Winters exponential smoothing to make short-term forecasts.
+Holt-Winters exponential smoothing estimates the level, slope, and seasonal component at the current time point. 
+```{r,warnings=FALSE, messages=FALSE}
+par(mfrow=c(1,2))
+airHWforecast <- HoltWinters(airtimeseries)
+hwairfcast <- forecast.HoltWinters(airHWforecast, h=12)
+plot(hwairfcast)
+plot(hwairfcast$residuals,main="Forecast Errors") 
+abline(h=MANE,col="red") #MANE from naive
+accuracy(hwairfcast)
+````
+
+###ARIMA Model
+```{r,warnings=FALSE, messages=FALSE}
+par(mfrow=c(1,2))
+# fit an ARIMA(0,1,1) model
+arimaairtimeseries <- arima(airtimeseries, order=c(0,1,0)) 
+arimaairfcast<- forecast.Arima(arimaairtimeseries, h=12)
+plot(arimaairfcast)
+plot(arimaairfcast$residuals,main="Forecast Errors") 
+abline(h=MANE,col="red") #MANE from naive
+accuracy(arimaairfcast)
+tsdiag(arimaairtimeseries)
+```
+
+###Automated forecasting using an exponential model
+```{r,warnings=FALSE, messages=FALSE}
+par(mfrow=c(1,2))
+# Automated forecasting using an exponential model
+autoexpaircast<-ets(airtimeseries)
+plot(forecast(autoexpaircast), main="Forecast")
+plot(autoexpaircast$residuals, main="Forecast Errors")
+abline(h=MANE,col="red") #MANE from naive
+accuracy(autoexpaircast)
+tsdiag(autoexpaircast)
+```
+
+###Automated ARIMA Model
+```{r,warnings=FALSE, messages=FALSE}
+par(mfrow=c(1,2))
+# Automated forecasting using an ARIMA model
+autoarimaaircast<-auto.arima(airtimeseries)
+plot(forecast(autoarimaaircast), main="Forecast")
+plot(autoarimaaircast$residuals, main="Forecast Errors")
+abline(h=MANE,col="red") #MANE from naive
+accuracy(autoarimaaircast)
+tsdiag(autoarimaaircast)
+```
+
+###Summary 
+A summary of Training Set MASE for the all methods covered:
+```{r,warnings=FALSE, messages=FALSE}
+accuracy(naiveairfcast)[,'MASE']
+accuracy(meanairfcast)[,'MASE']
+accuracy(rwfairfcast)[,'MASE']
+accuracy(snaiveairfcast)[,'MASE']
+accuracy(exponairfcast)[,'MASE']
+accuracy(holt1)[,'MASE']
+accuracy(holt2)[,'MASE']
+accuracy(holt3)[,'MASE']
+accuracy(hwairfcast)[,'MASE']
+accuracy(arimaairfcast)[,'MASE']
+accuracy(autoexpaircast)[,'MASE']
+accuracy(autoarimaaircast)[,'MASE']
+````
+
+
+---
+This is an [R Markdown document](http://rmarkdown.rstudio.com). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents.

@@ -115,8 +115,6 @@ d$Deviance
 # Get loglikelihood
 logLik(fit) ##-168.724
 
-#REQUIRES lmtest package
-lrtest(fit,fit) # get loglikelhood
 
 prediction<-predict(fit, dftest, type="response") # predicted values
 residuals(fit, type="deviance") # residuals

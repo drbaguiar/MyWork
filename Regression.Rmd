@@ -9,7 +9,7 @@ Simple Linear Regression: Faithful
 ----------
 ```{r}
 ##Use my standard openning including call function
-source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
+#source('C:/Users/bryan_000/Documents/GitHub/MyWork/StdOpen.R')
 
 ```
 ### Problem
