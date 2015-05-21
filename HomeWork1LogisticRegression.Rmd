@@ -8,42 +8,24 @@ output: html_document
 
 
 ```{r,warning=FALSE, message=FALSE}
-
-# Clear the environment
-rm(list=ls())
-
-# Turn off scientific notations for numbers
-options(scipen = 999)  
-
-# Set locale
-Sys.setlocale("LC_ALL", "English") 
-
-# Set seed for reproducibility
-set.seed(2345)
+# Load functions
+source('functions.R')
 
 # Load libraries
-
 ```
 
 ```{r,warning=FALSE,message=FALSE}
 # Load the data
 #df<-read.csv(file.choose())
-df <-read.csv("d:/data/icu.csv")
-#df <-read.csv("d:/data/myopia.csv")
+#df <-read.csv("d:/data/icu.csv")
+df <-read.csv("d:/data/myopia.csv")
 
 # count blanks remove blanks
 colSums(!is.na(df))
 #df <- na.omit(df)
 #colSums(!is.na(df))
 
-# clean the data names and data
-names(df)<-tolower(names(df))
-names(df) <- gsub("\\(","",names(df))
-names(df) <- gsub("\\)","",names(df))
-names(df) <- gsub("\\.","",names(df))
-names(df) <- gsub("_","",names(df))
-names(df) <- gsub("-","",names(df))
-names(df) <- gsub(",","",names(df))
+df <-cleanit(df)
 
 # remove the id column
 df$id <-NULL
@@ -85,8 +67,8 @@ sapply(dftrain,sd)
 
 #Dep and Independent Vars
 # define columns we will be working with
-depvar <- 'sta'
-indepvar <- 'age'
+depvar <- 'myopic'
+indepvar <- 'spheq'
 indepvars <-c('age','sex')
 
 # Scatterplot
@@ -96,10 +78,10 @@ plot(get(indepvar),get(depvar))
 #  to make sure there are not 0 cells
 xtabs(~get(depvar) + get(indepvar), data = dftrain)
 
-f1 <- paste(depvar,paste(indepvars,collapse=' + '),sep=' ~ ')
+f1 <- paste(depvar,paste(indepvar,collapse=' + '),sep=' ~ ')
 
 #Fit the model
-fit<-glm(f1,data=dftrain,family=binomial)
+fit<-glm(f1,data=df,family=binomial)
 summary(fit) # display results
 confint(fit) # 95% CI for the coefficients using profiled log-likelihood
 confint.default(fit) # 95% CI for the coefficients using standard errors
@@ -108,6 +90,8 @@ exp(confint(fit)) # 95% CI for exponentiated coefficients
 exp(cbind(OR = coef(fit), confint(fit))) ## odds ratios and 95% CI together
 
 d<-anova(fit,test='Chisq') # or d<-anova(fit,test='LRT')
+
+d
 
 # get LR
 d$Deviance

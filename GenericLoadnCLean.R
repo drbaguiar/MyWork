@@ -1,14 +1,5 @@
-# Clear the environment
-rm(list=ls())
-
-# Turn off scientific notations for numbers
-options(scipen = 999)  
-
-# Set locale
-Sys.setlocale("LC_ALL", "English") 
-
-# Set seed for reproducibility
-set.seed(2345)
+# Load functions
+source('functions.R')
 
 # Load the libraries
 library(psych)
@@ -17,7 +8,7 @@ library(caret)
 library(fBasics)
 
 # Load the data
-df<-read.csv(file.choose())
+df<-read.csv(file.choose()) #lowbwt.csv
 #df <-read.csv("d:/data/diabetes.csv")
 
 # count blanks remove blanks
@@ -26,28 +17,28 @@ df <- na.omit(df)
 #colSums(!is.na(df))
 
 # clean the data names and data
-names(df) <-tolower(names(df))
-names(df) <- gsub("\\(","",names(df))
-names(df) <- gsub("\\)","",names(df))
-names(df) <- gsub("\\.","",names(df))
-names(df) <- gsub("_","",names(df))
-names(df) <- gsub("-","",names(df))
-names(df) <- gsub(",","",names(df))
+df<-cleanit(df)
 
 # remove a column
-df$policynumber <-NULL
-  
+df$id <-NULL
+
+# For more efficient analysis, transform the following 5 variables into factors:
+df$race<- factor(df$race,levels=c(1,2,3),labels=c("White","Black","Other"))
+df$smoke<- factor(df$smoke,levels=c(0,1),labels=c("Nonsmoker","Smoker")) 
+df$ht<- factor(df$ht,levels=c(0,1),labels=c("NormalBP","HighBP"))
+df$ui<- factor(df$ui,levels=c(0,1),labels=c("NoInfection","Infection"))
+
 # REQUIRES caret package to split
 # separate data into test and train sets, 75/25 split in this case
-splitIndex <- createDataPartition(df$survived, p = 0.75, list = FALSE)
+splitIndex <- createDataPartition(df$low, p = 0.75, list = FALSE)
 train <- df[splitIndex, ]
 test <- df[-splitIndex, ]
 
 # Make some data frames to use
-testInd <- test[ ,!colnames(test) %in% "survived"]
-testDep <- as.factor(test[, names(test) == "survived"]) 
-trainInd <- train[ ,!colnames(train) %in% "survived"]
-trainDep <- as.factor(train[, names(train) == "survived"]) 
+testInd <- test[ ,!colnames(test) %in% "low"]
+testDep <- as.factor(test[, names(test) == "low"]) 
+trainInd <- train[ ,!colnames(train) %in% "low"]
+trainDep <- as.factor(train[, names(train) == "low"]) 
 
 # do the random split (25% held out for test), put the label back into the data frame
 df$istest <- runif(nrow(df))<0.25
@@ -62,13 +53,6 @@ dftest<-dftest[,!names(dftest) %in% cols]
 
 #remove uneeded variables and dataframes
 rm(df,splitIndex,test,train,cols)
-
-# Add log 
-dftrain$loglosses<-log(dftrain$losses)
-dftest$loglosses<-log(dftest$losses)
-
-# attach for working
-attach(dftrain)
 
 # Explore the data
 str(dftrain)
@@ -93,143 +77,98 @@ colProds (dftrain) # Computes product of values in each col
 colQuantiles(dftrain, prob=.10)#Computes product of values in each col
 
 # Continous data use type=6
-quantile(plasmaglucose, probs = c(5,10,25,50,75)/100, type=6)
-IQR(plasmaglucose,type=6)
-fivenum(plasmaglucose)
+quantile(bwt, probs = c(5,10,25,50,75)/100, type=6)
+IQR(bwt,type=6)
+fivenum(bwt)
 
 # REQUIRES psych package
-describe(dftrain$age, type=1)
-describeBy(dftrain$age,dftrain$married, type=1)
+describe(dftrain$bwt, type=1)
+describeBy(dftrain$bwt,dftrain$low, type=1)
 
 #aggreate
-aggregate(plasmaglucose~diabetes,mean,data=dftrain)
-aggregate(plasmaglucose~diabetes,fivenum,data=dftrain)
-aggregate(plasmaglucose~diabetes,median,data=dftrain)
-aggregate(plasmaglucose~diabetes,sd,data=dftrain)
-aggregate(plasmaglucose~diabetes,IQR,type=6,data=dftrain)
-aggregate(plasmaglucose~diabetes,skewness,type=1,data=dftrain)
-aggregate(plasmaglucose~diabetes,kurtosis,type=1,data=dftrain)
+aggregate(age~low,mean,data=dftrain)
+aggregate(age~low,fivenum,data=dftrain)
+aggregate(age~low,median,data=dftrain)
+aggregate(age~low,sd,data=dftrain)
+aggregate(age~low,IQR,type=6,data=dftrain)
+aggregate(age~low,skewness,type=1,data=dftrain)
+aggregate(age~low,kurtosis,type=1,data=dftrain)
 
 # REQUIRES e1071 package
 # Use type 1
-skewness(plasmaglucose,type=1)
+skewness(age,type=1)
 # Uses excecess kurtisis (should be 0)
-kurtosis(plasmaglucose, type=1)
+kurtosis(age, type=1)
 
 # View some basic boxplots
-boxplot(dftrain$age~dftrain$survived, xlab="Survived", ylab="Age")
-boxplot(dftrain$logfare~dftrain$survived, xlab="Survived", ylab="Log Fare")
-boxplot(diastolic~diabetes, xlab="Diabetes", ylab="Diastolic Blood Pressure")
-boxplot(x2hourseruminsulin~diabetes, xlab="Diabetes", ylab="2 Hour Serum Insulin")
+boxplot(dftrain$age~dftrain$low, xlab="Survived", ylab="Age")
+boxplot(dftrain$lwt~dftrain$low, xlab="Survived", ylab="Log Fare")
+boxplot(dftrain$ftv~dftrain$low, xlab="Diabetes", ylab="Diastolic Blood Pressure")
 
 # View a dotplot
-dotchart(dftrain$logfare, xlab="Plasma Glucose")
+dotchart(dftrain$age, xlab="Plasma Glucose")
 
 # View Stripchart
-stripchart(dftrain$age~dftrain$survived,method="jitter", pch=c(1,2), col=c("red","blue"), xlab="Age", ylab="Survived", main="Age vs. Survived",offset=0.5)
-stripchart(dftrain$age~dftrain$survived,method="stack", pch=c(1,2), col=c("red","blue"), xlab="Plasma Glucose", ylab="Diabetes", main="Diabetes vs. Plasma Glucose",offset=0.5)
+stripchart(dftrain$age~dftrain$low,method="jitter", pch=c(1,2), col=c("red","blue"), xlab="Age", ylab="Survived", main="Age vs. Survived",offset=0.5)
+stripchart(dftrain$age~dftrain$low,method="stack", pch=c(1,2), col=c("red","blue"), xlab="Plasma Glucose", ylab="Diabetes", main="Diabetes vs. Plasma Glucose",offset=0.5)
 
 # two-way contingency table of categorical outcome and predictors we want
 #  to make sure there are not 0 cells
-xtabs(~survived + age, data = dftrain)
-summary(xtabs(~survived + age, data = dftrain))
+xtabs(~low + age, data = dftrain)
+summary(xtabs(~low + age, data = dftrain))
 
-xtabs(~survived + logfare, data = dftrain)
-summary(xtabs(~survived + logfare, data = dftrain))
+xtabs(~low + lwt, data = dftrain)
+summary(xtabs(~low + lwt, data = dftrain))
+
+xtabs(~ smoke + low, data = dftrain)
+summary(xtabs(~smoke + low, data = dftrain))
+
+xtabs(~ ui + low, data = dftrain)
+summary(xtabs(~ui + low, data = dftrain))
+
+# 2 way Freq Tables
+# mytable <- table(A,B) # A will be rows(Dependent), B will be columns (Independent)
+table(dftrain$low, dftrain$age)
+sum(table(dftrain$low, dftrain$age))
+
+margin.table(table(dftrain$low, dftrain$age),1) # Row frequencies (summed over columns) 
+margin.table(table(dftrain$low, dftrain$age),2) # Column frequencies (summed over rows)
+
+prop.table(table(dftrain$low, dftrain$age))# cell percentages relative frequences accross all
+prop.table(table(dftrain$low, dftrain$age),1)# row percentages 
+prop.table(table(dftrain$low, dftrain$age),2) # Column percentages
+
+addmargins(table(dftrain$low, dftrain$age), margin=2) # Margin containing row sums
+addmargins(table(dftrain$low, dftrain$age), margin=1) # Margin containing column sums
+addmargins(table(dftrain$low, dftrain$age), FUN=sum) # Marginal sums
+addmargins(table(dftrain$low, dftrain$age), FUN=mean) # Marginal means 
+addmargins(table(dftrain$low, dftrain$age), FUN = list(Sum = sum, list(Min = min, Max = max))) # Marginal 
+addmargins(table(dftrain$low, dftrain$age),  FUN = list(list(Min = min, Max = max), Sum = sum)) # Marginal
+addmargins(table(dftrain$low, dftrain$age),  FUN = list(list(Sum = sum), Sum = sum)) # Marginal
 
 
+# View Indiviudal Numerial variables Grouped by all the factor variables
+cbind("SampleSize"=aggregate(age ~ race+smoke+ht+ui, dftest, length), "mean"=aggregate(age ~ race+smoke+ht+ui, dftest, mean)[,5],"StdErr"=aggregate(age ~ race+smoke+ht+ui, dftest, st.err)[,5])
+cbind("SampleSize"=aggregate(lwt ~ race+smoke+ht+ui, dftest, length), "mean"=aggregate(lwt ~ race+smoke+ht+ui, dftest, mean)[,5],"StdErr"=aggregate(lwt ~ race+smoke+ht+ui, dftest, st.err)[,5])
+cbind("SampleSize"=aggregate(bwt ~ race+smoke+ht+ui, dftest, length), "mean"=aggregate(bwt ~ race+smoke+ht+ui, dftest, mean)[,5],"StdErr"=aggregate(bwt ~ race+smoke+ht+ui, dftest, st.err)[,5])
 
-# Hierarchical Cluster Analysis
-hc <- hclust(dist(dftrain))   # apply hirarchical clustering 
-plot(hc)                      # Print Dendrogram
 
-# Hierarchical Cluster Analysis 
-# set nbr to determine how many to cut
-nbr=3
-di <- dist(dftrain, method="euclidean")
-tree <- hclust(di, method="ward.D2")
-dftrain$hcluster <- as.factor((cutree(tree, k=nbr)-2) %% 3 +1)
+qplot(age, low, color=factor(race), data=dftrain, geom=c("point", "smooth"))
+qplot(lwt, low, color=factor(race), data=dftrain, geom=c("point", "smooth"))
+qplot(age, ftv, color=factor(race), data=dftrain, geom=c("point", "smooth"))
+qplot(age, bwt, color=factor(race), data=dftrain, geom=c("point", "smooth"))
 
-detach(dftrain)
-attach(dftrain)
+## histogram of outcome
+hist(dftrain$bwt)
+rug(dftrain$bwt)
 
-# that modulo business just makes the coming table look nicer
-plot(tree, xlab="")
-rect.hclust(tree, k=nbr, border="red")
+## simple data plot of outcome
+plot (sort(dftrain$bwt))
 
-#Pull out records by a value in a column 
-extracted <- dftrain[dftrain$hcluster==3,]
-summary(extracted)
+## density plot of outcome
+plot(density(dftrain$bwt,na.rm=TRUE))
 
-# aggregate group by
-aggregate(dftrain, by=list(hcluster),FUN=mean, na.rm=TRUE)
-
-# Compare
-column <- married
-with(dftrain, table(hcluster, column))
-barplot(with(dftrain, table(hcluster, column)),col=c("red","green","blue"),beside = TRUE)
-
-# Measures of Central Tendency
-mean(dftrain$age,na.rm=TRUE)
-median(dftrain$age,na.rm=TRUE)
-# REQUIRES psych package
-geometric.mean(dftrain$age,na.rm=TRUE) #not useful if zero in data
-harmonic.mean(dftrain$age,na.rm=TRUE)
-
-##Classification Tree
-library(rpart)
-fit <- rpart(hcluster ~ ., method="class", data=dftrain)
-
-printcp(fit) # display the results 
-plotcp(fit) # visualize cross-validation results 
-summary(fit) # detailed summary of splits
-# plot tree 
-plot(fit, uniform=TRUE, main="Classification Tree ")
-text(fit, use.n=TRUE, all=TRUE, cex=.8)
-
-# create attractive postscript plot of tree 
-post(fit, file = "c:/tree.ps", title = "Classification Tree")
-
-# prune the tree 
-pfit<- prune(fit, cp=   fit$cptable[which.min(fit$cptable[,"xerror"]),"CP"])
-
-# plot the pruned tree 
-plot(pfit, uniform=TRUE,   main="Pruned Classification Tree")
-text(pfit, use.n=TRUE, all=TRUE, cex=.8)
-post(pfit, file = "c:/ptree.ps", title = "Pruned Classification Tree")
-
-# Regression Tree 
-library(rpart)
-
-# grow tree 
-fit <- rpart(hcluster ~ .,method="anova", data=dftrain)
-
-printcp(fit) # display the results 
-plotcp(fit) # visualize cross-validation results 
-summary(fit) # detailed summary of splits
-
-# create additional plots 
-rsq.rpart(fit) # visualize cross-validation results    
-
-# plot tree 
-plot(fit, uniform=TRUE, main="Regression Tree")
-text(fit, use.n=TRUE, all=TRUE, cex=.8)
-
-# create attractive postcript plot of tree 
-post(fit, file = "c:/tree2.ps", title = "Regression Tree ")
-
-# prune the tree 
-pfit<- prune(fit, cp=0.01160389) # from cptable   
-
-# plot the pruned tree 
-plot(pfit, uniform=TRUE, main="Pruned Regression Tree")
-text(pfit, use.n=TRUE, all=TRUE, cex=.8)
-post(pfit, file = "c:/ptree2.ps",title = "Pruned Regression Tree")
-
-# Random Forest prediction 
-library(randomForest)
-fit <- randomForest(as.factor(hcluster) ~ .,   data=dftrain)
-print(fit) # view results 
-importance(fit) # importance of each predictor
-varImpPlot(fit)
-plot(fit)
+#Check Outliers of outcome
+outliers(dftrain$bwt)
+plot(outliers(dftrain$bwt)$Z)
+```
