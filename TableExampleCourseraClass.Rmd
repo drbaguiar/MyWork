@@ -1,0 +1,67 @@
+```{r, warning=FALSE,message=FALSE}
+# Load functions
+source('functions.R')
+
+#Load libraries
+library(knitr)
+library(exact2x2)
+library(e1071)
+library(vcd)
+library(epitools)
+
+# Build the data in a dataframe
+df<- data.frame(cbind (area=rep("NE",150),response=rep(1,150)))
+df1<- data.frame(cbind (area=rep("NE",95),response=rep(0,95)))
+total <- rbind(df1, df)
+df<- data.frame(cbind (area=rep("NC",181),response=rep(1,181)))
+df1<- data.frame(cbind (area=rep("NC",204),response=rep(0,204)))
+total <- rbind(total, df)
+total <- rbind(total, df1)
+df<- data.frame(cbind (area=rep("SOUTH",448),response=rep(1,448)))
+df1<- data.frame(cbind (area=rep("SOUTH",605),response=rep(0,605)))
+total <- rbind(total, df)
+total <- rbind(total, df1)
+df<- data.frame(cbind (area=rep("WEST",343),response=rep(1,343)))
+df1<- data.frame(cbind (area=rep("WEST",214),response=rep(0,214)))
+total <- rbind(total, df)
+total <- rbind(total, df1)
+
+# For more efficient analysis, transform the following 5 variables into factors:
+total$response<- factor(total$response,levels=c(1,0),labels=c("Yes","No")) 
+
+rm(df,df1)
+total<-cleanit(total)
+
+summary(total)
+x<- table(total$response,total$area)
+barplot(x)
+
+
+# Create a table with sums in margins
+addmargins(x)
+
+prop.table(x,1) #row
+prop.table(x,2) #column
+
+prop.table(addmargins(x),1) #row
+prop.table(addmargins(x),2) #column
+
+#Calculate Chi Square and Cramer's V
+assocstats(x)
+
+#Risk ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+riskratio(x)
+
+#Odds ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+oddsratio(x)
+
+#Chi squared test
+chisq.test(x)
+chisq.test(x)$expected  # expected counts under the null
+chisq.test(x)$observed  # observed counts (same as M)
+chisq.test(x)$residuals # Pearson residuals
+chisq.test(x)$stdres    # standardized residuals
+
+m <- naiveBayes(response ~ ., data = total)
+m
+```

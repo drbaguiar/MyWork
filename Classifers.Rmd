@@ -1,0 +1,209 @@
+---
+title: "Classifiers"
+author: "Dr.B"
+date: "Saturday, May 23, 2015"
+output: html_document
+---
+```{r,warning=FALSE,message=FALSE}
+# Load functions
+source('functions.R')
+
+# Load the libraries
+library(e1071)
+library(class)
+#library(klaR)
+library(caret)
+#library(ElemStatLearn)
+library(verification)
+```
+
+Load the data
+```{r,warning=FALSE,message=FALSE}
+# Load the data
+#df<-read.csv(file.choose()) #lowbwt.csv
+df <-read.csv("d:/data/diabetes.csv")
+
+#Clean the labels (names)
+df<-cleanit(df)
+
+#make Y a factor
+df$diabetes <- factor(df$diabetes,levels=c(0,1), labels=c("No","Yes"))
+
+#SPlit into train and testing datasets
+sub = sample(nrow(df), floor(nrow(df) * 0.9))
+train = df[sub,]
+test = df[-sub,]
+
+# break apart columns into dependent and independent variables
+xTrain = train[,-9]
+yTrain = train$diabetes
+xTest = test[,-9]
+yTest = test$diabetes
+```
+
+Set training control
+```{r,warning=FALSE,message=FALSE}
+fitControl <- trainControl(## 10-fold CV
+                           method = "repeatedcv",
+                           number = 10,
+                           ## repeated three times
+                           repeats = 3)
+```
+
+
+Rank Features By Importance
+
+The importance of features can be estimated from data by building a model. Some methods like decision trees have a built in mechanism to report on variable importance. For other algorithms, the importance can be estimated using a ROC curve analysis conducted for each attribute.
+
+The example below constructs an Learning Vector Quantization (LVQ) model. 
+```{r,warning=FALSE,message=FALSE}
+# train the model
+model <- train(diabetes~., data=train, method="lvq", trControl=fitControl)
+# estimate variable importance
+importance <- varImp(model, scale=FALSE)
+# summarize importance
+print(importance)
+# plot importance
+plot(importance)
+```
+
+Using Random Forest to select features
+```{r,warning=FALSE,message=FALSE}
+# define the control using a random forest selection function
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+# run the RFE algorithm
+modelrf <- rfe(xTrain, yTrain, sizes=c(1:8), rfeControl=control)
+# summarize the results
+print(modelrf)
+# list the chosen features
+predictors(modelrf)
+# plot the results
+plot(modelrf, type=c("g", "o"))
+```
+
+
+Train Using the Naive Bayes (NB) model- classifer
+```{r,warning=FALSE,message=FALSE}
+model<-train(xTrain,yTrain,'nb',trControl=fitControl)
+model
+
+#Predict Using test
+## pred<- predict(model,xTest, type="raw") or below
+pred<-predict(model$finalModel,xTest)$class
+tabnb<-table(pred,yTest)
+tabnb
+prop.table(tabnb)
+sum(tabnb[row(tabnb)==col(tabnb)])/sum(tabnb)
+confusionMatrix(yTest, pred)
+
+## The above could be run as one line
+prop.table(table(predict(model$finalModel,xTest)$class,yTest))
+```
+
+
+Use the K-Nearest Heighbiors (KNN) model
+```{r,warning=FALSE,message=FALSE}
+##Train the model KNN - classifer
+myknn<- knn(xTrain,xTest,yTrain, k = 2, prob = TRUE)
+myknn
+
+tabknn <- table(myknn, yTest) 
+tabknn
+prop.table(tabknn)
+sum(tabknn[row(tabknn)==col(tabknn)])/sum(tabknn)
+confusionMatrix(yTest, myknn)
+```
+
+```{r}
+modelrf<-rf_model<-train(diabetes~.,data=train,method="rf",trControl=fitControl,prox=TRUE,allowParallel=TRUE)
+modelrf
+summary(modelrf)
+
+predrf<-predict(modelrf, test)
+tabrf<-table(predrf,yTest)
+tabrf
+
+prop.table(tabrf)
+sum(tabrf[row(tabrf)==col(tabrf)])/sum(tabrf)
+confusionMatrix(yTest, predrf)
+
+```
+
+Train using the Logistic Regression classifer
+```{r,warning=FALSE,message=FALSE}
+modelglm<- train(yTrain~plasmaglucose+bmi+age, method='glm',data=train, family=binomial(link='logit'))
+modelglm
+summary(modelglm)
+
+predglm<-predict(modelglm, test, type="raw")
+tabglm<-table(predglm,yTest)
+tabglm
+
+prop.table(tabglm)
+sum(tabglm[row(tabglm)==col(tabglm)])/sum(tabglm)
+confusionMatrix(yTest, predglm)
+```
+
+Train the using the Regression Tree (RT) model
+```{r,warning=FALSE,message=FALSE}
+modeltree<- train(yTrain~plasmaglucose+bmi+age, method='rpart', data=train, tuneLength = 30,trControl=fitControl )
+
+modeltree
+summary(modeltree)
+
+predtree<-predict(modeltree, test)
+tabtree<-table(predtree,yTest)
+tabtree
+prop.table(tabtree)
+sum(tabtree[row(tabtree)==col(tabtree)])/sum(tabtree)
+confusionMatrix(yTest, predtree)
+```
+
+Train using the Support Vector Machine (SVM) model
+```{r}
+modelsvm<-train(xTrain,yTrain,method = "svmRadial",tuneLength = 9,trControl=fitControl)
+modelsvm
+summary(modelsvm)
+
+predsvm<-predict(modelsvm, xTest)
+tabsvm<-table(predsvm,yTest)
+tabsvm
+prop.table(tabsvm)
+sum(tabsvm[row(tabsvm)==col(tabsvm)])/sum(tabsvm)
+confusionMatrix(yTest, predsvm)
+```
+
+
+Train using the Gradient Boosting Machine (GBM) model
+```{r,warning=FALSE,message=FALSE}
+modelgbm<-train(xTrain,yTrain,'gbm',trControl=fitControl)
+modelgbm
+
+#Predict Using test
+## pred<- predict(model,xTest, type="raw") or below
+predgbm<-predict(modelgbm,xTest)
+tabgbm<-table(predgbm,yTest)
+tabgbm
+
+prop.table(tabgbm)
+sum(tabgbm[row(tabgbm)==col(tabgbm)])/sum(tabgbm)
+confusionMatrix(yTest, predgbm)
+```
+
+
+Train using the  (lda) model
+```{r,warning=FALSE,message=FALSE}
+modellda<-train(xTrain,yTrain,'lda',trControl=fitControl)
+modellda
+
+#Predict Using test
+## pred<- predict(model,xTest, type="raw") or below
+predlda<-predict(modellda,xTest)
+tablda<-table(predlda,yTest)
+tablda
+
+prop.table(tablda)
+sum(tablda[row(tablda)==col(tablda)])/sum(tablda)
+confusionMatrix(yTest, predlda)
+```
+

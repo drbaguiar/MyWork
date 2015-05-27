@@ -6,6 +6,7 @@ library(psych)
 library(e1071)
 library(caret)
 library(fBasics)
+library(vcd)
 
 # Load the data
 df<-read.csv(file.choose()) #lowbwt.csv

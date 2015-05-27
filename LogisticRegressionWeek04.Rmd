@@ -1,0 +1,82 @@
+---
+title: "LogisticRegressionWeek04"
+author: "Dr.B"
+date: "Tuesday, May 26, 2015"
+output: html_document
+---
+
+
+
+```{r,,message=FALSE,warning=FALSE}
+# Load functions
+source('functions.R')
+
+# Load the libraries
+library(e1071)
+library(epitools)
+```
+
+##Build the dataset
+```{r,message=FALSE,warning=FALSE}
+## New Problem 
+df1<- data.frame(cbind (Exposed=rep(1,21),Sick=rep(1,21)))
+df0<- data.frame(cbind (Exposed=rep(0,22),Sick=rep(1,22)))
+total <- rbind(df1, df0)
+
+df0<- data.frame(cbind (Exposed=rep(0,51),Sick=rep(0,51)))
+df1<- data.frame(cbind (Exposed=rep(1,6),Sick=rep(0,6)))
+total <- rbind(total, df0)
+total <- rbind(total, df1)
+rm(df1,df0)
+```
+
+##Format 2x2 Table 
+
+For more efficient analysis, transform the following into a factor variable:
+```{r,,message=FALSE,warning=FALSE}
+#total$response<- factor(total$response,levels=c(1,0),labels=c("Sick","NotSick")) 
+summary(total)
+
+x<-table(total$Sick,total$Exposed,decreasing=TRUE)
+x
+barplot(x)
+addmargins(x)
+
+#Risk ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+riskratio(x)
+
+#Odds ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+oddsratio(x)
+```
+
+##Model
+```{r,,message=FALSE,warning=FALSE}
+#Dep and Independent Vars
+# define columns we will be working with
+depvar <- 'Sick'
+indepvar <- 'Exposed'
+
+# two-way contingency table of categorical outcome and predictors we want
+#  to make sure there are not 0 cells
+xtabs(~get(depvar) + get(indepvar), data = total)
+
+f1 <- paste(depvar,paste(indepvar,collapse=' + '),sep=' ~ ')
+ 
+#Fit the model
+fit<-glm(f1,data=total,family=binomial(link="logit"))
+
+d<-anova(fit,test='Chisq') # or d<-anova(fit,test='LRT')
+d
+
+# Get 
+summary(fit) # display results
+cbind(Coeff = coef(fit),confint(fit)) # 95% CI for the coefficients using profiled log-likelihood
+cbind(Coeff = coef(fit),confint.default(fit)) # 95% CI for the coefficients using standard errors
+exp(cbind(OR = coef(fit), confint(fit))) ## odds ratios and 95% CI together
+exp(cbind(OR = coef(fit), confint.default(fit))) ## odds ratios and 95% CI together using standard errors
+
+# Get loglikelihood
+logLik(fit) 
+
+
+```

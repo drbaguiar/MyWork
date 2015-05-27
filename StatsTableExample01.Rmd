@@ -1,0 +1,69 @@
+---
+title: "StatsTableExample01"
+author: "Dr.B"
+date: "Sunday, May 24, 2015"
+output: html_document
+---
+
+```{r, warning=FALSE,message=FALSE}
+# Load functions
+source('functions.R')
+
+#Load libraries
+library(knitr)
+library(exact2x2)
+library(e1071)
+library(vcd)
+library(epitools)
+
+## New Problem  
+df<- data.frame(cbind (area=rep("male",62),response=rep(1,62)))
+df1<- data.frame(cbind (area=rep("male",166),response=rep(0,166)))
+total <- rbind(df1, df)
+df<- data.frame(cbind (area=rep("female",80),response=rep(1,80)))
+df1<- data.frame(cbind (area=rep("female",203),response=rep(0,203)))
+total <- rbind(total, df)
+total <- rbind(total, df1)
+
+# For more efficient analysis, transform the following 5 variables into factors:
+total$response<- factor(total$response,levels=c(1,0),labels=c("Smoker","NonSmoker")) 
+
+rm(df,df1)
+total<-cleanit(total)
+
+summary(total)
+x<- table(total$response,total$area)
+barplot(x)
+
+# Create a table with sums in margins
+addmargins(x)
+prop.table(x,1) #row
+prop.table(x,2) #column
+
+prop.table(addmargins(x),1) #row
+prop.table(addmargins(x),2) #column
+
+#Calculate Chi Square and Cramer's V
+assocstats(x)
+
+#Risk ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+riskratio(x)
+
+#Odds ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+oddsratio(x)
+
+#Chi squared test
+chisq.test(x)
+chisq.test(x)$expected  # expected counts under the null
+chisq.test(x)$observed  # observed counts (same as M)
+chisq.test(x)$residuals # Pearson residuals
+chisq.test(x)$stdres    # standardized residuals
+
+#Exact McNemar test (with central confidence intervals) Only for 2x2 table
+mcnemar.exact(x)
+
+m <- naiveBayes(response ~ ., data = total)
+m
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

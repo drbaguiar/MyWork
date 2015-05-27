@@ -1,0 +1,157 @@
+---
+title: "NaiveBayes"
+author: "Dr.B"
+date: "Friday, May 22, 2015"
+output: html_document
+---
+
+```{r, warning=FALSE,message=FALSE}
+# Load functions
+source('functions.R')
+
+#Load libraries
+library(e1071)
+library(class)
+library(klaR)
+library(caret)
+library(ElemStatLearn)
+library(verification)
+```
+
+
+apriori
+Class distribution for the dependent variable.
+
+tables
+A list of tables, one for each predictor variable. For each categorical variable a table giving, for each attribute level, the conditional probabilities given the target class. For each numeric variable, a table giving, for each target class, mean and standard deviation of the (sub-)variable.
+
+```{r}
+## Categorical data only:
+data(HouseVotes84, package = "mlbench")
+model <- naiveBayes(Class ~ ., data = HouseVotes84)
+predict(model, HouseVotes84[1:10,])
+predict(model, HouseVotes84[1:10,], type = "raw")
+pred <- predict(model, HouseVotes84)
+table(pred, HouseVotes84$Class)
+
+## using laplace smoothing:
+model <- naiveBayes(Class ~ ., data = HouseVotes84, laplace = 3)
+pred <- predict(model, HouseVotes84[,-1])
+table(pred, HouseVotes84$Class)
+``` 
+
+
+```{r}
+## Example of using a contingency table:
+data(Titanic)
+m <- naiveBayes(Survived ~ ., data = Titanic)
+m
+pred<-predict(m, as.data.frame(Titanic))
+table(pred, as.data.frame(Titanic)$Survived)
+
+```
+
+```{r}
+## Example with metric predictors:
+data(iris)
+m <- naiveBayes(Species ~ ., data = iris)
+## alternatively:
+# m <- naiveBayes(iris[,-5], iris[,5])
+m
+table(predict(m, iris[,-5]), iris[,5])
+
+## The above could be written as
+data(iris)
+classifier<-naiveBayes(iris[,1:4], iris[,5]) 
+tab<-table(predict(classifier, iris[,-5]), iris[,5])
+sum(tab[row(tab)==col(tab)])/sum(tab)
+```
+
+
+```{r}
+# 1. using a separate test set
+train <- rbind(iris3[1:25,,1], iris3[1:25,,2], iris3[1:25,,3]) 
+test <- rbind(iris3[26:50,,1], iris3[26:50,,2], iris3[26:50,,3]) 
+cl <- factor(c(rep("s",25), rep("c",25), rep("v",25))) 
+myknn <- knn(train, test, cl, k = 3, prob=TRUE) 
+attributes(.Last.value) 
+tab <- table(myknn, cl) 
+sum(tab[row(tab)==col(tab)])/sum(tab)
+
+# one can use 'knn1' when k=1
+
+# 2. using LOOCV
+train <- rbind(iris3[,,1], iris3[,,2], iris3[,,3]) 
+cl <- factor(c(rep("s",50), rep("c",50), rep("v",50)))
+myknn.cv <- knn.cv(train, cl, k = 3, prob = TRUE)
+tab <- table(myknn.cv, cl) 
+sum(tab[row(tab)==col(tab)])/sum(tab)
+
+
+
+```
+
+
+
+##Example
+Everyone does the iris dataset first, so I wont break that trend. Later, I will show you a much more interesting dataset. Loadup the iris dataset and separate the labels from the attributes.
+```{r}
+x = iris[,-5]
+y = iris$Species
+```
+
+Now, x has all the attributes and y has all the labels. Now we can train our model.
+
+```{r}
+model = train(x,y,'nb',trControl=trainControl(method='cv',number=10))
+```
+
+This one line will generate a Naive Bayes model, using 10-fold cross-validation. From above, x is the attributes and y is the labels. The 'nb' tells the trainer to use Naive Bayes. The trainController part tells the trainer to use cross-validataion ('cv') with 10 folds.
+
+You can then print out the model:
+```{r}
+model
+```
+
+Awesome! We have a 94% kappa, life is good! One of the really cool things about caret's train function is that it will fine-tune the parameters to your model (to a certain extent).
+
+Now that we have generated a classification model, how can we use it for prediction? Easy!
+```{r}
+pred <-predict(model$finalModel,x)
+```
+
+This will printout a bunch of lines. Near the top you can see the classes it predicted, then you will see the posterior probabilities in the bottom half. As we are only interested in the class predictions, we can grab only those with the following line.
+```{r}
+predict(model$finalModel,x)$class
+```
+
+Lets build a confusion matrix so that we can visualize the classification errors.
+```{r}
+table(predict(model$finalModel,x)$class,y)
+```
+
+This will generate a confusion matrix of the predictions of your Naive Bayes model versus the actual classification of the data instances.
+
+Now, what I have done here is actually a terrible idea. You never want to use the same data you trained on for testing, but this is only an example. I will provide a better example later on.
+
+That is basically how you do Naive Bayes classification in R with cross-validation. Now, lets try this on a more interesting dataset, spam emails.
+```{r}
+sub = sample(nrow(spam), floor(nrow(spam) * 0.9))
+train = spam[sub,]
+test = spam[-sub,]
+
+xTrain = train[,-58]
+yTrain = train$spam
+
+xTest = test[,-58]
+yTest = test$spam
+
+model = train(xTrain,yTrain,'nb',trControl=trainControl(method='cv',number=10))
+
+prop.table(table(predict(model$finalModel,xTest)$class,yTest))
+```
+
+Here we take 90% of the dataset to train on, and then we test on the remaining 10%.
+
+These results will be different on each run, as sample is a random function. The results aren't great, but for a very simple classifier, they are really good!
+

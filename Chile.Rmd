@@ -1,0 +1,65 @@
+---
+title: "Chile"
+author: "Dr.B"
+date: "Saturday, May 23, 2015"
+output: html_document
+---
+
+
+```{r,warning=FALSE,message=FALSE}
+# Load functions
+source('functions.R')
+
+# Load the libraries
+library(car)
+library(caret)
+library(e1071)
+library(verification)
+```
+
+
+
+```{r,warning=FALSE,message=FALSE}
+# data import and preparation
+data(Chile)              
+colSums(!is.na(Chile)) #Check for na's
+chile        <- na.omit(Chile)  #remove "na's"
+chile        <- chile[chile$vote == "Y" | chile$vote == "N" , ] #only "Y" and "N" required
+chile$vote   <- factor(chile$vote)      #required to remove unwanted levels 
+chile$income <- factor(chile$income)  # treat income as a factor
+```
+
+Goal is to estimate a glm - model that predicts to outcome of vote "Y" or "N" depended on relevant explanatory variables and, based on the final model, compute a confusion matrix and ROC curve to grasp the models behaviour for different threshold levels.
+```{r,warning=FALSE,message=FALSE}
+res.chileIII <- glm(vote ~
+                           sex       +
+                           education +
+                           statusquo ,
+                           family = binomial(),
+                           data = chile)
+```
+
+Make the prediction
+```{r,warning=FALSE,message=FALSE}
+# prediction
+chile.pred <- predict.glm(res.chileIII, type = "response")
+
+```
+
+Compare the observed with estimation:
+```{r,warning=FALSE,message=FALSE}
+chile.v <- ifelse(chile$vote == "Y", 1, 0)          #to compare the two arrays
+
+chile.predt <- function(t) ifelse(chile.pred > t , 1,0) #t is the threshold for which the confusion matrix shall be computed
+```
+
+Confusion matrix for t = 0.3:
+```{r,warning=FALSE,message=FALSE}
+confusionMatrix(chile.predt(0.2), chile.v)
+```
+
+Make the ROC
+```{r,warning=FALSE,message=FALSE}
+roc.plot(chile.v, chile.pred)
+```
+

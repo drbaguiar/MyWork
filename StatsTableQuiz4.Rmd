@@ -1,0 +1,71 @@
+---
+title: "StatsTableQuiz4"
+author: "Dr.B"
+date: "Sunday, May 24, 2015"
+output: html_document
+---
+
+## New Problem
+```{r, warning=FALSE,message=FALSE}
+# Load functions
+source('functions.R')
+
+#Load libraries
+library(knitr)
+library(exact2x2)
+library(e1071)
+library(vcd)
+library(epitools)
+
+df<- data.frame(cbind (area=rep("Divorced",26),response=rep(0,26)))
+df1<- data.frame(cbind (area=rep("Divorced",237),response=rep(1,237)))
+total <- rbind(df, df1)
+df<- data.frame(cbind (area=rep("NotDivorced",112),response=rep(0,112)))
+df1<- data.frame(cbind (area=rep("NotDivorced",685),response=rep(1,685)))
+total <- rbind(total, df)
+total <- rbind(total, df1)
+
+# For more efficient analysis, transform the following into factors:
+total$response<- factor(total$response,levels=c(1,0),labels=c("Children","NoChildren")) 
+
+rm(df,df1)
+total<-cleanit(total)
+
+summary(total)
+x<- table(total$response,total$area)
+
+# Barplot
+barplot(x)
+
+# Create a table with sums in margins
+addmargins(x)
+
+# Prop 
+prop.table(x,1) #row
+prop.table(x,2) #column
+
+prop.table(addmargins(x),1) #row
+prop.table(addmargins(x),2) #column
+
+#Calculate Chi Square and Cramer's V
+assocstats(x)
+
+#Risk ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+riskratio(x)
+
+#Odds ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+oddsratio(x)
+
+#Chi squared test
+chisq.test(x)
+chisq.test(x)$expected  # expected counts under the null
+chisq.test(x)$observed  # observed counts (same as M)
+chisq.test(x)$residuals # Pearson residuals
+chisq.test(x)$stdres    # standardized residuals
+
+#Exact McNemar test (with central confidence intervals) Only for 2x2 table
+mcnemar.exact(x)
+
+m <- naiveBayes(response ~ ., data = total)
+m
+```

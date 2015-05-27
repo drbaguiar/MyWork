@@ -1,0 +1,67 @@
+---
+title: "RandomForest"
+author: "Dr.B"
+date: "Sunday, May 24, 2015"
+output: html_document
+---
+```{r,warning=FALSE,message=FALSE}
+# Load functions
+source('functions.R')
+
+# Load the libraries
+require(caret)
+require(ggplot2)
+require(randomForest)
+```
+
+Read in the Training and Test Set:
+```{r,warning=FALSE,message=FALSE}
+# Load the data
+training_URL<-"http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+test_URL<-"http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+training<-read.csv(training_URL,na.strings=c("NA",""))
+testing<-read.csv(test_URL,na.strings=c("NA",""))
+```
+
+Get rid of the columns that is simply an index, timestamp or username.
+```{r,warning=FALSE,message=FALSE}
+training<-training[,7:160]
+testing<-testing[,7:160]
+```
+
+Remove the columns that are mostly NAs. They could be useful in the model, but it is easier to cut the data.frame down and see if it gives good results
+```{r,warning=FALSE,message=FALSE}
+mostly_data<-apply(!is.na(training),2,sum)>19621
+training<-training[,mostly_data]
+testing<-testing[,mostly_data]
+```
+
+Set training control
+```{r,warning=FALSE,message=FALSE}
+fitControl <- trainControl(method = "repeatedcv",number =2,repeats = 1)
+```
+
+Partition the training set into a smaller set to speed up the running of the model
+```{r,warning=FALSE,message=FALSE}
+InTrain<-createDataPartition(y=training$classe,p=0.1,list=FALSE)
+training1<-training[InTrain,]
+```
+
+Train the model
+```{r,warning=FALSE,message=FALSE}
+rf_model<-train(classe~.,data=training1,method="rf",trControl=fitControl,prox=TRUE,allowParallel=TRUE)
+print(rf_model)
+```
+
+```{r,warning=FALSE,message=FALSE}
+print(rf_model$finalModel)
+pred<-predict(rf_model$finalModel,testing)
+summary(pred)
+
+plot(rf_model)
+plot(rf_model$finalModel)
+
+plot(varImp(rf_model),top=10)
+````
+
+
