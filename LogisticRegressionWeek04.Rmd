@@ -5,8 +5,6 @@ date: "Tuesday, May 26, 2015"
 output: html_document
 ---
 
-
-
 ```{r,,message=FALSE,warning=FALSE}
 # Load functions
 source('functions.R')
@@ -16,67 +14,125 @@ library(e1071)
 library(epitools)
 ```
 
-##Build the dataset
+##Build the Data
+One very common type of data set in biomedical statistics is a cohort study, where you have information on people who were exposed to some treatment or environment (for example, people who took a certain drug, or people who smoke) and also on whether the same people have a particular disease or not. Your data set would look something like this:
 ```{r,message=FALSE,warning=FALSE}
 ## New Problem 
-df1<- data.frame(cbind (Exposed=rep(1,21),Sick=rep(1,21)))
-df0<- data.frame(cbind (Exposed=rep(0,22),Sick=rep(1,22)))
-total <- rbind(df1, df0)
-
-df0<- data.frame(cbind (Exposed=rep(0,51),Sick=rep(0,51)))
-df1<- data.frame(cbind (Exposed=rep(1,6),Sick=rep(0,6)))
+df0<- data.frame(cbind (Ind=rep("Exposed",21),Dep=rep("Sick",21)))
+df1<- data.frame(cbind (Ind=rep("Exposed",6),Dep=rep("NotSick",6)))
+total <- rbind(df0, df1)
+df0<- data.frame(cbind (Ind=rep("NotExposed",22),Dep=rep("Sick",22)))
+df1<- data.frame(cbind (Ind=rep("NotExposed",51),Dep=rep("NotSick",51)))
 total <- rbind(total, df0)
 total <- rbind(total, df1)
-rm(df1,df0)
+rm(df0,df1)
 ```
 
-##Format 2x2 Table 
-
-For more efficient analysis, transform the following into a factor variable:
+##Format 2X2 Table
 ```{r,,message=FALSE,warning=FALSE}
-#total$response<- factor(total$response,levels=c(1,0),labels=c("Sick","NotSick")) 
-summary(total)
-
-x<-table(total$Sick,total$Exposed,decreasing=TRUE)
+x<-table(total$Dep,total$Ind,deparse.level = 2)
 x
+
+#Calculate Chi Square and Cramer's V
+#assocstats(x)
+
+#crossTable
+#CrossTable(x,format="SPSS")
+
+##Grapics
 barplot(x)
+mosaicplot(x)
 addmargins(x)
+prop.table(x,1) #row
+prop.table(x,2) #column
+prop.table(addmargins(x),1) #row
+prop.table(addmargins(x),2) #column
 
-#Risk ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
-riskratio(x)
+#Calculate Chi Square and Cramer's V
+#assocstats(x)
 
-#Odds ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
-oddsratio(x)
+#Chi squared test
+chisq.test(x)
+chisq.test(x)$expected  # expected counts under the null
+chisq.test(x)$observed  # observed counts (same as M)
+chisq.test(x)$residuals # Pearson residuals
+chisq.test(x)$stdres    # standardized residuals
 ```
+
+
+##Calculating Relative Risks (Cohort Study)
+The relative risk of having the disease given exposure is the probability of having the disease for people who were exposed to the treatment or environmental factor, divided by the probability of having the disease for people who were not exposed to that treatment or environmental factor.
+```{r,,message=FALSE,warning=FALSE}
+#Risk ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+riskratio(x, method="wald")
+```
+
+If the relative risk is 1 (ie. if the confidence interval includes 1), it means there is no evidence for an association between exposure and disease. 
+
+If the relative risk > 1, there is evidence of a positive association between exposure and disease
+
+If the relative risk < 1, there is evidence of a negative association. 
+
+The relative risk can be estimated for a cohort study but not for a case-control study.
+
+##Calculating Odds Ratios (Cohort or Case-Control Study)
+As well as the relative risk of disease given exposure (to some treatment or environmental factor eg. smoking or some drug), you can also calculate the odds ratio for association between the exposure and the disease in a cohort study. The odds ratio is also commonly calculated in a case-control study.
+
+The odds ratio for association between the exposure and the disease is the ratio of: 
+
+(i) the probability of having the disease for people who were exposed to the treatment or environmental factor, divided by the probability of not having the disease for people who were exposed, and 
+
+(ii) the probability of having the disease for people who were not exposed to the treatment or environmental factor, divided by the probability of not having the disease for people who were not exposed.
+```{r,,message=FALSE,warning=FALSE}
+#Odds ratio and confidence intervals (IF CONTAI 1 NOT SIGN)
+oddsratio.wald(x)
+
+## You can use 
+epitab(x)
+```
+
+If the odds ratio is 1 (ie. if the confidence interval includes 1), it means there is no evidence for an association between exposure and disease. 
+
+If the odds ratio > 1, there is evidence of a positive association between exposure and disease.
+
+If the odds ratio < 1, there is evidence of a negative association. 
+
+The odds ratio can be estimated for either a cohort study or a case-control study.
+
 
 ##Model
 ```{r,,message=FALSE,warning=FALSE}
-#Dep and Independent Vars
-# define columns we will be working with
-depvar <- 'Sick'
-indepvar <- 'Exposed'
-
-# two-way contingency table of categorical outcome and predictors we want
-#  to make sure there are not 0 cells
-xtabs(~get(depvar) + get(indepvar), data = total)
-
-f1 <- paste(depvar,paste(indepvar,collapse=' + '),sep=' ~ ')
- 
 #Fit the model
-fit<-glm(f1,data=total,family=binomial(link="logit"))
+fit<-glm(Dep~Ind,data=total,family=binomial(link="logit"))
+```
 
+##Fit Information
+```{r,,message=FALSE,warning=FALSE}
 d<-anova(fit,test='Chisq') # or d<-anova(fit,test='LRT')
 d
+```
 
-# Get 
-summary(fit) # display results
+If chi squared is significant, there is a relationship between exposure and sickness.
+
+```{r,,message=FALSE,warning=FALSE}
 cbind(Coeff = coef(fit),confint(fit)) # 95% CI for the coefficients using profiled log-likelihood
 cbind(Coeff = coef(fit),confint.default(fit)) # 95% CI for the coefficients using standard errors
+```
+
+
+summary(fit) # display results
+
+
+```{r,,message=FALSE,warning=FALSE}
 exp(cbind(OR = coef(fit), confint(fit))) ## odds ratios and 95% CI together
 exp(cbind(OR = coef(fit), confint.default(fit))) ## odds ratios and 95% CI together using standard errors
 
 # Get loglikelihood
 logLik(fit) 
+```
 
 
+```{r,,message=FALSE,warning=FALSE}
+m <- naiveBayes(Dep~Ind, data = total)
+m
 ```

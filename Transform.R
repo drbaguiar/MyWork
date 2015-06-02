@@ -1,0 +1,17 @@
+df1<-makedf(rchisq(1000,25))
+df2<-makedf(runif(1000,2,12))
+df3<-makedf(rnorm(1000,100,2))
+df4<-makedf(rbinom(1000,100,.62))
+df5<-makedf(rpois(1000,4)) 
+  
+df1<-cleanit(df1)
+df2<-cleanit(df2)
+df3<-cleanit(df3)
+df4<-cleanit(df4)
+df5<-cleanit(df5)
+
+plot(df1)
+plot(df2)
+plot(df3)
+plot(df4)
+plot(df5)

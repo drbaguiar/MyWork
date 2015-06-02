@@ -1,0 +1,33 @@
+
+```{r,,message=FALSE,warning=FALSE}
+# Load functions
+source('functions.R')
+
+# Load the libraries
+library(e1071)
+library(epitools)
+```
+
+
+```{r,,message=FALSE,warning=FALSE}
+mymatrix <- matrix(c(21,22,6,51),nrow=2,byrow=TRUE)
+colnames(mymatrix) <- c("Disease","Control")
+rownames(mymatrix) <- c("Exposed","Unexposed")
+print(mymatrix)
+
+calcRelativeRisk(mymatrix,alpha=0.05)
+
+calcOddsRatio(mymatrix,alpha=0.05)
+```
+
+
+
+##Testing for an Association Between Disease and Exposure (Cohort or Case-Control Study)
+In a case-control or cohort study, it is interesting to do a statistical test for association between having the disease and being exposed to some treatment or environment (for example, smoking or taking a certain drug).
+
+In R, you can test for an association using the Chi-squared test, or Fisher's exact test. 
+```{r,,message=FALSE,warning=FALSE}
+chisq.test(mymatrix, correct = FALSE)
+
+fisher.test(mymatrix)
+```
