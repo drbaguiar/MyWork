@@ -37,33 +37,31 @@ df$id <-NULL
 df$bwt <-NULL
   
 # Create dummies
-df$white <- as.numeric(df$race == 1)
-df$black <- as.numeric(df$race == 2)
-df$other <- as.numeric(df$race == 3)
+#df$white <- as.numeric(df$race == 1)
+#df$black <- as.numeric(df$race == 2)
+#df$other <- as.numeric(df$race == 3)
 
 # Create factor
-df$race <- factor(df$race, levels=c(1,2,3),labels=c("white","black","other"))
-df$smoke<- factor(df$smoke, levels=c(0,1),labels=c("nonsmoker","smoker"))
-df$ht<- factor(df$ht, levels=c(0,1),labels=c("noHT","yesHT"))
-df$ui<- factor(df$ui, levels=c(0,1),labels=c("noUI","yesUI"))
-df$ptl<- factor(df$ptl, levels=c(0,1),labels=c("noPM","yesPML"))
+df$race <- factor(df$race, levels=c(1,2,3),labels=c("white","black","other")) # White referent group
+df$smoke<- factor(df$smoke, levels=c(0,1),labels=c("nonsmoker","smoker")) #Non smoker referent group
+df$ht<- factor(df$ht, levels=c(0,1),labels=c("noHT","yesHT")) # No hypertension referent group
+df$ui<- factor(df$ui, levels=c(0,1),labels=c("noUI","yesUI")) # No Urinary Tract Infection referent group
+df$ptl<- factor(df$ptl, levels=c(0,1),labels=c("noPM","yesPML")) 
 
 #Dep and Independent Vars
 # define columns we will be working with
 depvar <- 'low'
-indepvar <- 'race'
+#indepvar <- 'race'
 indepvars <-c('lwt','race')
 
 # two-way contingency table of categorical outcome and predictors we want
 #  to make sure there are not 0 cells
-xtabs(~get(depvar) + get(indepvar), data = df)
-
-
+xtabs(~get(depvar) + get(indepvars), data = df)
 
 f1 <- paste(depvar,paste(indepvars,collapse=' + '),sep=' ~ ')
  
 #Fit the model
-fit<-step(glm(f1,data=df,family=binomial),direction="both")
+fit<-glm(f1,data=df,family=binomial)
 #fit<-step(glm(low~lwt+race+age+smoke+ht+ftv+ptl,data=df,family=binomial),direction="both")
 
 summary(fit) # display results
@@ -94,16 +92,16 @@ pi2
 
 #Week5
 # Load the data
-#Load the birthweight data (lowbw.csv)
+# Load the birthweight data (lowbw.csv)
 #df<-read.csv(file.choose())
-df<-read.csv("D:/Data/lowbwt.csv")
+#df<-read.csv("D:/Data/lowbwt.csv")
 
 # Clean
-df<- cleanit(df)
+#df<- cleanit(df)
 
 # remove a column
-df$id <-NULL
-df$bwt <-NULL
+#df$id <-NULL
+#df$bwt <-NULL
 
 # Create binary for weight 0 in >= 110
 df<-within(df, {lwd <- ifelse( lwt == 110 | lwt > 110, 0, 1)})
@@ -126,9 +124,6 @@ fit1<-glm(f1,data=df,family=binomial)
 fit2<-glm(f2,data=df,family=binomial)
 fit3<-glm(f3,data=df,family=binomial)
 
-
-reviewit(fit3)
-
 reviewit <- function(fit) {
   print(summary(fit)) # display results
   print(confint(fit)) # 95% CI for the coefficients using profiled log-likelihood
@@ -141,8 +136,11 @@ reviewit <- function(fit) {
   print(logLik(fit))
 }
 
+reviewit(fit1)
+reviewit(fit2)
+reviewit(fit3)
 
-# Make a prediction for a 30yearold using model 3
+# Make a prediction for a 30 year old using model 3
 test2<-data.frame(age=30,lwd=1)
 fitpred<-predict(fit3,test2,se.fit=TRUE)
 pi <- cbind(Prob=fitpred$fit,LCL=fitpred$fit - fitpred$se.fit*1.96,UCL=fitpred$fit + fitpred$se.fit*1.96)
@@ -151,8 +149,3 @@ pi2 <- cbind(Prob=exp(pi[,1])/(1+exp(pi[,1])),LCL=exp(pi[,2])/(1+exp(pi[,2])),UC
 #Note 59% chance of having a low birthweight baby for a black woman with lwt=100
 pi
 pi2
-
-x<-c(0,1,1)
-y<-c(2,2,8)
-fit<-lm(y~x )
-fit

@@ -6,7 +6,7 @@ library(e1071)
 library(epitools)
 
 # Build the data
-# Place the referent group first
+# Place the referent group first or use relevel command in R
 # Place the dependent variable 0 group first
 df0<- data.frame(cbind (Ind=rep("NotVet",35),Dep=rep("NotSick",35)))
 df1<- data.frame(cbind (Ind=rep("NotVet",15),Dep=rep("Sick",15)))
@@ -15,6 +15,9 @@ df0<- data.frame(cbind (Ind=rep("Vet",10),Dep=rep("NotSick",10)))
 df1<- data.frame(cbind (Ind=rep("Vet",40),Dep=rep("Sick",40)))
 total <- rbind(total, df0)
 total <- rbind(total, df1)
+
+# remove extras
+rm(df,df0,df1)
 
 #Build a table
 x<-table(total$Dep,total$Ind,deparse.level = 2)

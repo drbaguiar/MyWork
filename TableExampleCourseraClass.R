@@ -54,23 +54,23 @@ prop.table(x,2) #column
 prop.table(addmargins(x),1) #row
 prop.table(addmargins(x),2) #column
 
-#Calculate Chi Square and Cramer's V
+# Calculate Chi Square and Cramer's V
 assocstats(x)
 
-#Risk ratio
-riskratio(x)
+# Risk ratio
+#riskratio(x)
 
-#Odds ratio
+# Odds ratio
 oddsratio(x)
 
-#Chi squared test
+# Chi squared test
 chisq.test(x)
 chisq.test(x)$expected  # expected counts under the null
 chisq.test(x)$observed  # observed counts (same as M)
 chisq.test(x)$residuals # Pearson residuals
 chisq.test(x)$stdres    # standardized residuals
 
-#Data
+# Data
 # men
 #62 smoke
 #166 nonsmoker
@@ -102,21 +102,21 @@ prop.table(x,2) #column
 prop.table(addmargins(x),1) #row
 prop.table(addmargins(x),2) #column
 
-#Calculate Chi Square and Cramer's V
+# Calculate Chi Square and Cramer's V
 assocstats(x)
 
-#Risk ratio
-riskratio(x)
+# Risk ratio
+#riskratio(x)
 
-#Odds ratio
+# Odds ratio
 oddsratio(x)
 
-#Chi squared test
+# Chi squared test
 chisq.test(x)
 chisq.test(x)$expected  # expected counts under the null
 chisq.test(x)$observed  # observed counts (same as M)
 chisq.test(x)$residuals # Pearson residuals
 chisq.test(x)$stdres    # standardized residuals
 
-#Exact McNemar test (with central confidence intervals) Only for 2x2 table
+# Exact McNemar test (with central confidence intervals) Only for 2x2 table
 mcnemar.exact(x)

@@ -1,4 +1,0 @@
-MyWork
-======
-
-Playing with R

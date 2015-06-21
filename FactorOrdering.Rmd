@@ -1,0 +1,106 @@
+---
+title: "FactorOrdering"
+author: "Dr.B"
+date: "Saturday, June 20, 2015"
+output: html_document
+---
+```{r}
+# Load functions
+source('functions.R')
+```
+Factors in R come in two varieties: ordered and unordered, e.g., {small, medium, large} and {pen, brush, pencil}. For most analyses, it will not matter whether a factor is ordered or unordered. 
+
+    If the factor is ordered, then the specific order of the levels matters (small < medium < large). 
+
+    If the factor is unordered, then the levels will still appear in some order, but the specific order of the levels matters only for convenience (pen, pencil, brush) ??? it will determine, for example, how output will be printed, or the arrangement of items on a graph.
+
+One way to change the level order is to use factor() on the factor and specify the order directly. In this example, the function ordered() could be used instead of factor().
+
+Here???s the sample data:
+```{r}
+sizes <- factor(c("small", "large", "large", "small", "medium"))
+sizes
+```
+
+The levels can be specified explicitly:
+```{r}
+sizes <- factor(sizes, levels = c("small", "medium", "large"))
+sizes
+```
+
+We can do the same with an ordered factor:
+```{r}
+sizes <- ordered(c("small", "large", "large", "small", "medium"))
+sizes <- ordered(sizes, levels = c("small", "medium", "large"))
+sizes
+```
+
+Another way to change the order is to use relevel() to make a particular level first in the list. (This will not work for ordered factors.)
+```{r}
+# Create a factor with the wrong order of levels
+sizes <- factor(c("small", "large", "large", "small", "medium"))
+sizes
+
+# Make medium first
+sizes <- relevel(sizes, "medium")
+sizes
+
+# Make small first
+sizes <- relevel(sizes, "small")
+sizes
+```
+
+You can also specify the proper order when the factor is created.
+```{r}
+sizes <- factor(c("small", "large", "large", "small", "medium"),levels = c("small", "medium", "large"))
+sizes
+```
+
+To reverse the order of levels in a factor:
+```{r}
+# Create a factor with the wrong order of levels
+sizes <- factor(c("small", "large", "large", "small", "medium"))
+sizes
+
+sizes <- factor(sizes, levels=rev(levels(sizes)))
+sizes
+```
+
+Example
+```{r}
+set.seed(123)
+x <- rnorm(100)
+
+#Create a data frame with x,y, and b (b is a factor with 5 levels.  The first level is the referent group)
+df <- data.frame(x = x,y = 4 + (1.5*x) + rnorm(100, sd = 2),b = gl(5, 20))
+
+# Dep and Independent Vars define columns we will be working with
+depvar <- 'y'
+indepvars <-c('x', 'b')
+f1 <- paste(depvar,paste(indepvars,collapse=' + '),sep=' ~ ')
+m1 <- lm(f1, data = df)
+```
+
+Now alter the factor b in DF by use of the relevel() function:
+```{r}
+#Just change the referent level for b from b1 to b3
+df <- within(df, b <- relevel(b, ref = 3))
+m2 <- lm(f1,data = df)
+```
+
+For fun, let's look at simple regression with b:
+```{r}
+#Just change the referent level for b from b1 to b3
+m3 <- lm(y~x,data = df)
+```
+
+Compare m1 and m2
+```{r}
+coef(m1)
+coef(m2)
+coef(m3)
+reviewit(m1)
+reviewit(m2)
+reviewit(m3)
+```
+

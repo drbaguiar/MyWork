@@ -46,9 +46,7 @@ st.err <- function(x, na.rm=FALSE) {
 makedf <- function(z,na.rm=FALSE){
   df<-data.frame(value=z,zvalue=scale(z),LOG=log(z),sqrd=z**2,sqrt=z**(1/2),cube=z**(1/3),reciprocal=1/z,negreciprocal=-1/z)
   return (df)
-
 }
-
 
 # clean the data names and data
 # Use: df<-cleanit(df)
@@ -151,4 +149,16 @@ calcOddsRatio <- function(mymatrix,alpha=0.05,referencerow=2,quiet=FALSE)
   {
     return(oddsRatio)
   }
+}
+
+reviewit <- function(fit) {
+  print(summary(fit)) # display results
+  print(confint(fit)) # 95% CI for the coefficients using profiled log-likelihood
+  print(confint.default(fit)) # 95% CI for the coefficients using standard errors
+  print(exp(cbind(OR = coef(fit), confint(fit)))) ## odds ratios and 95% CI together
+  print(anova(fit,test='Chisq')) # or d<-anova(fit,test='LRT')
+  # get LR
+  #d$Deviance
+  # Get loglikelihood
+  print(logLik(fit))
 }
