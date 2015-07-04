@@ -31,14 +31,14 @@ df$diabetes <- factor(df$diabetes,levels=c(0,1), labels=c("No","Yes"))
 
 #SPlit into train and testing datasets
 sub = sample(nrow(df), floor(nrow(df) * 0.9))
-train = df[sub,]
-test = df[-sub,]
+dfTrain = df[sub,]
+dfTest = df[-sub,]
 
 # break apart columns into dependent and independent variables
-xTrain = train[,-9]
-yTrain = train$diabetes
-xTest = test[,-9]
-yTest = test$diabetes
+xTrain = dfTrain[,-16]
+yTrain = dfTrain$tenyearchd
+xTest = dfTest[,-16]
+yTest = dfTest$tenyearchd
 ```
 
 Set training control
@@ -58,7 +58,7 @@ The importance of features can be estimated from data by building a model. Some 
 The example below constructs an Learning Vector Quantization (LVQ) model. 
 ```{r,warning=FALSE,message=FALSE}
 # train the model
-model <- train(diabetes~., data=train, method="lvq", trControl=fitControl)
+model <- train(tenyearchd~., data=dfTrain, method="lvq", trControl=fitControl)
 # estimate variable importance
 importance <- varImp(model, scale=FALSE)
 # summarize importance
@@ -115,11 +115,11 @@ confusionMatrix(yTest, myknn)
 ```
 
 ```{r}
-modelrf<-rf_model<-train(diabetes~.,data=train,method="rf",trControl=fitControl,prox=TRUE,allowParallel=TRUE)
+modelrf<-rf_model<-train(tenyearchd~.,data=dfTrain,method="rf",trControl=fitControl,prox=TRUE,allowParallel=TRUE)
 modelrf
 summary(modelrf)
 
-predrf<-predict(modelrf, test)
+predrf<-predict(modelrf, dfTest)
 tabrf<-table(predrf,yTest)
 tabrf
 
@@ -131,11 +131,11 @@ confusionMatrix(yTest, predrf)
 
 Train using the Logistic Regression classifer
 ```{r,warning=FALSE,message=FALSE}
-modelglm<- train(yTrain~plasmaglucose+bmi+age, method='glm',data=train, family=binomial(link='logit'))
+modelglm<- train(yTrain~plasmaglucose+bmi+age, method='glm',data=dfTrain, family=binomial(link='logit'))
 modelglm
 summary(modelglm)
 
-predglm<-predict(modelglm, test, type="raw")
+predglm<-predict(modelglm, dfTest, type="raw")
 tabglm<-table(predglm,yTest)
 tabglm
 

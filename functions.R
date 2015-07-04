@@ -162,3 +162,25 @@ reviewit <- function(fit) {
   # Get loglikelihood
   print(logLik(fit))
 }
+
+getstats <- function(cm){
+  # Sensititvity a.k.a TPR
+  tpr <-cm[2,2]/(cm[2,2]+cm[2,1])
+  fpr <-cm[1,2]/(cm[1,2]+cm[1,1])
+  
+  # Specificity a.k.a. TNR
+  tnr <- cm[1,1]/(cm[1,1]+cm[1,2])
+  fnr <- cm[2,1]/(cm[2,1]+cm[2,2])
+  
+  # Calculate accuracy
+  acc <-(cm[2,2]+cm[1,1])/sum(cm)
+  err <-(cm[1,2]+cm[2,1])/sum(cm)
+  
+  #Precision - Positive Predictive Value
+  ppv <- cm[2,2]/(cm[2,2]+cm[1,2])
+  
+  # Negative Predictive Value
+  npv <- cm[1,1]/(cm[1,1]+cm[2,1])
+  
+  rbind(TruePos=tpr, FalsePos=fpr, TrueNeg=tnr, FalseNeg=fnr, PositivePredictiveValue=ppv, NegativePredictiveValue=npv, Accuracy = acc, Error = err)
+}

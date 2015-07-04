@@ -45,7 +45,7 @@ summary(predictTrain)
 tapply(predictTrain, dfTrain$poorcare, mean)
 
 # Confusion matrix for threshold
-thres<-0.3
+thres<-0.5
 cm<-table(dfTrain$poorcare, predictTrain > thres)
 addmargins(cm)
 
@@ -55,7 +55,10 @@ tpr <-cm[2,2]/(cm[2,2]+cm[2,1])
 # Specificity a.k.a. TNR
 tnr <- cm[1,1]/(cm[1,1]+cm[1,2])
 
-rbind(Sensitivity=tpr, Specificity=tnr)
+# Calculate accuracy
+acc = (cm[2,2]+cm[1,1])/sum(cm)
+
+rbind(Sensitivity=tpr, Specificity=tnr, Accuracy = acc)
 
 # Build Receiver Operator Charastics ROC
 library(ROCR)
@@ -77,7 +80,7 @@ text(0.6,1, round(auc,4))
 # our model will classify which is which correctly.
 
 # Compute test
-# Make predictions on training set
+# Make predictions on testing set
 predictTest= predict(fit, type="response", newdata=dfTest)
 
 # Analyze predictions
@@ -94,7 +97,10 @@ tpr <-cm[2,2]/(cm[2,2]+cm[2,1])
 # Specificity a.k.a. TNR
 tnr <- cm[1,1]/(cm[1,1]+cm[1,2])
 
-rbind(Sensitivity=tpr, Specificity=tnr)
+# Calculate accuracy
+acc = (cm[2,2]+cm[1,1])/sum(cm)
+
+rbind(Sensitivity=tpr, Specificity=tnr, Accuracy = acc)
 
 # Prediction function
 ROCRpredTest = prediction(predictTest,dfTest$poorcare)
@@ -127,3 +133,97 @@ pi <- cbind(Prob=fitpred$fit,LCL=fitpred$fit - fitpred$se.fit*1.96,UCL=fitpred$f
 pi2 <- cbind(Prob=exp(pi[,1])/(1+exp(pi[,1])),LCL=exp(pi[,2])/(1+exp(pi[,2])),UCL=exp(pi[,3])/(1+exp(pi[,3])))
 pi
 pi2
+
+
+## Next problem
+# Load the data
+df<-read.csv("D:/Data/framingham.csv")
+df<-cleanit(df)
+
+# count blanks remove blanks
+colSums(!is.na(df))
+#df <- na.omit(df)
+colSums(!is.na(df))
+
+# Load a library and split the data
+library(caTools)
+set.seed(1000)
+split = sample.split(df$tenyearchd, SplitRatio = 0.65)
+dfTrain = subset(df, split == TRUE)
+dfTest = subset(df, split == FALSE)
+rm(df, split)
+
+# Dep and Independent Vars define columns we will be working with
+depvar <- 'tenyearchd'
+indepvars <-c('.')
+#indepvars <-c('startedoncombination', 'providercount')
+f1 <- paste(depvar,paste(indepvars,collapse=' + '),sep=' ~ ')
+
+#Fit the model
+# fit<-glm(f1,data=dfTrain,family=binomial)
+fit<-glm(f1,data=dfTrain,family=binomial)
+#summary(fit)
+reviewit(fit)
+
+# Compute test
+# Make predictions on testing set
+predictTest= predict(fit, type="response", newdata=dfTest)
+
+# Analyze predictions
+summary(predictTest)
+tapply(predictTest, dfTest$tenyearchd, mean)
+
+# Confusion matrix for threshold
+thres <-.5
+cm<-table(dfTest$tenyearchd, predictTest > thres)
+addmargins(cm)
+
+# Establish baseline
+bl<-table(dfTest$tenyearchd)
+addmargins(bl)
+
+#Sensititvity a.k.a TPR
+tpr <-cm[2,2]/(cm[2,2]+cm[2,1])
+fpr <-cm[1,2]/(cm[1,2]+cm[1,1])
+
+# Specificity a.k.a. TNR
+tnr <- cm[1,1]/(cm[1,1]+cm[1,2])
+fnr <- cm[2,1]/(cm[2,1]+cm[2,2])
+
+# Calculate accuracy
+acc <-(cm[2,2]+cm[1,1])/sum(cm)
+err <-(cm[1,2]+cm[2,1])/sum(cm)
+  
+#Precision - Positive Predictive Value
+ppv <- cm[2,2]/(cm[2,2]+cm[1,2])
+
+#Negative Predictive Value
+npv <- cm[1,1]/(cm[1,1]+cm[2,1])
+
+rbind(TruePos=tpr, FalsePos=fpr, TrueNeg=tnr, FalseNeg=fnr, PositivePredictiveValue=ppv, NegativePredictiveValue=npv, Accuracy = acc, Error = err)
+
+# Prediction function
+ROCRpredTest = prediction(predictTest,dfTest$tenyearchd)
+
+# Performance function
+ROCRperfTest = performance(ROCRpredTest, "tpr", "fpr")
+
+# Plot ROC curve and add AUC 
+plot(ROCRperfTest, colorize=TRUE, print.cutoffs.at=seq(0,1,by=0.1), text.adj=c(-0.2,1.7))
+abline(coef=c(0,1))
+auc = as.numeric(performance(ROCRpredTest, "auc")@y.values)
+text(0.5, 1, "AUC:")
+text(0.6,1, round(auc,4))
+
+# Compute out-of-sample R^2
+SSE = sum((predictTest - dfTest$tenyearchd)^2)
+SST = sum((mean(dfTrain$tenyearchd) - dfTest$tenyearchd)^2)
+R2 = 1 - SSE/SST
+R2
+
+# Compute the RMSE
+RMSE = sqrt(SSE/nrow(dfTest))
+RMSE
+
+##prediction <- ifelse(predict(model, data, type='response') > 0.5, TRUE, FALSE)
+# predictTrain<- predict(fit, type="response", newdata=dfTrain) 

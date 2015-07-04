@@ -51,7 +51,7 @@ df$ptl<- factor(df$ptl, levels=c(0,1),labels=c("noPM","yesPML"))
 #Dep and Independent Vars
 # define columns we will be working with
 depvar <- 'low'
-#indepvar <- 'race'
+#indepvars <- 'race'
 indepvars <-c('lwt','race')
 
 # two-way contingency table of categorical outcome and predictors we want
@@ -123,18 +123,6 @@ f3 <-paste(depvar,paste(indepvarsinter,collapse=' + '),sep=' ~ ')
 fit1<-glm(f1,data=df,family=binomial)
 fit2<-glm(f2,data=df,family=binomial)
 fit3<-glm(f3,data=df,family=binomial)
-
-reviewit <- function(fit) {
-  print(summary(fit)) # display results
-  print(confint(fit)) # 95% CI for the coefficients using profiled log-likelihood
-  print(confint.default(fit)) # 95% CI for the coefficients using standard errors
-  print(exp(cbind(OR = coef(fit), confint(fit)))) ## odds ratios and 95% CI together
-  print(anova(fit,test='Chisq')) # or d<-anova(fit,test='LRT')
-  # get LR
-  #d$Deviance
-  # Get loglikelihood
-  print(logLik(fit))
-}
 
 reviewit(fit1)
 reviewit(fit2)
