@@ -30,4 +30,5 @@ consumerKey <- "jYEGXw87lkgjitQqUIBVcnUzE"
 consumerSecret <- "oOsXCQQvdzujOamHALWLWB4Hv22Whjilou7gcspTAk1jydTBcm"
 twitCred <- OAuthFactory$new(consumerKey=consumerKey,consumerSecret=consumerSecret,requestURL=reqURL,accessURL=accessURL,authURL=authURL)
 twitCred$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
-registerTwitterOAuth(twitCred)
+setup_twitter_oauth(consumerKey, consumerSecret, access_token=NULL, access_secret=NULL)
+11registerTwitterOAuth(twitCred)

@@ -1,0 +1,260 @@
+--
+title: "Logistic Regression. Week06"
+author: "Course Notes by Fernando San Segundo"
+date: "May 2015"
+output: 
+  html_document:
+    toc: true 
+---
+
+
+## Introduction
+
+These are my notes for the lectures of the [Coursera course "Introduction to Logistic Regression"](https://class.coursera.org/logisticregression-001/) by Professor Stanley Lemeshow. The goal of these notes is to provide the R code to obtain the same results as the Stata code in the lectures. Please read the *Preliminaries* of the code for lecture 1 for some details.
+
+# Reading the low birth weight data file and creating a data frame.
+
+This example uses the `LOWBWT` data set. You can get the data set in txt format from the book web site, as described in my [notes for Week1 of the course](https://rpubs.com/fernandosansegundo/82655). We read the full data set into R:
+
+```{r}
+LOWBWT = read.csv("D:/Data/LOWBWT.csv")
+```
+
+We convert `LOW`, `SMOKE` and `RACE` to factors, to let R handle them automatically in the modelling process.
+
+```{r}
+LOWBWT$SMOKE = factor(LOWBWT$SMOKE)
+LOWBWT$RACE = factor(LOWBWT$RACE)
+```
+
+We are going to use strings to label the `RACE` factor levels. Some care is needed in the code below because of this choice, but in return the tables are much easier to read.
+
+```{r}
+levels(LOWBWT$RACE) = c("White", "Black", "Other")
+```
+
+
+The global (non stratified) contingency table for `LOW` vs `SMOKE` is given by:
+
+```{r}
+nonStraTable = with(LOWBWT, table(LOW, SMOKE))
+addmargins(nonStraTable)
+```
+
+Note that `with` can be used in an R sentence to avoid (ab)using the `$` notation while accessing the variables in a data frame. 
+
+In what follows we will we computing the odds ratio for a number of contingency tables, so we may as well define a function to do it:
+
+```{r}
+OddsRatio = function(T){
+  T[1, 1] * T[2, 2] / (T[1, 2] * T[2, 1])
+}
+```
+
+Let's check that it works by computing the crude (again, non stratified) odds ratio:
+
+```{r}
+(crudeOR = OddsRatio(nonStraTable))
+```
+
+# Contingency tables and odds ratio for each of the `RACE` levels.
+
+To get contingency tables stratified by levels of `RACE` we simply add the factor to the arguments of table.  
+
+```{r}
+(straTable = with(LOWBWT, table(LOW, SMOKE, RACE)))
+```
+
+By the way, this is the first instance where we see the advantage of using strings to label the `RACE` levels. 
+
+The resulting R object `straTable` is an *array*, the multidimensional analogue of a matrix. You can access the individual tables using dimension numbers, but in this case it is probably better to use the labels as in:
+
+
+```{r}
+straTable[, , "Black"]
+```
+
+
+We can now use our function to get the odds ratio for each of these tables:
+
+```{r}
+sapply(levels(LOWBWT$RACE), FUN = function(x){OddsRatio(straTable[ , ,x])})
+```
+
+
+# Mantel-Haenszel estimator
+
+The function `OR.MH` whose code appears below outputs a list with the Mantel-Haenszel estimator of the common OR and the table used to compute that estimator (see the table in page 6 of the lecture pdf).
+
+The arguments of the function are:
+
+  * A dichotomous response variable `Y` (`LOW` in the example),
+  * a dichotomous risk factor `F` (`SMOKE` in the example)
+  * and the stratifying factor `S` (`RACE` in the example)
+
+See below for some comments about the R code. 
+
+```{r}
+
+OR.MH = function(Y, F , S){
+  T = table(Y, F, S)
+  MHtable = mapply(seq(levels(S)), FUN = function(x){
+    Tx = straTable[ , ,x]
+    N = sum(Tx)
+    ADdivN = (Tx[1, 1] * Tx[2,2])/N
+    BCdivN = (Tx[1, 2] * Tx[2,1])/N
+    return(c( c(t(Tx)), N, ADdivN, BCdivN))
+    })
+  MHtable = t(MHtable)
+  MHtable = signif(MHtable, 4)
+  colnames(MHtable) = c(letters[1:4], "Ni", "a*d/N", "b*c/N")
+  row.names(MHtable) = levels(S)
+  numerOR = sum(MHtable[,"a*d/N"])
+  denomOR = sum(MHtable[,"b*c/N"]) 
+  OR =  numerOR / denomOR
+  return(list(MHtable= MHtable, numerOR=numerOR, denomOR=denomOR, OR = OR))
+}
+
+## Applying the function:
+
+with(LOWBWT, OR.MH(Y = LOW, F = SMOKE, S = RACE))
+
+```
+
+* The `mapply` function is used to apply the same set of operations to the contingency table for a fixed level `x` of the factor `S`. Note that we use `seq` to loop over the levels of `S` in the call to `mapply`.
+* The `c(t(Tx))` part of the return value is a trick to get the values of `a, b, c, d` in order. `t(Tx)` is the transpose of the contingency table, and applying  `c` converts any matrix (or table or array) to a vector, in *column-first* order. That is why we need to transpose, to get `a, b, c, d` instead of `a, c, b, d` which is R's default behavior.
+
+
+Base R includes a function `mantelhaen.test` that returns the same common odds ratio estimator as part of its output:
+
+```{r}
+(MH = mantelhaen.test(straTable, correct = FALSE))
+```
+
+Be careful when interpreting the results of this function. The null hypothesis being tested here is **not** the homogeneity of the odds ratio. The null of this function (as the output remarks) is that the true common odds ratio is not equal to 1, *assuming that homogeneity holds and there is such thing as a common odds ratio*. Thus, this test should only be performed *after* homogeneity has been established. I'm including it here as a quick way to get to the value of the estimator. 
+
+
+# Weighted logit-based estimator for the common (pooled) OR.
+
+As with the previous estimator, I have created a function to obtain the table on page 8 of the lecture pdf, that leads to the logit-based estimator for the common odds-ratio. The code is similar to the previous function, and the comments for that function apply here as well. 
+
+```{r}
+OR.logit = function(Y, F , S){
+  T = table(Y, F, S)
+  logitTable = mapply(seq(levels(S)), FUN = function(x){
+    Tx = straTable[ , ,x]
+    OR = OddsRatio(Tx)
+    logOR = log(OR)
+    VarLogOR =  sum(1/Tx)
+    w = 1/VarLogOR
+    wLogOr = w * logOR
+    return(c( c(t(Tx)), OR, logOR, VarLogOR, w, wLogOr))
+    })
+  logitTable = t(logitTable)
+  logitTable = signif(logitTable, 4)
+  colnames(logitTable) = c(letters[1:4], "OR", "ln(OR)", "Var(ln(OR))", "w", "w ln(OR)")
+  row.names(logitTable) = levels(S)
+  ORestimate = exp(sum(logitTable[ , "w ln(OR)"]) / sum(logitTable[ ,"w"])) 
+  return(list(logitTable= logitTable, ORestimate = ORestimate))
+}
+
+# Applying the function:
+(OR.logit.LOWBWT = with(LOWBWT, OR.logit(LOW, SMOKE, RACE)))
+```
+
+# Homogeneity test of the OR across strata, based on weighted sum of squared deviations.
+
+The table on page 9 of the lecture pdf is built upon the results of the logit-based estimator for the common OR. The following function takes the table that we get as a result of `OR.logit` and outputs a list with:
+
+* A table as the one in page 9 a new table, containing the computations required for the homogeneity test. 
+* The value of the statistic for that test.
+* The p-value of the test.
+* The degrees of freedom. 
+
+```{r}
+HomogTest = function(OR.logit){
+  K = cbind(OR.logit[[1]][, 6], rep(log(OR.logit[[2]]), nrow(OR.logit[[1]])))
+  K = cbind(K, (K[ ,1] - K[ , 2])^2)
+  K = cbind(K , OR.logit[[1]][, 8], K[ ,3] * OR.logit[[1]][, 8])
+  chiSq = sum(K[ , 5]) 
+  pValue = pchisq(chiSq, df= nrow(OR.logit[[1]]) - 1, lower.tail = FALSE)
+  return(list(values = K, chiSq = chiSq, pValue=pValue , df=nrow(OR.logit[[1]]) - 1) )
+}
+
+## Applying it to the data:
+
+HomogTest(OR.logit.LOWBWT)
+```
+
+## Breslow-Day
+
+I have found the following page with R code for the Breslow Day homogeneity test.  
+
+[http://www.math.montana.edu/~jimrc/classes/stat524/Rcode/breslowday.test.r](http://www.math.montana.edu/~jimrc/classes/stat524/Rcode/breslowday.test.r)
+
+We can get that code into R directly from the URL using `source`. **BUT BE CAREFUL!!** You should always check it before running code from an external URL like this, to avoid exposing your system to potentially harmful code. Uncomment the first line below if you are sure that you want to run this code. I ave also included the output I got from that test.   
+
+
+```{r eval=FALSE}
+# source("http://www.math.montana.edu/~jimrc/classes/stat524/Rcode/breslowday.test.r")
+# breslowday.test(straTable)
+
+## ### OUTPUT FOR OUR DATA:
+##            White     Black     Other
+## log OR 1.7505165 1.1939225 0.2231436
+## Weight 0.2653745 0.6401681 0.3989697
+##        OR      Stat        df    pvalue 
+## 3.0863813 2.9227163 2.0000000 0.2319211 
+```
+
+
+# Homogeneity analysis through logistic regression
+
+In order to use logistic regression for the homogeneity analysis we are going to build the three models described in the lecture. This modelling step is already well known to us, so I proceed directly to get the results shown in the lecture pdf:
+
+The first (*crude*) model is the one without the variable `RACE`:
+
+```{r}
+model1 = glm(LOW ~  SMOKE, family = binomial(link = "logit"), data = LOWBWT)
+(summ1 = summary(model1))
+(OR1 = exp(coefficients(model1)[2]))
+logLik(model1)
+```
+
+The next model includes `RACE` without interaction term:
+
+```{r}
+model2 = glm(LOW ~  SMOKE + RACE, family = binomial(link = "logit"), data = LOWBWT)
+(summ2 = summary(model2))
+(OR2 = exp(coefficients(model2)["SMOKE1"]))
+logLik(model2)
+```
+
+The odds ratio provided by this model (which equals `r signif(OR2, 3)`) is an alternative estimate of the common odds ratio under the homogeneity hypothesis.
+
+The likelihood ratio test comparing this model to the previous one is performed as follows:
+
+```{r}
+(Gmodel2 = summ1$deviance - summ2$deviance) 
+(pValue2 = pchisq(Gmodel2, df = summ2$df[1] - summ1$df[1], lower.tail = FALSE))
+```
+
+And the final model is the one with the interaction term:
+
+```{r}
+model3 = glm(LOW ~  SMOKE * RACE, family = binomial(link = "logit"), data = LOWBWT)
+(summ3 = summary(model3))
+logLik(model3)
+```
+In this case we are not really interested in the odds ratio estimated by this model. 
+
+The likelihood ratio test comparing this model to the previous one is:
+
+```{r}
+(Gmodel3 = summ2$deviance - summ3$deviance) 
+(pValue3 = pchisq(Gmodel3, df = summ3$df[1] - summ2$df[1], lower.tail = FALSE))
+```
+
+and the conclusion, as explained in the lecture, is that homogeneity holds (odds ratios across different `RACE` levels are within sampling variability).   
+
+

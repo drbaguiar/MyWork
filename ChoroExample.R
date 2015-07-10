@@ -1,0 +1,5 @@
+library(rUnemploymentData)
+data(df_county_unemployment)
+boxplot(df_county_unemployment[, c(-1, -2, -3)],main="USA County Unemployment Data",xlab="Year",ylab="Percent Unemployment")
+county_unemployment_choropleth(year=2009)
+#animated_county_unemployment_choropleth()

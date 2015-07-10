@@ -1,0 +1,382 @@
+---
+title: "Logistic Regression. Week07"
+author: "Course Notes by Fernando San Segundo"
+date: "May-June 2015"
+output: 
+  html_document:
+    toc: true 
+---
+
+
+
+## Introduction
+
+These are my notes for the lectures of the [Coursera course "Introduction to Logistic Regression"](https://class.coursera.org/logisticregression-001/) by Professor Stanley Lemeshow. The goal of these notes is to provide the R code to obtain the same results as the Stata code in the lectures. Please read the *Preliminaries* of the code for lecture 1 for some details.
+
+# Reading the low birth weight data file and creating a data frame
+
+In this lecture we will use again the `LOWBWT` data set. You can get the data set in txt format from the book web site, as described in my [notes for Week1 of the course](https://rpubs.com/fernandosansegundo/82655). We read the full data set into R:
+
+```{r}
+LOWBWT = read.csv("D:/Data/lowbwt.csv", header = TRUE)
+```
+
+In this lecture we wil consider a logistic model where the response variable is `LOW` and the covariates are `LWT` and `RACE`. In order to do that we convert `RACE` to a factor as usual, to let R handle it automatically in the modelling process.
+
+```{r}
+LOWBWT$RACE = factor(LOWBWT$RACE)
+```
+
+As in the previous lecture we are going to use strings to label the `RACE` factor levels. 
+
+```{r}
+levels(LOWBWT$RACE) = c("White", "Black", "Other")
+```
+
+And now we update the data frame to contain only the variables we include in the model:
+
+```{r}
+LOWBWT = with(LOWBWT, data.frame(LOW, LWT, RACE) )
+```
+
+# Covariate patterns
+
+Let us begin with the notion of covariate patterns. To illustrate this, we consider a cross table of  the two covariates `LWT` and `RACE`:
+
+```{r}
+table(LOWBWT$RACE ,LOWBWT$LWT)
+```
+
+Every non-zero number in this table corresponds to a covariate pattern (a *bin*) and the number itself tells us how many observations belong to that particular pattern. For example, there are 5 women in the coavariate pattern defined by  `(LWT==110, RACE="Other")`.  The numbers in this table are the $m_j$ on page 4 of the lecture notes. 
+
+We can count the number of different covariate patterns (that is, the number $J$) with a standard R trick with booleans as follows (R converts `TRUE` values to 1s and `FALSE` values to 0s):
+
+```{r}
+(numCovPatt = sum(table(LOWBWT$RACE ,LOWBWT$LWT) >= 1))
+```
+
+This result is used on page 21 of the lecture pdf to compute the Pearson $\chi^2$ statistic. 
+
+## Using `epi.cp`
+
+Though the above manual solution can be used for our purposes sometimes you may prefer a more complete and safer approach, using the function `epi.cp` provided by the `epiR` library (remember to install it if you haven't already).  This function returns a list with two components, where the first one (called `cov.pattern`) is a data frame with information about the the covariate patterns. I'll just show you the first and last rows of the data frame (check the [help for the function](http://artax.karlin.mff.cuni.cz/r-help/library/epiR/html/epi.cp.html) if you want to know more details). 
+
+```{r}
+library(epiR)
+LOWBWT.cp = epi.cp(data.frame(LOWBWT$LWT, LOWBWT$RACE))
+CovPatt = LOWBWT.cp$cov.pattern
+names(CovPatt)[3:4] = c("LWT", "RACE")
+head(CovPatt)
+tail(CovPatt)
+```
+The column labeled `n` contains the number that we denoted $m_j$  for each covariate pattern. I'll store them in a vector for later use. 
+
+```{r}
+mj = CovPatt$n
+```
+
+The column `id` is an identifier for the covariate pattern correspoding to each observation and we will return to it below. Again, you see that we have `r nrow(CovPatt)` covariate patterns. By the way, don't be confused by the 188 appearing here: the component `cov.pattern` of the return value of `epi.cp` is a data frame, and the row names of that data frame are therows of the *original data frame* (in this case `LOWBWT`)  where a particular covariate pattern was first found. Thus, 188 means that the last (that is, the 109th) covariate pattern was first found in the 188th line of `LOWBWT`. 
+
+## The $y_j$ values
+
+The result provided by `epi.cp` has a second component (besides `cov.pattern`) called `id`, which is a vector with values from 1 to 109 that can be used to classify the observations into covariate patterns. If we add that vector to the data frame:
+
+```{r}
+LOWBWT$cpId = LOWBWT.cp$id
+```
+
+we can then get the $y_j$ numbers for each of the covariate patterns as follows:
+
+```{r}
+with(LOWBWT, table(LOW, cpId))
+```
+
+The header for each column in this table is an identifier for a particular covariate pattern. For example, the 3 observations with identifier 43 are
+
+```{r}
+LOWBWT[LOWBWT$cpId==43, ]
+```
+and as the previous table shows, you can see that two of them have `LOW==0` while the remaining one has `LOW==1`. Thus the $y_j$ are the values that appear in the second row of the table. 
+
+```{r}
+CovPatt$yj = tapply(LOWBWT$LOW, LOWBWT$cpId, FUN = sum)
+```
+
+
+And we can check that their sum equals the number of subjects with $y=1$ (recall $y$ is `LOW`):
+
+```{r}
+sum(CovPatt$yj)
+sum(LOWBWT$LOW)
+```
+
+
+# Logistic model and deciles of risk
+
+The deciles of risk described on pages 6-8 of the lecture pdf are computed from the predicted probabilities of the logistic model. Thus, let us fit the model to our data:
+
+```{r}
+glmLOWBWT = glm(LOW ~  LWT + RACE, family = binomial(link = "logit"), data = LOWBWT)
+(summ1 = summary(glmLOWBWT))
+```
+
+
+The predicted probabilities can be obtained with the `fitted` function (we have seen other ways in the R code for previous lectures). Let's add them to the data and  see how they look like:
+```{r}
+LOWBWT$fit = fitted(glmLOWBWT)
+head(LOWBWT$fit)
+tail(LOWBWT$fit)
+```
+
+
+To define the deciles we are going to use the `quantile` function. This is always a delicate step, since there are many methods to estimate the quantiles of a data set. In fact, the `quantile` functions has an argument called `type` which can be used to select between 9 different methods. See the [help file for `quantile`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html). In order to reproduce the results of Stata I have used `type = 6`. A different method can lead to different values of the risk deciles (experiment this by yourself, changing the value of `type`). 
+```{r}
+(cutPoints = quantile(fitted(glmLOWBWT),probs = (0:10)/10, type = 6))
+```
+
+Now that the cut points for the deciles have been selected we use `cut` to define a factor `riskDecile` that classifies the values of the fitted probabilities into decilic classes. Then we add the factor to the data frame. Here again we have to be careful. The `cut` function has two optional arguments that determine the resulting classification:
+
+- The argument `right` is used to decide whether the decilic classes are right-closed (and left-open) intervals or viceversa.
+- The argument `include.lowest` makes the first (or last, depending on `right`) interval be closed, to include the boundary points of the data set.
+
+In the code below these arguments are set to reproduce the results obtained with Stata that appear in the lecture pdf. If you want to reproduce the Systat results change `right=TRUE` to `right=FALSE`. 
+
+```{r}
+LOWBWT$riskDecile = cut(fitted(glmLOWBWT), breaks = cutPoints, include.lowest = TRUE, right = TRUE)
+table(LOWBWT$riskDecile)
+```
+
+Next the values of `LOW` for the observations in each decilic class are sumed to obtain the observed values of $y=1$. The `tapply` function is the tool for this job, applying an operation (the sum in this case) across the values of a factor.
+
+```{r}
+(Obs1 = with(LOWBWT, tapply(LOW, INDEX = riskDecile, FUN = sum)) )
+```
+
+The same operation, this time applied to the fitted probabilities gives the expected values of $y=1$.
+
+```{r}
+(Exp1 = with(LOWBWT, tapply(fit, INDEX = riskDecile, FUN = sum)) )
+```
+
+And since we know the number of observations in each decilic class, the observed and expected values for $y = 0$ are obtained by subtracting:
+
+```{r}
+(Obs0 = table(LOWBWT$riskDecile) - Obs1)
+
+(Exp0 = table(LOWBWT$riskDecile) -Exp1)
+
+```
+
+We can put all of the above values in a table like the one on page 21 of the lecture pdf with this commands.
+
+```{r}
+tablePg21 = data.frame(
+  Prob = levels(LOWBWT$riskDecile),
+  Obs1 = as.vector(Obs1), 
+  Exp1 = as.vector(Exp1), 
+  Obs0 = as.vector(Obs0), 
+  Exp0 = as.vector(Exp0), 
+  Total = as.vector(table(LOWBWT$riskDecile) )
+  )
+row.names(tablePg21) = NULL
+```
+
+I will use the `xtable` library to get the table in a fancier HTML format (you can use it to get LaTeX format as well).
+
+```{r results='asis', eval=FALSE, comment=NULL}
+library(xtable)
+print(xtable(tablePg21, align = "ccccccc"), type="html", comment=FALSE)
+```
+
+And you can play with CSS to fiddle with the column width, etc. Here I will go with the defaults: 
+
+```{r results='asis', echo=FALSE}
+library(xtable)
+print(xtable(tablePg21, align = "ccccccc"), type="html", comment=FALSE)
+```
+
+#### Plot of the observed vs expected pairs
+
+We can use the above results to get this plot. I have labeled the points with the number of the correspondng decilic class to make it easier to check which ones fall far from the diagonal line.
+
+```{r fig.align='center', fig.width=5, fig.height=5}
+(maxX = max(c(range(Obs1), range(Exp1))))
+plot(c(0, maxX), c(0, maxX), asp=1, type="l", xlab="Observed y=1", ylab="Expected y=1")
+points(Obs1, Exp1, asp=1)
+text(Obs1, Exp1, 1:10, pos=4, col="firebrick")
+abline(a = 0, b=1)
+```
+
+# Pearson Chi-Square Statistic
+
+To obtain the Pearson $\chi^2$ statistic we begin by constructing the fitted values $\hat{y}_j$ for each covariate pattern. In order to do this we can apply the `predict` function to the `CovPatt` data frame that we created before (R will choose the relevant variables by their names). As we have already seen in previous lectures, when we use the option `response` the predicted values are the probabilities $\hat{\pi}_j$.
+
+```{r}
+CovPatt$prob = predict(glmLOWBWT, newdata = CovPatt, type = "response")
+```
+
+The $m_j$ are stored in the `n` variable of `CovPatt`, so the $\hat{y}_j$ are obtained as follows:
+
+```{r}
+CovPatt$hat_yj = with(CovPatt, n * prob) 
+```
+
+And now the Pearson residuals $r_j$  are:
+
+```{r}
+CovPatt$residual = with(CovPatt, (yj - hat_yj)/sqrt(hat_yj * (1 - prob)))
+```
+
+Finally, the Pearson $\chi^2$ statistic is:
+
+```{r}
+(Pearson.statistic = sum((CovPatt$residual)^2))
+```
+
+You can check this result against the Stata output on page 21 of the lecture pdf. The degrees of freedom are:
+
+```{r}
+(p = length(glmLOWBWT$coefficients) - 1) 
+(J = length(CovPatt$n))
+(Pearson.df = J - (p + 1))
+```
+
+Here $p$ is the number of variables in the logistic model (and remember that each dummy variables is counted individually). The p-value is therefore (again, check with page 21 in the pdf):
+
+```{r}
+(Pearson.pvalue = pchisq(Pearson.statistic, df = Pearson.df, lower.tail = FALSE))
+```
+
+However, as we have been warned in the lecture, it is not a good idea to use this test to decide about the goodness of fit of our model.So let's turn to something better.
+
+# Hosmer-Lemeshow test
+
+To define the Hosmer - Lemeshow statistic we will use the first grouping strategy described in the lecture pdf. This means that we can directly use the $2\times J$ contingency table of observed and expected values for decilic classes that we constructed before. The Hosmer - Lemeshow statistic is:
+
+```{r}
+(HL.statistic = sum((Obs1 - Exp1)^2/Exp1) + sum((Obs0 - Exp0)^2/Exp0))
+```
+
+Check against the Stata result on page 21. The degrees of freedom are:
+
+```{r}
+(HL.df = length(Obs1) - 2)
+```
+
+And the p-value is
+
+```{r}
+(HL.pValue =  pchisq(HL.statistic, df = HL.df, lower.tail = FALSE))
+```
+
+
+### Using the `ResourceSelection` library
+
+If you [google for "R Hosmer Lemeshow test"](https://www.google.es/search?q=R+Hosmer+Lemeshow+test) you will come across the `ResourceSelection` library. The library includes a `hoslem.test` function to perform the Hosmer - Lemeshow test. The result in our case is: 
+
+```{r}
+library(ResourceSelection)
+(HL= hoslem.test(LOWBWT$LOW, fitted(glmLOWBWT)))
+```
+
+And as you can see the results are slightly different from what we got. The output of the function also includes a table of observed and expected values (I have rearranged the rows to make them look similar to the table in the pdf for this lecture)
+
+```{r}
+t(cbind(HL$observed, HL$expected))[c(1, 3, 2, 4), ]
+```
+
+This makes me think that the difference is in the method used for the definition of the decilic classes. But I have not had the chance to find out what definition of decilic classes is being used in the `hoslem.test` function. 
+
+**Update: ** I think that using this code to define the decilic risk classes will reproduce the results in the `hoslem.test`function.
+
+```{r eval=FALSE, comment=NULL}
+g=10
+(cutPoints = quantile(fitted(glmLOWBWT), probs=seq(0, 1, 1/g)))
+LOWBWT$riskDecile = cut(fitted(glmLOWBWT), breaks = cutPoints, include.lowest = TRUE, right = TRUE)
+```
+
+
+# ROC curve and discrimination
+
+When dealing with the ROC curve in R the simplest way to proceed is to use the `ROCR` library:
+
+```{r}
+library(ROCR)
+```
+
+Now, to use the library we begin by creating a *prediction* object, from the fitted values and the real values of the response variable `LOW`: 
+
+```{r}
+LOWBWT.pred = prediction(predictions = glmLOWBWT$fitted.values, labels = LOWBWT$LOW)
+```
+
+Using this prediction object we can ask `ROCR` to compute a series of performance measures for the logistic model classifier. In order to do that we use a function called precisely `performance`. It can be used for example to obtain vectors of values of sensibility (true positive rate) or specificity (false positive rate) for different cutoff values.
+
+```{r}
+sens = performance(LOWBWT.pred, measure = "sens")
+```
+
+Before going further, some remarks are in order. R, as an object oriented language, has two systems of classes, called S3 and S4. The result of calling `performance` ia an object of type S4, consisting of *slots*. We can access these slots using \@ (instead of the familiar \$). For example, to access the cutoff values we use:
+
+```{r}
+cutoffs = sens@x.values[[1]]
+head(cutoffs)
+```
+
+Similarly for the sensibility values themselves:
+```{r}
+sensibility = sens@y.values[[1]]
+head(sensibility)
+```
+
+And for the specificity (the cutoffs are the same):
+
+
+```{r}
+spec = performance(LOWBWT.pred, measure = "spec")
+specificity = spec@y.values[[1]]
+head(specificity)
+```
+
+I'm not going into many details here, you can check the help file for the `ROCR` or the many blog posts dealing with this library. We are going to use this library  to obtain a joint plot of sensitivity and specificity versus probability cutoff. I have played with several graphics options to make the plot resemble the graph on page 26 of the lecture pdf. 
+
+```{r fig.align='center', fig.width=9, fig.height=5}
+plot(c(0, 1), c(0, 1), xlab="Probability cutoff", ylab="Sensitivity / Specificity", type="n", asp=1)
+points(cutoffs, specificity, type="l", col="firebrick")
+points(cutoffs, specificity, pch=".", cex=6, col="firebrick")
+points(cutoffs, sensibility, type="l", col="dodgerblue4")
+points(cutoffs, sensibility, pch=".", cex=6, col="dodgerblue4")
+segments(x0 = max(cutoffs[cutoffs!=Inf]), y0 = 1, x1 = 1, y1 = 1, col="firebrick")
+segments(x0 = max(cutoffs[cutoffs!=Inf]), y0 = 0, x1 = 1, y1 = 0, col="dodgerblue4")
+points(1, 0, cex=6, pch=".", col="dodgerblue4")
+points(1, 1, cex=6, pch=".", col="firebrick")
+legend(x="right", legend=c("Specificity", "Sensitivity"),  
+       col = c("red", "blue"), bty=1, lwd=3,cex=1.5)
+```
+
+
+Now, in order to plot the ROC curve we use performance in a slightly different way, with the two measures of performance (sensitivity and false positive rate) that appear along the axes of the ROC curve: 
+
+```{r}
+ROCcurve = performance( LOWBWT.pred, measure="sens", x.measure="fpr")
+```
+
+And now we can plot the curve:
+
+```{r fig.align='center', fig.width=5, fig.height=5}
+plot(ROCcurve, lwd=3, lty=1, col="dodgerblue4", asp=1)
+abline(a=0, b=1, lwd=3, lty="dashed")
+```
+
+and in order to compute the AUC (area under the curve) we only need to call performance again:
+
+```{r}
+AUC = performance(LOWBWT.pred,"auc")
+AUC@y.values
+```
+
+Note that the curve that appears on page 31 of the lecture pdf is **not** the ROC curve for the `LOWBWT` logistic model in this lecture. 
+
+---
+
+Thanks for your attention!

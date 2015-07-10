@@ -1,0 +1,214 @@
+---
+title: "Logistic Regression. Week05"
+author: "Course Notes by Fernando San Segundo"
+date: "May 2015"
+output: 
+  html_document:
+    toc: true 
+---
+
+```{r echo=FALSE, eval=FALSE}
+opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
+```
+
+## Introduction
+
+These are my notes for the lectures of the [Coursera course "Introduction to Logistic Regression"](https://class.coursera.org/logisticregression-001/) by Professor Stanley Lemeshow. The goal of these notes is to provide the R code to obtain the same results as the Stata code in the lectures. Please read the *Preliminaries* of the code for lecture 1 for some details.
+
+#### <font color="red">Warning about the data sets:</font> 
+
+The first slides for this lecture (approx. up to slide 20) contain two examples for which the source data is not available. I have given some thought to the idea of simulating the data from the models, but unfortunately I don't have the time for that. Thus in this document I will only deal with the last example in this weeks lecture, beginning from slide 26.
+
+
+#Example with the low birth weight data
+
+## Reading the data file and creating a data frame.
+
+This example uses the `LOWBWT` data set. You can get the data set in txt format from the book web site, as described in my [notes for Week1 of the course](https://rpubs.com/fernandosansegundo/82655). We read the full data set into R:
+
+```{r}
+LOWBWT = read.csv("D:/Data/LOWBWT.csv")
+```
+
+But since we are only going to use three variables, I will redefine the data set. Besides, the `LWD` is defined as a factor from the `LWT` variable in the original data. 
+
+```{r}
+(Y = LOWBWT$LOW)
+(LWD = factor(ifelse(LOWBWT$LWT >= 110, yes = 0, no = 1)))
+
+(AGE = LOWBWT$AGE)
+
+LOWBWT = data.frame(Y, LWD, AGE)
+
+```
+
+## Logistic models
+
+The construction of the logistic models follows our usual routine. To keep in sync with the results in the lecture, we begin with a null model:
+
+```{r}
+model0 = glm(Y ~  1, family = binomial(link = "logit"), data = LOWBWT)
+(summ0 = summary(model0))
+logLik(model0)
+```
+
+Next we consider a model with the dichotomous `LWD` as a predictor. We also compute the G statistic for this model and the corresponding p-value of a likelihood ratio test.
+
+```{r}
+model1 = glm(Y ~  LWD, family = binomial(link = "logit"), data = LOWBWT)
+(summ1 = summary(model1))
+logLik(model1)
+(Gmodel1 = summ1$null.deviance - summ1$deviance) 
+(pValue1 = pchisq(Gmodel1, df = 1, lower.tail = FALSE))
+```
+
+Note that the value `summ1$null.deviance` equals the deviance of `model0`:
+```{r}
+summ1$null.deviance
+summ0$deviance
+```
+
+The next model adds `AGE` as a covariate: 
+
+```{r}
+model2 = glm(Y ~  LWD + AGE, family = binomial(link = "logit"), data = LOWBWT)
+(summ2 = summary(model2))
+logLik(model2)
+(Gmodel2 = summ1$deviance - summ2$deviance) 
+(pValue2 = pchisq(Gmodel2, df = 1, lower.tail = FALSE))
+```
+
+And finally, we consider a model with an interaction term. This model is defined in R by using an asterisk: 
+```{r}
+model3 = glm(Y ~  LWD * AGE, family = binomial(link = "logit"), data = LOWBWT)
+(summ3 = summary(model3))
+logLik(model3)
+(Gmodel3 = summ2$deviance - summ3$deviance) 
+(pValue3 = pchisq(Gmodel3, df = 1, lower.tail = FALSE))
+```
+
+Let me mention that an equivalent definition of the model formula is `Y ~  LWD +  AGE + LWD:AGE` (the syntax for model definition in R may seem strange at first, but you will get used to it with practice; you might start by taking a look at the help for `formula`).
+
+## Log Odds Ratio estimate for a given age in the model with interaction. 
+
+To estimate the log odds ratio and its variance we are going to need the variance - covariance matrix for this model. That is:
+
+```{r}
+(vcov3 = vcov(model3))
+```
+
+
+Now, to make our work easier, we define two functions to get the estimates for the log odds ratio and the variance:
+
+```{r}
+LogOR = function(a){
+  coefficients(model3)["LWD1"] +  coefficients(model3)["LWD1:AGE"] * a 
+}
+
+VarLogOR = function(a){
+    vcov3[2, 2] + a^2 * vcov3[4, 4] + 2 * a * vcov3[2, 4]
+}
+```
+
+For example, for a woman aged 30 we get:
+
+
+```{r}
+LogOR(30)
+
+VarLogOR(30)
+```
+
+These values are slighlty different from the values in the lecture pdf (2.016 and 0.452, respectively). A rounding problem, perhaps?
+
+
+## Computing log odd ratios for a set of age values
+
+Using the functions we defined previously, we can easily generalize the above computations to any vector of age values:
+
+```{r}
+(ageValues = 15:45)
+```
+
+The corresponding estimates for the log odds ratios and variances are
+
+```{r}
+
+(LogOR.ageValues = LogOR(ageValues))
+
+(VarLogOR.ageValues = VarLogOR(ageValues))
+```
+
+You can check these values against the odds ratio that appear in the table on page 30 of the lecture pdf. That table contains only a subset of the values displayed here. I have made the vector into a named vector (with the age as name) to make it easier to check the values.
+
+```{r}
+OR_ageValues = round(exp(LogOR(ageValues)), 1)
+names(OR_ageValues) = ageValues
+OR_ageValues
+```
+
+
+## Graph of the estimated logit confidence intervals
+
+We are going to plot the above values of the log odd ratios, using the variances to obtain the confidence intervals (note that it is a 90% ci). 
+
+```{r picture1, fig.height=7, fig.align='center', fig.width=9}
+par(lwd=4)
+plot(ageValues, LogOR.ageValues, type = "l", col="orange", xlim = c(15,35), ylim=c(-2, 5),
+     xlab="AGE", ylab="LogOdds")
+points(ageValues, LogOR.ageValues, , pch = "·", cex=4, col="orange")
+points(ageValues, LogOR.ageValues + qnorm(0.95) * sqrt(VarLogOR.ageValues), type = "l", col="brown")
+points(ageValues, LogOR.ageValues + qnorm(0.95) * sqrt(VarLogOR.ageValues), pch = "·", cex=4, col="brown")
+points(ageValues, LogOR.ageValues - qnorm(0.95) * sqrt(VarLogOR.ageValues), type = "l", col="blue")
+points(ageValues, LogOR.ageValues - qnorm(0.95) * sqrt(VarLogOR.ageValues), pch = "·", cex=4, col="blue")
+```
+
+To add the linear (non-interaction) model to this graph we need to obtain the log odds ratio for this model, which does not depend on `age` (see also page 33 of the lecture pdf):
+
+```{r}
+(logOR.mod2 = coefficients(model2)["LWD1"])
+```
+*Note:* I have used a different function to access the coefficients for a model. You can use the function like this to get the coefficient by name, if you like. 
+
+
+
+The odds ratio is then 
+
+```{r}
+(OR = exp(logOR.mod2))
+```
+
+The variance can be obtained from the variance-caovariance matrix for this model:
+
+```{r}
+VarlogOR.mod2 = vcov(model2)[2, 2]
+```
+
+and the standard error for the log odds ratio is:
+
+```{r}
+sqrt(VarlogOR.mod2)
+```
+
+With these values we are ready to add the non-interaction model to the plot, to get a figure like the one on the last page of the lecture pdf:
+
+```{r, fig.height=7, fig.align='center', fig.width=9}
+<<picture1>>
+points(ageValues, rep(logOR.mod2, length(ageValues)), type = "l", col="black")
+points(ageValues, rep(logOR.mod2, length(ageValues)), pch = "·", cex=4, col="black")
+points(ageValues, rep(logOR.mod2 + qnorm(0.95) * sqrt(VarlogOR.mod2), length(ageValues)), type = "l", col="green")
+points(ageValues, rep(logOR.mod2 + qnorm(0.95) * sqrt(VarlogOR.mod2), length(ageValues)), pch = "·", cex=4, col="green")
+points(ageValues, rep(logOR.mod2 - qnorm(0.95) * sqrt(VarlogOR.mod2), length(ageValues)), pch = "·", cex=4, col="magenta")
+points(ageValues, rep(logOR.mod2 - qnorm(0.95) * sqrt(VarlogOR.mod2), length(ageValues)), type = "l", col="magenta")
+legend("bottom", legend= c("No interaction", "Interaction"),col = c("orange", "black"), bty=1, lwd=3,cex=1)
+```
+
+
+
+
+```{r echo=FALSE, eval=FALSE}
+## Additional references (books and web sites): 
+
+1. https://stat.ethz.ch/pipermail/r-help/2006-October/115258.html
+2. http://www.inside-r.org/packages/cran/epitools/docs/expand.table
+```
