@@ -1,0 +1,151 @@
+---
+title: "Project"
+author: "Dr. B"
+date: "October 7, 2015"
+output: html_document
+---
+
+##Codebook
+
+After a review of the various code books available for the class, I decided to use the Gapminder data set.
+
+##Question
+
+Is there an association between Internet usage and suicide rates?  I will use the variables Internetuserate and suicideper100TH rate in my code book.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# Load functions
+source('C:/Users/bryan_000/Documents/GitHub/MyWork/functions.R')
+library(reshape2)
+library(plyr)
+library(ggplot2) 
+library(dplyr)
+library(corrgram)
+df<-read.csv("D:/Data/EdX/gapminder.csv")
+```
+
+##Literature Review
+
+There is concern that the Internet is playing an increasing role in self-harm and suicide. Internet use may exert both positive and negative effects on young people at risk of self-harm or suicide. The internet has created channels of communication that can be misused to 'cyber-bully' peers; both cyber-bullying and general internet use have been found to correlate with increased risk of self-harm, suicidal idealization, and depression.  Youth who self-harm or are suicidal often make use of the internet. It is most commonly used for constructive reasons such as seeking support and coping strategies, but may exert a negative influence, normalizing self-harm and potentially discouraging disclosure or professional help-seeking. Correlations have been found between internet exposure and violent methods of self-harm.
+
+Baker D, & Fortune S (2008) Understanding self-harm and suicide websites a qualitative interview study of young adult website users. Crisis 29: 118-122.
+
+Daine K, Hawton K, Singaravelu V, Stewart A, Simkin S, Montgomery P (2013) The Power of the Web: A Systematic Review of Studies of the Influence of the Internet on Self-Harm and Suicide in Young People. PLoS ONE 8(10): e77555. doi:10.1371/journal.pone.0077555
+
+Dunlop SM, More E, Romer D (2011) Where do youth learn about suicides on the Internet, and what influence does this have on suicidal ideation? J Child Psychol Psychiatry 52: 1073-1080.
+
+Durkee T, Hadlaczky G, Westerlund M, Carli V (2011) Internet pathways in suicidality: A review of the evidence. IntJEnvironResPublic Health 8: 3938- 3952.
+
+Gould MS, Wallenstein S, Kleinman MH, O'Carroll P, Mercy J (1990) Suicide clusters: an examination of age-specific effects. Am J Public Health 80: 211-212.
+
+Hawton K, Saunders KEA, O'Connor RC (2012) Self-harm and suicide in adolescents. Lancet 379: 2373-2382.
+
+Kim K, Ryu E, Chon MY, Yeun EJ, Choi SY, et al. (2006) Internet addiction in Korean adolescents and its relation to depression and suicidal ideation: A questionnaire survey. Int J Nurs Stud 43: 185-192.
+
+Katsumata Y, Matsumoto T, Kitani M, Takeshima T (2008) Electronic media use and suicidal ideation in Japanese adolescents. Psychiatry Clin Neurosci 62: 744-746.
+
+Madge N, Hawton K, McMahon EM, De Leo D, de Wilde EJ, et al. (2011) Psychological characteristics, stressful life events and deliberate self-harm: findings from the Child & Adolescent Self-harm in Europe (CASE) Study. Eur Child Adolesc Psychiatry 20: 499-508.
+
+O'Connor RC, Rasmussen S, Hawton K (2012) Distinguishing adolescents who think about self-harm from those who engage in self-harm. Br J Psychiatry 200: 330-335.
+
+Patton GC, Coffey C, Sawyer SM, Viner RM, Haller DM, et al. (2009) Global patterns of mortality in young people: a systematic analysis of population health data. Lancet 374: 881-892.
+
+##Hypothesis
+
+There is a positive relationship between Internet usage rates and suicide rates.
+
+##Summary of All Variables
+
+Below are variable names and summaries of all the variables in the data set
+```{r, echo=FALSE}
+colnames(df)
+summary(df)
+```
+
+
+##Data Analysis
+
+###Countries by Internet Use Rates
+
+Top users
+```{r, echo=FALSE}
+chart <- df %>% group_by(country) %>% summarise(Max = max(internetuserate))
+top40 <- chart %>% arrange(desc(Max)) %>% top_n(40)
+top40
+```
+
+Bottom users
+```{r, echo=FALSE}
+bottom40 <- chart %>% arrange(desc(Max)) %>% tail(40)
+bottom40
+```
+
+###Countries by Suicide Rates
+
+Top suicide rates
+```{r, echo=FALSE}
+chart2 <- df %>% group_by(country) %>% summarise(Max = max(suicideper100th))
+top40 <- chart2 %>% arrange(desc(Max)) %>% top_n(40)
+top40
+```
+
+Bottom suicide rates
+```{r, echo=FALSE}
+bottom40 <- chart2 %>% arrange(desc(Max)) %>% tail(40)
+bottom40
+```
+
+###Frequency Distributions
+```{r,echo=FALSE}
+rates = !is.na(df$internetuserate)
+rates2 = df$internetuserate[rates]
+breaks2 = seq(0, 100, by=10)
+rates = !is.na(df$suicideper100th)
+rates3 =df$suicideper100th[rates]
+breaks3 = seq(0, 40, by=5)
+
+rates2.cut = cut(rates2, breaks2, right=FALSE)
+rates3.cut = cut(rates3, breaks3, right=FALSE)
+
+rates2.freq = table(rates2.cut)
+rates3.freq = table(rates3.cut)
+```
+
+Internet Usage Rates (N/A's removed)
+```{r, echo=FALSE}
+cbind(rates2.freq)
+```
+
+Suicide Rates (N/A's removed)
+```{r, echo=FALSE}
+cbind(rates3.freq)
+```
+
+###Visual Displays
+```{r, echo=FALSE}
+colors = c("red", "yellow", "green", "violet", "orange", "blue", "pink", "cyan") 
+hist(rates2,main="Internet Usage Histogram",xlab="Internet Usage Rate", col=colors)
+```
+
+```{r, echo=FALSE}
+hist(rates3,,main="Suicide Rates Histogram",xlab="Suicide Rate per 100", col=colors)
+```
+
+###Assocaition
+
+Regression Model
+```{r,echo=FALSE}
+model=lm(df$suicideper100th~df$internetuserate)
+summary(model)
+```
+
+```{r,echo=FALSE}
+plot(df$internetuserate,df$suicideper100th,main="Scatterplot", xlab="Internet Usage Rate ", ylab="Suicide Rates per 100 ", pch=19)
+```
+
+
+##Conclusion
+There is a weak positive correlation between Internet usage rates and suicide rates.
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
