@@ -22,9 +22,7 @@ us <- ggcounty.us()
 gg <- us$g
 
 # add a new geom with our population (choropleth)
-gg <- gg + geom_map(data=population, map=us$map,
-                    aes(map_id=FIPS, fill=brk), 
-                    color="white", size=0.125)
+gg <- gg + geom_map(data=population, map=us$map,aes(map_id=FIPS, fill=brk),color="white", size=0.125)
 
 # define nice colors
 gg <- gg + scale_fill_manual(values=c("#ffffcc", "#c7e9b4", "#7fcdbb", 
